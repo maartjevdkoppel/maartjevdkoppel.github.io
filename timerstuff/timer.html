@@ -26,21 +26,21 @@
 
     .base-timer__path-elapsed {
       stroke-width: 7px;
-      stroke: rgb(227,7,20);
+      stroke: white;
     }
 
     .base-timer__path-remaining {
       stroke-width: 7px;
+      stroke: rgb(227,7,20);
       stroke-linecap:square;
       transform: scaleX(-1) rotate(90deg);
       transform-origin: center;
       transition: 1s linear all;
       fill-rule: nonzero;
-      stroke: currentColor;
     }
 
     .base-timer__path-remaining.green {
-      color: white;
+      color: rgb(227, 7, 20);
     }
 
     .base-timer__path-remaining.orange {
@@ -48,7 +48,7 @@
     }
 
     .base-timer__path-remaining.red {
-      color: rgb(227,7,20);
+      color: white;
     }
 
     .base-timer__label {
@@ -59,13 +59,32 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 48px;
+      font-size: 72px;
     }
   </style>
 </head>
-<body style="background-color: rgb(227,7,20);">
+<body style="background-color: white;">
 
-<div id="app" style="background-image: url('2v12\ logo\ reverse.jpg'); background-size: 150px; background-repeat: no-repeat; background-position: center;"></div>
+<div id="app"></div>
+
+<div class="base-timer">
+  <svg class="base-timer__svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <g class="base-timer__circle">
+      <circle class="base-timer__path-elapsed" cx="50" cy="50" r="45"></circle>
+      <path
+        id="base-timer-path-remaining"
+        stroke-dasharray="283"
+        class="base-timer__path-remaining ${remainingPathColor}"
+        d="
+          M 50, 50
+          m -45, 0
+          a 45,45 0 1,0 90,0
+          a 45,45 0 1,0 -90,0
+        "
+      ></path>
+    </g>
+  </svg>
+<span id="points" style="font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; font-weight: bold; color: rgb(227, 7, 20);" class="base-timer__label" ></span></div>
 
 </body>
 
@@ -90,12 +109,17 @@ const COLOR_CODES = {
   }
 };
 
-const TIME_LIMIT = 40;
+const TIME_LIMIT = 150;
+const START_POINTS = 120;
+let points_left = START_POINTS;
+let timePassedTwice = 0;
+let half_sec = false;
 let timePassed = 0;
 let timeLeft = TIME_LIMIT;
 let timerInterval = null;
 let remainingPathColor = COLOR_CODES.info.color;
 
+document.getElementById("points").innerHTML = START_POINTS;
 document.getElementById("app").innerHTML = `
 <div class="base-timer">
   <svg class="base-timer__svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -114,7 +138,7 @@ document.getElementById("app").innerHTML = `
       ></path>
     </g>
   </svg>
-  <span id="base-timer-label" class="base-timer__label">${formatTime(
+  <span id="base-timer-label" style="font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; font-weight: bold; color: rgb(227, 7, 20);" class="base-timer__label">${formatTime(
     timeLeft
   )}</span>
 </div>
@@ -128,15 +152,23 @@ function onTimesUp() {
 
 function startTimer() {
   timerInterval = setInterval(() => {
-    timePassed = timePassed += 1;
-    timeLeft = TIME_LIMIT - timePassed;
-    setCircleDasharray();
-    setRemainingPathColor(timeLeft);
-
-    if (timeLeft === 0) {
-      onTimesUp();
+    timePassedTwice = timePassedTwice + 1;
+    if (timePassedTwice % 25 == 0){
+      points_left = points_left - 10
+      document.getElementById("points").innerHTML = points_left;
     }
-  }, 1000);
+    half_sec = !half_sec;
+    if(half_sec){
+      timePassed = timePassed += 1;
+      timeLeft = TIME_LIMIT - timePassed;
+      setCircleDasharray();
+      setRemainingPathColor(timeLeft);
+      document.getElementById("base-timer-label").innerHTML = formatTime(timeLeft);
+      if (timeLeft === 0) {
+        onTimesUp();
+      }
+    }
+  }, 500);
 }
 
 function formatTime(time) {
@@ -147,7 +179,7 @@ function formatTime(time) {
     seconds = `0${seconds}`;
   }
 
-  return "";
+  return minutes + ":" + seconds;
 }
 
 function setRemainingPathColor(timeLeft) {
