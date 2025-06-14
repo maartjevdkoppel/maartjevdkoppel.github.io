@@ -1,11 +1,49 @@
 <!DOCTYPE HTML>
 <html style="height: 99%">
-<head>
+<head><!-- , 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif; -->
+  <style>
+    html {
+      font-family: 'Lucida Sans'; 
+    }
+    #btn__back,
+    #btn__forward {
+      background-color: red;
+      border: 10px solid red;
+      cursor: pointer;
+      position: relative;
+    }
+
+    #btn__back {
+      border-left: none;
+    }
+
+    #btn__forward {
+      border-right: none;
+    }
+
+    #btn__back::before,
+    #btn__forward::before {
+      border: 20px solid transparent;
+      content: "";
+      position: absolute;
+      top: calc(50% - 20px);
+    }
+
+    #btn__back::before {
+      border-right-color: red;
+      left: -38px;
+    }
+
+    #btn__forward::before {
+      border-left-color: red;
+      right: -38px;
+    }
+  </style>
   <meta charset="UTF-8">
   <title>Main</title>
   <script src="main.js"></script>
 </head>
-<body style="height: 99%">
+<body style="height: 100%">
   <div id="2voor12"></div>
   <script>var app = Elm.Main.init({
     node: document.getElementById('2voor12')
