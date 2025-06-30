@@ -3,6 +3,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Svg
 import Svg.Attributes as Svg
+import Time exposing (..)
 
 rows : List (Int, List (Attribute a), List (Html a)) -> List (Html a)
 rows xs = List.intersperse (div [style "clear" "both", style "display" "table"] []) 
@@ -16,3 +17,7 @@ centeringstuff = [style "top" "50%", style "left" "50%", style "position" "relat
 
 svgfullsize = [Svg.width "100%", Svg.height "100%", Svg.viewBox "0 0 100% 100%"]
 
+
+-- even aantal seconden
+evensec : Time.Posix -> Bool
+evensec t = 0 == modBy 2 ((Time.posixToMillis t) // 1000)
