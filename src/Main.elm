@@ -57,11 +57,12 @@ update msg model =
 
     InGame status -> case msg of
       NaarWoordraden -> (Woordraden 
-        { currentTime = status.currentTime
-        , timeTheGameEnds = status.timeTheGameEnds
+        { currentTime = Time.millisToPosix ((Time.posixToMillis status.currentTime) + 1000) 
+        , timeTheGameEnds = Time.millisToPosix ((Time.posixToMillis status.currentTime) + 1000*60*2+1000)
         , punten = status.punten
-        , koopbaar = List.map (getBeginLetter status) [1,2,3,4,5,6,7,8,9,10,11,12]
-        , gekocht = List.repeat 12 NietGeradenFoutGekocht
+        , koopbaar = List.map (naarWoordRaden status) [1,2,3,4,5,6,7,8,9,10,11,12]
+        , gekocht = List.repeat 12 Wit
+        , woord = ""
         }, Cmd.none)
       _ -> case hoofdupdate msg status of
         (status2, cmd2) -> (InGame status2, cmd2)

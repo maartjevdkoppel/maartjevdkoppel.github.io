@@ -21,3 +21,11 @@ svgfullsize = [Svg.width "100%", Svg.height "100%", Svg.viewBox "0 0 100% 100%"]
 -- even aantal seconden
 evensec : Time.Posix -> Bool
 evensec t = 0 == modBy 2 ((Time.posixToMillis t) // 1000)
+
+first : (a,b,c) -> a
+first (a,b,c) = a
+
+index : List a -> Int -> Maybe a
+index l i = case l of
+  [] -> Nothing
+  (a :: b) -> if i == 0 then Just a else index b (i - 1)

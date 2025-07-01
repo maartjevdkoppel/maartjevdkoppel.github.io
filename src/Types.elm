@@ -10,4 +10,6 @@ type Msg
   | PreviousQ
   | NextQ
   | NaarWoordraden
+  | LetterKopen Int
+  | Submit12
 

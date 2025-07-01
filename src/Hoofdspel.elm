@@ -17,7 +17,8 @@ type alias HoofdStatus =
   { currentTime : Time.Posix
   , timeTheGameEnds : Time.Posix
   , questions : Dict.Dict Int String
-  , answers : Dict.Dict Int String
+  , gegevenantwoorden : Dict.Dict Int String
+  , juistantwoorden : Dict.Dict Int (String, Int) -- (antwoord, index als gekocht)
   , questionNumber : Int
   , lastQuestion : Int
   , searching : Bool
@@ -28,10 +29,11 @@ type alias HoofdStatus =
 -- update
 
 startgame : Time.Posix -> HoofdStatus
-startgame now = { currentTime=now
-                , timeTheGameEnds=Time.millisToPosix (Time.posixToMillis now + 12*60*1000)
+startgame now = { currentTime= Time.millisToPosix ((Time.posixToMillis now) + 1000) 
+                , timeTheGameEnds=Time.millisToPosix (Time.posixToMillis now + 12*60*1000+1000)
                 , questions = Dict.fromList ((1, "Humpty Dumpty had a great fall. Who could put him back together again?") :: List.map (\i -> (i,"vraag "++String.fromInt i)) [2,3,4,5,6,7,8,9,10,11,12])
-                , answers = Dict.empty
+                , gegevenantwoorden = Dict.empty
+                , juistantwoorden = Dict.fromList [(1, ("Niemand", 3))]
                 , questionNumber = 1
                 , lastQuestion = 1
                 , searching = False
@@ -52,11 +54,13 @@ hoofdupdate msg status =
           , Cmd.none
           )
         StartStopWiki -> ({ status | searching = not status.searching, searched = Set.insert status.questionNumber status.searched}, Cmd.none)
-        Answer answer -> ({ status | answers = Dict.insert status.questionNumber answer status.answers}, Cmd.none)
+        Answer answer -> ({ status | gegevenantwoorden = Dict.insert status.questionNumber answer status.gegevenantwoorden}, Cmd.none)
         PreviousQ -> ({status | questionNumber = status.questionNumber - 1}, Cmd.none)
         NextQ     -> ({status | questionNumber = status.questionNumber + 1
                                      , lastQuestion = max status.lastQuestion (status.questionNumber + 1)}, Cmd.none)
         NaarWoordraden -> (status, Cmd.none)
+        LetterKopen i -> (status, Cmd.none)
+        Submit12 -> (status, Cmd.none)
 
 
 -- view
@@ -70,29 +74,14 @@ viewGame status =
                     , (70, wiki status)
                     ])
         , (15, [style "background-color" "rgba(237, 230, 214, 0.9)", style "font-weight" "bolder"], cols
-                    [ (10, [klok status])
-                    , (70, [letterbalk status])
+                    [ (10, [klok (Time.posixToMillis status.timeTheGameEnds - Time.posixToMillis status.currentTime)])
+                    , (80, [letterbalk status])
                     , (10, [punten status.punten])
                     ])
         ])
 
-klok : HoofdStatus -> Html Msg
-klok status = 
-  let millisdiff =  Time.posixToMillis status.timeTheGameEnds - Time.posixToMillis status.currentTime 
-      second = modBy 60 (millisdiff // 1000)
-      secondstr = if second > 9 then String.fromInt second else "0"++String.fromInt second
-      minute = (millisdiff // 1000) // 60
-      minutestr = if minute > 9 then String.fromInt minute else "0"++String.fromInt minute
-  in Svg.svg svgfullsize
-             [ Svg.rect [Svg.x "0", Svg.y "0", Svg.width "calc(100% - 7.5cqh)", Svg.height "100%", Svg.fill "rgb(227, 7, 20)"] []
-             , Svg.circle [Svg.cx "calc(100% - 7.5cqh)", Svg.cy "50%", Svg.r "7.5cqh", Svg.fill "rgb(227, 7, 20)"] []
-             , Svg.circle [Svg.cx "calc(100% - 7.5cqh)", Svg.cy "50%", Svg.r "6.5cqh", Svg.stroke "#ffffff", Svg.strokeWidth "0.7cqh", Svg.fill "none"] []
-             , Svg.foreignObject [Svg.x "calc(100% - 15cqh)", Svg.y "0", Svg.width "15cqh", Svg.height "100%"] 
-                                 [div ([style "color" "white", style "text-align" "center", style "font-size" "3.8cqh"]++centeringstuff) 
-                                       [text (minutestr ++ ":" ++ secondstr)]]]
-
 letterbalk : HoofdStatus -> Html Msg
-letterbalk status = letters (Just status.lastQuestion) (List.map (getBeginLetter status) [1,2,3,4,5,6,7,8,9,10,11,12])
+letterbalk status = letters (Just status.lastQuestion) (List.map (getBeginLetter status) [1,2,3,4,5,6,7,8,9,10,11,12]) Nothing
 -- letters : HoofdStatus -> Html Msg
 -- letters status = --div [] []
 --   table [style "scale" "200%", style "position" "absolute", style "left" "50%", style "top" "87.5%", style "transform" "translate(-25%, -15%)" -- centering the whole thing
@@ -106,23 +95,23 @@ letterbalk status = letters (Just status.lastQuestion) (List.map (getBeginLetter
 --         , tr [] (List.intersperse (td [] []) (List.map (\i -> td [style "font-size" "1.2cqh", style "color" (if i>status.lastQuestion then "black" else "rgb(227, 7, 20)")] [text (String.fromInt i)]) [1,2,3,4,5,6,7,8,9,10,11,12]))]
 
 getBeginLetter : HoofdStatus -> Int -> Letter
-getBeginLetter status i = case Maybe.map (String.toUpper << String.slice 0 1) (Dict.get i status.answers) of
-  Nothing -> NietGeradenFoutGekocht
+getBeginLetter status i = case Dict.get i status.gegevenantwoorden of
+  Nothing -> if i > status.lastQuestion || Set.member i status.searched then Wit else Paars
   Just letter -> if Set.member i status.searched then Opgezocht letter else UitHetHoofd letter
 
-punten : Int -> Html Msg
-punten x =
-  Svg.svg (svgfullsize ++ [style "opacity" "100%"])
-          [ Svg.rect [Svg.x "7.5cqh", Svg.y "0", Svg.width "calc(100% - 7.5cqh)", Svg.height "100%", Svg.fill "rgb(227, 7, 20)"] []
-          , Svg.circle [Svg.cx "7.5cqh", Svg.cy "50%", Svg.r "7.5cqh", Svg.fill "rgb(227, 7, 20)"] []
-          , Svg.circle [Svg.cx "7.5cqh", Svg.cy "50%", Svg.r "6.5cqh", Svg.stroke "#ffffff", Svg.strokeWidth "0.7cqh", Svg.fill "none"] []
-          , Svg.foreignObject [Svg.x "0", Svg.y "0", Svg.width "15cqh", Svg.height "100%"] [div ([style "color" "white", style "text-align" "center", style "font-size" "3.8cqh"]++centeringstuff) [text (String.fromInt x)]]]
+naarWoordRaden : HoofdStatus -> Int -> (Letter, Int, Bool)
+naarWoordRaden status i = case Dict.get i status.gegevenantwoorden of
+  Nothing -> (Streepje, Maybe.withDefault 0 (Maybe.map Tuple.second (Dict.get i status.juistantwoorden)), False)
+  Just gegevenantwoord -> case Dict.get i status.juistantwoorden of
+    Nothing -> (Vraagteken,0,False) -- juiste antwoord onbekend
+    Just (antwoord, index) -> (if Set.member i status.searched then Opgezocht gegevenantwoord else UitHetHoofd gegevenantwoord, index, gegevenantwoord == antwoord)
 
 wiki : HoofdStatus -> List (Html Msg)
 wiki status = rows 
-  [ (10, [], [ button ([onClick StartStopWiki,  style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) [text "\u{00A0}Dat zoeken we op!\u{00A0}"]--TODO: belletje om te stoppen met zoeken
-             , button ([onClick NaarWoordraden, style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) [text "\u{00A0}Beginnen met het woord\u{00A0}"]
-             ])
+  [ (10, [], rows
+      [ (30, [style "height" "100%"], [button ([onClick StartStopWiki,  style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) [text "\u{00A0}Dat zoeken we op!\u{00A0}"]])--TODO: belletje om te stoppen met zoeken
+      , (30, [style "height" "100%"], [button ([onClick NaarWoordraden, style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) [text "\u{00A0}Beginnen met het woord\u{00A0}"]])
+      ])
   , (85, [], cols
     [ (5, [])
     , (90, if status.searching 
@@ -159,7 +148,7 @@ vraagbox status = rows
                   [ (5, [])
                   , (90, [p [style "width" "95%"] [text (Maybe.withDefault ("error: geen vraag " ++ String.fromInt status.questionNumber) (Dict.get status.questionNumber status.questions))]])
                   ])
-                , (15, [], [input (centeringstuff ++ [style "height" "100%", style "width" "60%", style "font-size" "3cqh", style "padding" "0cqh 2cqh", placeholder "antwoord", value (Maybe.withDefault "" (Dict.get status.questionNumber status.answers)), onInput Answer]) []])
+                , (15, [], [input (centeringstuff ++ [style "height" "100%", style "width" "60%", style "font-size" "3cqh", style "padding" "0cqh 2cqh", placeholder "antwoord", value (Maybe.withDefault "" (Dict.get status.questionNumber status.gegevenantwoorden)), onInput Answer]) []])
                 , (5, [], [])
                 , (10, [], [div centeringstuff []]) 
                 ])]])

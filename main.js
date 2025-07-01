@@ -5638,57 +5638,10 @@ var $author$project$Main$subscriptions = function (_v0) {
 var $author$project$Main$InGame = function (a) {
 	return {$: 'InGame', a: a};
 };
-var $author$project$Letters$NietGeradenFoutGekocht = {$: 'NietGeradenFoutGekocht'};
+var $author$project$Letters$Wit = {$: 'Wit'};
 var $author$project$Main$Woordraden = function (a) {
 	return {$: 'Woordraden', a: a};
 };
-var $author$project$Letters$Opgezocht = function (a) {
-	return {$: 'Opgezocht', a: a};
-};
-var $author$project$Letters$UitHetHoofd = function (a) {
-	return {$: 'UitHetHoofd', a: a};
-};
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
-var $elm$core$Dict$member = F2(
-	function (key, dict) {
-		var _v0 = A2($elm$core$Dict$get, key, dict);
-		if (_v0.$ === 'Just') {
-			return true;
-		} else {
-			return false;
-		}
-	});
-var $elm$core$Set$member = F2(
-	function (key, _v0) {
-		var dict = _v0.a;
-		return A2($elm$core$Dict$member, key, dict);
-	});
-var $elm$core$String$toUpper = _String_toUpper;
-var $author$project$Hoofdspel$getBeginLetter = F2(
-	function (status, i) {
-		var _v0 = A2(
-			$elm$core$Maybe$map,
-			A2(
-				$elm$core$Basics$composeL,
-				$elm$core$String$toUpper,
-				A2($elm$core$String$slice, 0, 1)),
-			A2($elm$core$Dict$get, i, status.answers));
-		if (_v0.$ === 'Nothing') {
-			return $author$project$Letters$NietGeradenFoutGekocht;
-		} else {
-			var letter = _v0.a;
-			return A2($elm$core$Set$member, i, status.searched) ? $author$project$Letters$Opgezocht(letter) : $author$project$Letters$UitHetHoofd(letter);
-		}
-	});
 var $elm$core$Basics$modBy = _Basics_modBy;
 var $elm$time$Time$posixToMillis = function (_v0) {
 	var millis = _v0.a;
@@ -5749,7 +5702,7 @@ var $author$project$Hoofdspel$hoofdupdate = F2(
 					_Utils_update(
 						status,
 						{
-							answers: A3($elm$core$Dict$insert, status.questionNumber, answer, status.answers)
+							gegevenantwoorden: A3($elm$core$Dict$insert, status.questionNumber, answer, status.gegevenantwoorden)
 						}),
 					$elm$core$Platform$Cmd$none);
 			case 'PreviousQ':
@@ -5767,8 +5720,88 @@ var $author$project$Hoofdspel$hoofdupdate = F2(
 							questionNumber: status.questionNumber + 1
 						}),
 					$elm$core$Platform$Cmd$none);
+			case 'NaarWoordraden':
+				return _Utils_Tuple2(status, $elm$core$Platform$Cmd$none);
+			case 'LetterKopen':
+				var i = msg.a;
+				return _Utils_Tuple2(status, $elm$core$Platform$Cmd$none);
 			default:
 				return _Utils_Tuple2(status, $elm$core$Platform$Cmd$none);
+		}
+	});
+var $author$project$Letters$Opgezocht = function (a) {
+	return {$: 'Opgezocht', a: a};
+};
+var $author$project$Letters$Streepje = {$: 'Streepje'};
+var $author$project$Letters$UitHetHoofd = function (a) {
+	return {$: 'UitHetHoofd', a: a};
+};
+var $author$project$Letters$Vraagteken = {$: 'Vraagteken'};
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm$core$Dict$member = F2(
+	function (key, dict) {
+		var _v0 = A2($elm$core$Dict$get, key, dict);
+		if (_v0.$ === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var $elm$core$Set$member = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return A2($elm$core$Dict$member, key, dict);
+	});
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var $author$project$Hoofdspel$naarWoordRaden = F2(
+	function (status, i) {
+		var _v0 = A2($elm$core$Dict$get, i, status.gegevenantwoorden);
+		if (_v0.$ === 'Nothing') {
+			return _Utils_Tuple3(
+				$author$project$Letters$Streepje,
+				A2(
+					$elm$core$Maybe$withDefault,
+					0,
+					A2(
+						$elm$core$Maybe$map,
+						$elm$core$Tuple$second,
+						A2($elm$core$Dict$get, i, status.juistantwoorden))),
+				false);
+		} else {
+			var gegevenantwoord = _v0.a;
+			var _v1 = A2($elm$core$Dict$get, i, status.juistantwoorden);
+			if (_v1.$ === 'Nothing') {
+				return _Utils_Tuple3($author$project$Letters$Vraagteken, 0, false);
+			} else {
+				var _v2 = _v1.a;
+				var antwoord = _v2.a;
+				var index = _v2.b;
+				return _Utils_Tuple3(
+					A2($elm$core$Set$member, i, status.searched) ? $author$project$Letters$Opgezocht(gegevenantwoord) : $author$project$Letters$UitHetHoofd(gegevenantwoord),
+					index,
+					_Utils_eq(gegevenantwoord, antwoord));
+			}
 		}
 	});
 var $elm$core$List$repeatHelp = F3(
@@ -5807,8 +5840,16 @@ var $elm$core$Dict$fromList = function (assocs) {
 };
 var $author$project$Hoofdspel$startgame = function (now) {
 	return {
-		answers: $elm$core$Dict$empty,
-		currentTime: now,
+		currentTime: $elm$time$Time$millisToPosix(
+			$elm$time$Time$posixToMillis(now) + 1000),
+		gegevenantwoorden: $elm$core$Dict$empty,
+		juistantwoorden: $elm$core$Dict$fromList(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					1,
+					_Utils_Tuple2('Niemand', 3))
+				])),
 		lastQuestion: 1,
 		punten: 500,
 		questionNumber: 1,
@@ -5828,12 +5869,298 @@ var $author$project$Hoofdspel$startgame = function (now) {
 		searched: $elm$core$Set$empty,
 		searching: false,
 		timeTheGameEnds: $elm$time$Time$millisToPosix(
-			$elm$time$Time$posixToMillis(now) + ((12 * 60) * 1000))
+			($elm$time$Time$posixToMillis(now) + ((12 * 60) * 1000)) + 1000)
 	};
 };
+var $author$project$Letters$Paars = {$: 'Paars'};
+var $author$project$Utils$index = F2(
+	function (l, i) {
+		index:
+		while (true) {
+			if (!l.b) {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var a = l.a;
+				var b = l.b;
+				if (!i) {
+					return $elm$core$Maybe$Just(a);
+				} else {
+					var $temp$l = b,
+						$temp$i = i - 1;
+					l = $temp$l;
+					i = $temp$i;
+					continue index;
+				}
+			}
+		}
+	});
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
+var $elm$core$List$takeReverse = F3(
+	function (n, list, kept) {
+		takeReverse:
+		while (true) {
+			if (n <= 0) {
+				return kept;
+			} else {
+				if (!list.b) {
+					return kept;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs,
+						$temp$kept = A2($elm$core$List$cons, x, kept);
+					n = $temp$n;
+					list = $temp$list;
+					kept = $temp$kept;
+					continue takeReverse;
+				}
+			}
+		}
+	});
+var $elm$core$List$takeTailRec = F2(
+	function (n, list) {
+		return $elm$core$List$reverse(
+			A3($elm$core$List$takeReverse, n, list, _List_Nil));
+	});
+var $elm$core$List$takeFast = F3(
+	function (ctr, n, list) {
+		if (n <= 0) {
+			return _List_Nil;
+		} else {
+			var _v0 = _Utils_Tuple2(n, list);
+			_v0$1:
+			while (true) {
+				_v0$5:
+				while (true) {
+					if (!_v0.b.b) {
+						return list;
+					} else {
+						if (_v0.b.b.b) {
+							switch (_v0.a) {
+								case 1:
+									break _v0$1;
+								case 2:
+									var _v2 = _v0.b;
+									var x = _v2.a;
+									var _v3 = _v2.b;
+									var y = _v3.a;
+									return _List_fromArray(
+										[x, y]);
+								case 3:
+									if (_v0.b.b.b.b) {
+										var _v4 = _v0.b;
+										var x = _v4.a;
+										var _v5 = _v4.b;
+										var y = _v5.a;
+										var _v6 = _v5.b;
+										var z = _v6.a;
+										return _List_fromArray(
+											[x, y, z]);
+									} else {
+										break _v0$5;
+									}
+								default:
+									if (_v0.b.b.b.b && _v0.b.b.b.b.b) {
+										var _v7 = _v0.b;
+										var x = _v7.a;
+										var _v8 = _v7.b;
+										var y = _v8.a;
+										var _v9 = _v8.b;
+										var z = _v9.a;
+										var _v10 = _v9.b;
+										var w = _v10.a;
+										var tl = _v10.b;
+										return (ctr > 1000) ? A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A2($elm$core$List$takeTailRec, n - 4, tl))))) : A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A3($elm$core$List$takeFast, ctr + 1, n - 4, tl)))));
+									} else {
+										break _v0$5;
+									}
+							}
+						} else {
+							if (_v0.a === 1) {
+								break _v0$1;
+							} else {
+								break _v0$5;
+							}
+						}
+					}
+				}
+				return list;
+			}
+			var _v1 = _v0.b;
+			var x = _v1.a;
+			return _List_fromArray(
+				[x]);
+		}
+	});
+var $elm$core$List$take = F2(
+	function (n, list) {
+		return A3($elm$core$List$takeFast, 0, n, list);
+	});
+var $elm_community$list_extra$List$Extra$updateAt = F3(
+	function (index, fn, list) {
+		if (index < 0) {
+			return list;
+		} else {
+			var tail = A2($elm$core$List$drop, index, list);
+			if (tail.b) {
+				var x = tail.a;
+				var xs = tail.b;
+				return _Utils_ap(
+					A2($elm$core$List$take, index, list),
+					A2(
+						$elm$core$List$cons,
+						fn(x),
+						xs));
+			} else {
+				return list;
+			}
+		}
+	});
 var $author$project$Woordraden$woordupdate = F2(
 	function (msg, status) {
-		return status;
+		switch (msg.$) {
+			case 'Tick':
+				var newtime = msg.a;
+				return _Utils_update(
+					status,
+					{currentTime: newtime});
+			case 'LetterKopen':
+				var j = msg.a;
+				var i = j - 1;
+				var _v1 = A2($author$project$Utils$index, status.koopbaar, i);
+				if (_v1.$ === 'Nothing') {
+					return status;
+				} else {
+					var _v2 = _v1.a;
+					var letter = _v2.a;
+					var target = _v2.b;
+					var correct = _v2.c;
+					switch (letter.$) {
+						case 'Wit':
+							return status;
+						case 'Paars':
+							return status;
+						case 'Vraagteken':
+							return status;
+						case 'Streepje':
+							return status;
+						default:
+							return _Utils_eq(i, -1) ? status : _Utils_update(
+								status,
+								{
+									gekocht: A3(
+										$elm_community$list_extra$List$Extra$updateAt,
+										target,
+										function (old) {
+											if (old.$ === 'Wit') {
+												if (correct) {
+													switch (letter.$) {
+														case 'Opgezocht':
+															var str = letter.a;
+															return $author$project$Letters$Opgezocht(str);
+														case 'UitHetHoofd':
+															var str = letter.a;
+															return $author$project$Letters$Opgezocht(str);
+														default:
+															return $author$project$Letters$Vraagteken;
+													}
+												} else {
+													return $author$project$Letters$Vraagteken;
+												}
+											} else {
+												return old;
+											}
+										},
+										status.gekocht),
+									koopbaar: A3(
+										$elm_community$list_extra$List$Extra$updateAt,
+										i,
+										function (_v6) {
+											return _Utils_Tuple3(
+												function () {
+													switch (letter.$) {
+														case 'Opgezocht':
+															return $author$project$Letters$Wit;
+														case 'UitHetHoofd':
+															return $author$project$Letters$Paars;
+														default:
+															return $author$project$Letters$Vraagteken;
+													}
+												}(),
+												0,
+												false);
+										},
+										status.koopbaar),
+									punten: status.punten - 10
+								});
+					}
+				}
+			case 'Submit12':
+				return status;
+			case 'Answer':
+				var answer = msg.a;
+				return _Utils_update(
+					status,
+					{woord: answer});
+			case 'StartGame':
+				return status;
+			case 'StartStopWiki':
+				return status;
+			case 'PreviousQ':
+				return status;
+			case 'NextQ':
+				return status;
+			default:
+				return status;
+		}
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
@@ -5860,15 +6187,18 @@ var $author$project$Main$update = F2(
 					return _Utils_Tuple2(
 						$author$project$Main$Woordraden(
 							{
-								currentTime: status.currentTime,
-								gekocht: A2($elm$core$List$repeat, 12, $author$project$Letters$NietGeradenFoutGekocht),
+								currentTime: $elm$time$Time$millisToPosix(
+									$elm$time$Time$posixToMillis(status.currentTime) + 1000),
+								gekocht: A2($elm$core$List$repeat, 12, $author$project$Letters$Wit),
 								koopbaar: A2(
 									$elm$core$List$map,
-									$author$project$Hoofdspel$getBeginLetter(status),
+									$author$project$Hoofdspel$naarWoordRaden(status),
 									_List_fromArray(
 										[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])),
 								punten: status.punten,
-								timeTheGameEnds: status.timeTheGameEnds
+								timeTheGameEnds: $elm$time$Time$millisToPosix(
+									($elm$time$Time$posixToMillis(status.currentTime) + ((1000 * 60) * 2)) + 1000),
+								woord: ''
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
@@ -5971,12 +6301,11 @@ var $author$project$Utils$svgfullsize = _List_fromArray(
 	]);
 var $elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
 var $elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
-var $author$project$Hoofdspel$klok = function (status) {
-	var millisdiff = $elm$time$Time$posixToMillis(status.timeTheGameEnds) - $elm$time$Time$posixToMillis(status.currentTime);
-	var minute = (((millisdiff / 1000) | 0) / 60) | 0;
-	var minutestr = (minute > 9) ? $elm$core$String$fromInt(minute) : ('0' + $elm$core$String$fromInt(minute));
+var $author$project$Letters$klok = function (millisdiff) {
 	var second = A2($elm$core$Basics$modBy, 60, (millisdiff / 1000) | 0);
 	var secondstr = (second > 9) ? $elm$core$String$fromInt(second) : ('0' + $elm$core$String$fromInt(second));
+	var minute = (((millisdiff / 1000) | 0) / 60) | 0;
+	var minutestr = (minute > 9) ? $elm$core$String$fromInt(minute) : ('0' + $elm$core$String$fromInt(minute));
 	return A2(
 		$elm$svg$Svg$svg,
 		$author$project$Utils$svgfullsize,
@@ -6043,6 +6372,16 @@ var $author$project$Hoofdspel$klok = function (status) {
 					]))
 			]));
 };
+var $author$project$Hoofdspel$getBeginLetter = F2(
+	function (status, i) {
+		var _v0 = A2($elm$core$Dict$get, i, status.gegevenantwoorden);
+		if (_v0.$ === 'Nothing') {
+			return ((_Utils_cmp(i, status.lastQuestion) > 0) || A2($elm$core$Set$member, i, status.searched)) ? $author$project$Letters$Wit : $author$project$Letters$Paars;
+		} else {
+			var letter = _v0.a;
+			return A2($elm$core$Set$member, i, status.searched) ? $author$project$Letters$Opgezocht(letter) : $author$project$Letters$UitHetHoofd(letter);
+		}
+	});
 var $elm$core$List$intersperse = F2(
 	function (sep, xs) {
 		if (!xs.b) {
@@ -6064,9 +6403,15 @@ var $elm$core$List$intersperse = F2(
 var $elm$html$Html$table = _VirtualDom_node('table');
 var $elm$html$Html$td = _VirtualDom_node('td');
 var $elm$html$Html$th = _VirtualDom_node('th');
+var $elm$core$String$toUpper = _String_toUpper;
 var $elm$html$Html$tr = _VirtualDom_node('tr');
-var $author$project$Letters$letters = F2(
-	function (lastQuestion, ls) {
+var $elm$core$Tuple$pair = F2(
+	function (a, b) {
+		return _Utils_Tuple2(a, b);
+	});
+var $elm_community$list_extra$List$Extra$zip = $elm$core$List$map2($elm$core$Tuple$pair);
+var $author$project$Letters$letters = F3(
+	function (lastQuestion, ls, onclick) {
 		return A2(
 			$elm$html$Html$table,
 			_List_fromArray(
@@ -6076,8 +6421,7 @@ var $author$project$Letters$letters = F2(
 					A2($elm$html$Html$Attributes$style, 'left', '50%'),
 					A2($elm$html$Html$Attributes$style, 'top', '50%'),
 					A2($elm$html$Html$Attributes$style, 'transform', 'translate(-25%, -15%)'),
-					A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-					A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder')
+					A2($elm$html$Html$Attributes$style, 'text-align', 'center')
 				]),
 			A2(
 				$elm$core$List$cons,
@@ -6096,7 +6440,9 @@ var $author$project$Letters$letters = F2(
 							_List_Nil),
 						A2(
 							$elm$core$List$map,
-							function (l) {
+							function (_v0) {
+								var i = _v0.a;
+								var l = _v0.b;
 								var styles = _List_fromArray(
 									[
 										A2($elm$html$Html$Attributes$style, 'background-size', '100% 100%'),
@@ -6105,15 +6451,19 @@ var $author$project$Letters$letters = F2(
 										A2($elm$html$Html$Attributes$style, 'height', '4cqh'),
 										A2($elm$html$Html$Attributes$style, 'width', '3cqh')
 									]);
+								var event = function () {
+									if (onclick.$ === 'Nothing') {
+										return _List_Nil;
+									} else {
+										var f = onclick.a;
+										return _List_fromArray(
+											[
+												$elm$html$Html$Events$onClick(
+												f(i))
+											]);
+									}
+								}();
 								switch (l.$) {
-									case 'NietGeradenFoutGekocht':
-										return A2(
-											$elm$html$Html$th,
-											A2(
-												$elm$core$List$cons,
-												A2($elm$html$Html$Attributes$style, 'background-color', 'white'),
-												styles),
-											_List_Nil);
 									case 'Opgezocht':
 										var letter = l.a;
 										return A2(
@@ -6124,9 +6474,19 @@ var $author$project$Letters$letters = F2(
 												styles),
 											_List_fromArray(
 												[
-													$elm$html$Html$text(letter)
+													A2(
+													$elm$html$Html$div,
+													event,
+													_List_fromArray(
+														[
+															$elm$html$Html$text(
+															A2(
+																$elm$core$Basics$composeL,
+																$elm$core$String$toUpper,
+																A2($elm$core$String$slice, 0, 1))(letter))
+														]))
 												]));
-									default:
+									case 'UitHetHoofd':
 										var letter = l.a;
 										return A2(
 											$elm$html$Html$th,
@@ -6136,11 +6496,66 @@ var $author$project$Letters$letters = F2(
 												styles),
 											_List_fromArray(
 												[
-													$elm$html$Html$text(letter)
+													A2(
+													$elm$html$Html$div,
+													event,
+													_List_fromArray(
+														[
+															$elm$html$Html$text(
+															A2(
+																$elm$core$Basics$composeL,
+																$elm$core$String$toUpper,
+																A2($elm$core$String$slice, 0, 1))(letter))
+														]))
+												]));
+									case 'Paars':
+										return A2(
+											$elm$html$Html$th,
+											A2(
+												$elm$core$List$cons,
+												A2($elm$html$Html$Attributes$style, 'background-image', 'url(\'images/uithethoofd.jpg\')'),
+												styles),
+											_List_Nil);
+									case 'Wit':
+										return A2(
+											$elm$html$Html$th,
+											A2(
+												$elm$core$List$cons,
+												A2($elm$html$Html$Attributes$style, 'background-color', 'white'),
+												styles),
+											_List_Nil);
+									case 'Vraagteken':
+										return A2(
+											$elm$html$Html$th,
+											A2(
+												$elm$core$List$cons,
+												A2($elm$html$Html$Attributes$style, 'background-color', 'white'),
+												styles),
+											_List_fromArray(
+												[
+													$elm$html$Html$text('?')
+												]));
+									default:
+										return A2(
+											$elm$html$Html$th,
+											A2(
+												$elm$core$List$cons,
+												A2($elm$html$Html$Attributes$style, 'background-color', 'black'),
+												A2(
+													$elm$core$List$cons,
+													A2($elm$html$Html$Attributes$style, 'color', 'white'),
+													styles)),
+											_List_fromArray(
+												[
+													$elm$html$Html$text('-')
 												]));
 								}
 							},
-							ls))),
+							A2(
+								$elm_community$list_extra$List$Extra$zip,
+								_List_fromArray(
+									[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),
+								ls)))),
 				function () {
 					if (lastQuestion.$ === 'Nothing') {
 						return _List_Nil;
@@ -6180,16 +6595,17 @@ var $author$project$Letters$letters = F2(
 				}()));
 	});
 var $author$project$Hoofdspel$letterbalk = function (status) {
-	return A2(
+	return A3(
 		$author$project$Letters$letters,
 		$elm$core$Maybe$Just(status.lastQuestion),
 		A2(
 			$elm$core$List$map,
 			$author$project$Hoofdspel$getBeginLetter(status),
 			_List_fromArray(
-				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])));
+				[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12])),
+		$elm$core$Maybe$Nothing);
 };
-var $author$project$Hoofdspel$punten = function (x) {
+var $author$project$Letters$punten = function (x) {
 	return A2(
 		$elm$svg$Svg$svg,
 		_Utils_ap(
@@ -6342,15 +6758,6 @@ var $elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
 var $elm$svg$Svg$Attributes$xlinkHref = function (value) {
 	return A3(
 		_VirtualDom_attributeNS,
@@ -6549,7 +6956,7 @@ var $author$project$Hoofdspel$vraagbox = function (status) {
 																			A2(
 																				$elm$core$Maybe$withDefault,
 																				'',
-																				A2($elm$core$Dict$get, status.questionNumber, status.answers))),
+																				A2($elm$core$Dict$get, status.questionNumber, status.gegevenantwoorden))),
 																			$elm$html$Html$Events$onInput($author$project$Types$Answer)
 																		])),
 																_List_Nil)
@@ -6585,49 +6992,68 @@ var $author$project$Hoofdspel$wiki = function (status) {
 				_Utils_Tuple3(
 				10,
 				_List_Nil,
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$button,
-						_Utils_ap(
+				$author$project$Utils$rows(
+					_List_fromArray(
+						[
+							_Utils_Tuple3(
+							30,
 							_List_fromArray(
 								[
-									$elm$html$Html$Events$onClick($author$project$Types$StartStopWiki),
-									A2($elm$html$Html$Attributes$style, 'height', '70%'),
-									A2($elm$html$Html$Attributes$style, 'background-color', 'rgb(227, 7, 20)'),
-									A2($elm$html$Html$Attributes$style, 'color', 'white'),
-									A2($elm$html$Html$Attributes$style, 'border', 'none'),
-									A2($elm$html$Html$Attributes$style, 'border-radius', '1cqh'),
-									A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
-									A2($elm$html$Html$Attributes$style, 'font-family', 'Lucida Sans'),
-									A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
+									A2($elm$html$Html$Attributes$style, 'height', '100%')
 								]),
-							$author$project$Utils$centeringstuff),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('\u00A0Dat zoeken we op!\u00A0')
-							])),
-						A2(
-						$elm$html$Html$button,
-						_Utils_ap(
 							_List_fromArray(
 								[
-									$elm$html$Html$Events$onClick($author$project$Types$NaarWoordraden),
-									A2($elm$html$Html$Attributes$style, 'height', '70%'),
-									A2($elm$html$Html$Attributes$style, 'background-color', 'rgb(227, 7, 20)'),
-									A2($elm$html$Html$Attributes$style, 'color', 'white'),
-									A2($elm$html$Html$Attributes$style, 'border', 'none'),
-									A2($elm$html$Html$Attributes$style, 'border-radius', '1cqh'),
-									A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
-									A2($elm$html$Html$Attributes$style, 'font-family', 'Lucida Sans'),
-									A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
+									A2(
+									$elm$html$Html$button,
+									_Utils_ap(
+										_List_fromArray(
+											[
+												$elm$html$Html$Events$onClick($author$project$Types$StartStopWiki),
+												A2($elm$html$Html$Attributes$style, 'height', '70%'),
+												A2($elm$html$Html$Attributes$style, 'background-color', 'rgb(227, 7, 20)'),
+												A2($elm$html$Html$Attributes$style, 'color', 'white'),
+												A2($elm$html$Html$Attributes$style, 'border', 'none'),
+												A2($elm$html$Html$Attributes$style, 'border-radius', '1cqh'),
+												A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
+												A2($elm$html$Html$Attributes$style, 'font-family', 'Lucida Sans'),
+												A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
+											]),
+										$author$project$Utils$centeringstuff),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('\u00A0Dat zoeken we op!\u00A0')
+										]))
+								])),
+							_Utils_Tuple3(
+							30,
+							_List_fromArray(
+								[
+									A2($elm$html$Html$Attributes$style, 'height', '100%')
 								]),
-							$author$project$Utils$centeringstuff),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('\u00A0Beginnen met het woord\u00A0')
-							]))
-					])),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$button,
+									_Utils_ap(
+										_List_fromArray(
+											[
+												$elm$html$Html$Events$onClick($author$project$Types$NaarWoordraden),
+												A2($elm$html$Html$Attributes$style, 'height', '70%'),
+												A2($elm$html$Html$Attributes$style, 'background-color', 'rgb(227, 7, 20)'),
+												A2($elm$html$Html$Attributes$style, 'color', 'white'),
+												A2($elm$html$Html$Attributes$style, 'border', 'none'),
+												A2($elm$html$Html$Attributes$style, 'border-radius', '1cqh'),
+												A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
+												A2($elm$html$Html$Attributes$style, 'font-family', 'Lucida Sans'),
+												A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
+											]),
+										$author$project$Utils$centeringstuff),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('\u00A0Beginnen met het woord\u00A0')
+										]))
+								]))
+						]))),
 				_Utils_Tuple3(
 				85,
 				_List_Nil,
@@ -6714,10 +7140,11 @@ var $author$project$Hoofdspel$viewGame = function (status) {
 								10,
 								_List_fromArray(
 									[
-										$author$project$Hoofdspel$klok(status)
+										$author$project$Letters$klok(
+										$elm$time$Time$posixToMillis(status.timeTheGameEnds) - $elm$time$Time$posixToMillis(status.currentTime))
 									])),
 								_Utils_Tuple2(
-								70,
+								80,
 								_List_fromArray(
 									[
 										$author$project$Hoofdspel$letterbalk(status)
@@ -6726,10 +7153,20 @@ var $author$project$Hoofdspel$viewGame = function (status) {
 								10,
 								_List_fromArray(
 									[
-										$author$project$Hoofdspel$punten(status.punten)
+										$author$project$Letters$punten(status.punten)
 									]))
 							])))
 				])));
+};
+var $author$project$Types$LetterKopen = function (a) {
+	return {$: 'LetterKopen', a: a};
+};
+var $author$project$Types$Submit12 = {$: 'Submit12'};
+var $author$project$Utils$first = function (_v0) {
+	var a = _v0.a;
+	var b = _v0.b;
+	var c = _v0.c;
+	return a;
 };
 var $author$project$Woordraden$viewWoord = function (status) {
 	return A2(
@@ -6743,26 +7180,125 @@ var $author$project$Woordraden$viewWoord = function (status) {
 		$author$project$Utils$rows(
 			_List_fromArray(
 				[
-					_Utils_Tuple3(30, _List_Nil, _List_Nil),
+					_Utils_Tuple3(55, _List_Nil, _List_Nil),
+					_Utils_Tuple3(
+					15,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'background-color', 'rbga(237, 230, 214, 0.9)'),
+							A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder')
+						]),
+					$author$project$Utils$cols(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								10,
+								_List_fromArray(
+									[
+										$author$project$Letters$klok(
+										$elm$time$Time$posixToMillis(status.timeTheGameEnds) - $elm$time$Time$posixToMillis(status.currentTime))
+									])),
+								_Utils_Tuple2(
+								80,
+								$author$project$Utils$rows(
+									_List_fromArray(
+										[
+											_Utils_Tuple3(0, _List_Nil, _List_Nil),
+											_Utils_Tuple3(
+											10,
+											_List_Nil,
+											_List_fromArray(
+												[
+													A3(
+													$author$project$Letters$letters,
+													$elm$core$Maybe$Just(13),
+													A2($elm$core$List$map, $author$project$Utils$first, status.koopbaar),
+													$elm$core$Maybe$Just($author$project$Types$LetterKopen))
+												])),
+											_Utils_Tuple3(72, _List_Nil, _List_Nil),
+											_Utils_Tuple3(
+											5,
+											_List_Nil,
+											_List_fromArray(
+												[
+													A3($author$project$Letters$letters, $elm$core$Maybe$Nothing, status.gekocht, $elm$core$Maybe$Nothing)
+												])),
+											_Utils_Tuple3(0, _List_Nil, _List_Nil)
+										]))),
+								_Utils_Tuple2(
+								10,
+								_List_fromArray(
+									[
+										$author$project$Letters$punten(status.punten)
+									]))
+							]))),
+					_Utils_Tuple3(10, _List_Nil, _List_Nil),
 					_Utils_Tuple3(
 					10,
 					_List_Nil,
-					_List_fromArray(
-						[
-							A2(
-							$author$project$Letters$letters,
-							$elm$core$Maybe$Just(13),
-							status.koopbaar)
-						])),
-					_Utils_Tuple3(7, _List_Nil, _List_Nil),
-					_Utils_Tuple3(
-					5,
-					_List_Nil,
-					_List_fromArray(
-						[
-							A2($author$project$Letters$letters, $elm$core$Maybe$Nothing, status.gekocht)
-						])),
-					_Utils_Tuple3(20, _List_Nil, _List_Nil)
+					$author$project$Utils$cols(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(30, _List_Nil),
+								_Utils_Tuple2(
+								30,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$input,
+										A2(
+											$elm$core$List$cons,
+											A2($elm$html$Html$Attributes$style, 'height', '100%'),
+											A2(
+												$elm$core$List$cons,
+												A2($elm$html$Html$Attributes$style, 'width', '100%'),
+												A2(
+													$elm$core$List$cons,
+													A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
+													A2(
+														$elm$core$List$cons,
+														A2($elm$html$Html$Attributes$style, 'padding', '0cqh 2cqh'),
+														A2(
+															$elm$core$List$cons,
+															$elm$html$Html$Attributes$placeholder('antwoord'),
+															A2(
+																$elm$core$List$cons,
+																$elm$html$Html$Attributes$value(status.woord),
+																A2(
+																	$elm$core$List$cons,
+																	$elm$html$Html$Events$onInput($author$project$Types$Answer),
+																	$author$project$Utils$centeringstuff))))))),
+										_List_Nil)
+									])),
+								_Utils_Tuple2(5, _List_Nil),
+								_Utils_Tuple2(
+								5,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$button,
+										_Utils_ap(
+											_List_fromArray(
+												[
+													$elm$html$Html$Events$onClick($author$project$Types$Submit12),
+													A2($elm$html$Html$Attributes$style, 'height', '70%'),
+													A2($elm$html$Html$Attributes$style, 'background-color', 'rgb(227, 7, 20)'),
+													A2($elm$html$Html$Attributes$style, 'color', 'white'),
+													A2($elm$html$Html$Attributes$style, 'border', 'none'),
+													A2($elm$html$Html$Attributes$style, 'border-radius', '1cqh'),
+													A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
+													A2($elm$html$Html$Attributes$style, 'font-family', 'Lucida Sans'),
+													A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
+												]),
+											$author$project$Utils$centeringstuff),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('\u00A0Klaar\u00A0')
+											]))
+									])),
+								_Utils_Tuple2(30, _List_Nil)
+							]))),
+					_Utils_Tuple3(10, _List_Nil, _List_Nil)
 				])));
 };
 var $author$project$Main$view = function (model) {
