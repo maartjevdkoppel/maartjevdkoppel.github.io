@@ -5,62 +5,62 @@ import Letters exposing (..)
 
 import Dict
 import Html exposing (..)
-import Html.Attributes exposing (placeholder, value, style, src, type_, disabled, id)
+import Html.Attributes exposing (placeholder, value, style, src, type_, id)
 import Html.Events exposing (onClick, onInput)
 import Set
 import Svg
 import Svg.Attributes as Svg
 import Time
+import List.Extra
+import Task
 
 -- model
 type alias HoofdStatus = 
   { currentTime : Time.Posix
   , timeTheGameEnds : Time.Posix
-  , questions : Dict.Dict Int String
   , gegevenantwoorden : Dict.Dict Int String
-  , juistantwoorden : Dict.Dict Int (String, Int) -- (antwoord, index als gekocht)
   , questionNumber : Int
   , lastQuestion : Int
   , searching : Bool
   , punten : Int
   , searched : Set.Set Int
+  , data : VragenAntwoorden
+  , oauth : String
   }
 
 -- update
 
-startgame : Time.Posix -> HoofdStatus
-startgame now = { currentTime= Time.millisToPosix ((Time.posixToMillis now) + 1000) 
-                , timeTheGameEnds=Time.millisToPosix (Time.posixToMillis now + 12*60*1000+1000)
-                , questions = Dict.fromList ((1, "Humpty Dumpty had a great fall. Who could put him back together again?") :: List.map (\i -> (i,"vraag "++String.fromInt i)) [2,3,4,5,6,7,8,9,10,11,12])
-                , gegevenantwoorden = Dict.empty
-                , juistantwoorden = Dict.fromList [(1, ("Niemand", 3))]
-                , questionNumber = 1
-                , lastQuestion = 1
-                , searching = False
-                , punten = 500
-                , searched = Set.empty}
+startgame : Time.Posix -> VragenAntwoorden -> String -> HoofdStatus
+startgame now info oauth = 
+  { currentTime= Time.millisToPosix ((Time.posixToMillis now) + 1000) 
+  , timeTheGameEnds=Time.millisToPosix (Time.posixToMillis now + 12*60*1000+1000)
+  , gegevenantwoorden = Dict.empty
+  , questionNumber = 1
+  , lastQuestion = 1
+  , searching = False
+  , punten = 500
+  , searched = Set.empty
+  , data = info
+  , oauth = oauth
+  }
 
 hoofdupdate : Msg -> HoofdStatus -> (HoofdStatus, Cmd Msg)
 hoofdupdate msg status =
   case msg of
-        StartGame -> -- gek, hoort nooit te gebeuren
-          ( { status | timeTheGameEnds = Time.millisToPosix ((Time.posixToMillis status.currentTime) + 12000*60) }
-          , Cmd.none
-          )
         Tick newtime -> 
           ( { status | currentTime = newtime
             , punten = if status.searching && evensec newtime then status.punten - 1 else status.punten -- TODO misschien netter om bij te houden hoe lang de huidige zoek is, zodat je geen nadeel of voordeel hebt als je net op een even aantal begint
             }
-          , Cmd.none
+          , if Time.posixToMillis status.timeTheGameEnds - Time.posixToMillis status.currentTime <= 2*60*1000 
+            then Task.perform (\_ -> NaarWoordraden) (Task.succeed ()) 
+            else Cmd.none
           )
         StartStopWiki -> ({ status | searching = not status.searching, searched = Set.insert status.questionNumber status.searched}, Cmd.none)
         Answer answer -> ({ status | gegevenantwoorden = Dict.insert status.questionNumber answer status.gegevenantwoorden}, Cmd.none)
         PreviousQ -> ({status | questionNumber = status.questionNumber - 1}, Cmd.none)
         NextQ     -> ({status | questionNumber = status.questionNumber + 1
-                                     , lastQuestion = max status.lastQuestion (status.questionNumber + 1)}, Cmd.none)
-        NaarWoordraden -> (status, Cmd.none)
-        LetterKopen i -> (status, Cmd.none)
-        Submit12 -> (status, Cmd.none)
+                              , lastQuestion = max status.lastQuestion (status.questionNumber + 1)}, Cmd.none)
+        _ -> (status, Cmd.none)
 
 
 -- view
@@ -82,17 +82,6 @@ viewGame status =
 
 letterbalk : HoofdStatus -> Html Msg
 letterbalk status = letters (Just status.lastQuestion) (List.map (getBeginLetter status) [1,2,3,4,5,6,7,8,9,10,11,12]) Nothing
--- letters : HoofdStatus -> Html Msg
--- letters status = --div [] []
---   table [style "scale" "200%", style "position" "absolute", style "left" "50%", style "top" "87.5%", style "transform" "translate(-25%, -15%)" -- centering the whole thing
---         , style "text-align" "center"] -- centering text
---         [ tr [] (List.intersperse (th [style "font-size" "0.5cqh", style "width" "0.5cqh"] []) -- ruimte tussen letters
---                                   (List.map (\i -> th [if i>status.lastQuestion || Set.member i status.searched then style "background-color" "white" else style "background-image" "url('images/uithethoofd.jpg')", style "background-size" "100% 100%"
---                                                       , style "font-size" "3cqh", style "opacity" "100%"
---                                                       , style "height" "4cqh", style "width" "3cqh"]
---                                                       [text (Maybe.withDefault "" (getBeginLetter status i))])
---                                             [1,2,3,4,5,6,7,8,9,10,11,12]))
---         , tr [] (List.intersperse (td [] []) (List.map (\i -> td [style "font-size" "1.2cqh", style "color" (if i>status.lastQuestion then "black" else "rgb(227, 7, 20)")] [text (String.fromInt i)]) [1,2,3,4,5,6,7,8,9,10,11,12]))]
 
 getBeginLetter : HoofdStatus -> Int -> Letter
 getBeginLetter status i = case Dict.get i status.gegevenantwoorden of
@@ -101,9 +90,9 @@ getBeginLetter status i = case Dict.get i status.gegevenantwoorden of
 
 naarWoordRaden : HoofdStatus -> Int -> (Letter, Int, Bool)
 naarWoordRaden status i = case Dict.get i status.gegevenantwoorden of
-  Nothing -> (Streepje, Maybe.withDefault 0 (Maybe.map Tuple.second (Dict.get i status.juistantwoorden)), False)
-  Just gegevenantwoord -> case Dict.get i status.juistantwoorden of
-    Nothing -> (Vraagteken,0,False) -- juiste antwoord onbekend
+  Nothing -> (Streepje, Maybe.withDefault 0 (Dict.get i status.data.volgorde), False)
+  Just gegevenantwoord -> case Dict.get i (Dict.fromList (List.map (\((k,a),(_,ix)) -> (k,(a,ix))) (List.Extra.zip (Dict.toList status.data.antwoorden) (Dict.toList status.data.volgorde)))) of
+    Nothing -> (Vraagteken,0,False) -- error
     Just (antwoord, index) -> (if Set.member i status.searched then Opgezocht gegevenantwoord else UitHetHoofd gegevenantwoord, index, gegevenantwoord == antwoord)
 
 wiki : HoofdStatus -> List (Html Msg)
@@ -146,7 +135,7 @@ vraagbox status = rows
                               , button [onClick NextQ,     id "btn__forward", style "height" "0%", style "width" "0%", style "position" "relative", style "top" (if status.questionNumber > 11 || status.searching then "-500%" else "-50%"), style "left"  "10%"] []]])
                 , (45, [], cols
                   [ (5, [])
-                  , (90, [p [style "width" "95%"] [text (Maybe.withDefault ("error: geen vraag " ++ String.fromInt status.questionNumber) (Dict.get status.questionNumber status.questions))]])
+                  , (90, [p [style "width" "95%"] [text (Maybe.withDefault ("error: geen vraag " ++ String.fromInt status.questionNumber) (Dict.get status.questionNumber status.data.vragen))]])
                   ])
                 , (15, [], [input (centeringstuff ++ [style "height" "100%", style "width" "60%", style "font-size" "3cqh", style "padding" "0cqh 2cqh", placeholder "antwoord", value (Maybe.withDefault "" (Dict.get status.questionNumber status.gegevenantwoorden)), onInput Answer]) []])
                 , (5, [], [])

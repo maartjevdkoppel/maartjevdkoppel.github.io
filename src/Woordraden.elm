@@ -21,12 +21,13 @@ type alias WoordraadStatus =
   , koopbaar : List (Letter, Int, Bool) -- (letter, index in gekocht, juist)
   , gekocht  : List Letter
   , woord : String
+  , correctwoord : String
+  , oauth : String
   }
 
 -- update
 woordupdate : Msg -> WoordraadStatus -> WoordraadStatus
 woordupdate msg status = case msg of
-  Tick newtime -> { status | currentTime = newtime}
   LetterKopen j -> let i = j - 1 in 
     case index status.koopbaar i of
       Nothing -> status
@@ -35,27 +36,38 @@ woordupdate msg status = case msg of
         Paars -> status
         Vraagteken -> status
         Streepje -> status
-        _ -> if i == -1 
-                then status 
-                else ({status | punten = status.punten - 10
-                              , koopbaar = List.Extra.updateAt i (\_ -> (case letter of
-                                                                            Opgezocht _ -> Wit
-                                                                            UitHetHoofd _ -> Paars
-                                                                            _ -> Vraagteken, 0, False)) status.koopbaar
-                              , gekocht = List.Extra.updateAt target (\old -> case old of
-                                                              Wit -> if correct then case letter of
-                                                                                Opgezocht str -> Opgezocht str
-                                                                                UitHetHoofd str -> Opgezocht str
-                                                                                _ -> Vraagteken else Vraagteken
-                                                              _ -> old) status.gekocht})
-  Submit12 -> status -- TODO
+        _ -> woordupdate2 status i letter correct target
   Answer answer -> {status | woord = answer }
-  StartGame -> status
-  StartStopWiki -> status
-  PreviousQ -> status
-  NextQ     -> status
-  NaarWoordraden -> status
+  _ -> status
 
+-- elm language server doesn't like deep nested cases
+woordupdate2 status i letter correct target = 
+  if i == -1 
+  then status 
+  else  { status 
+        | punten = status.punten - 10
+        , koopbaar = List.Extra.updateAt i 
+            (\_ -> ((
+              case letter of
+                Opgezocht _ -> Wit
+                UitHetHoofd _ -> Paars
+                _ -> Vraagteken
+              ), 0, False
+            )) 
+            status.koopbaar
+        , gekocht = List.Extra.updateAt target 
+            (\old -> 
+              case old of
+                Wit -> if correct 
+                        then case letter of
+                                    Opgezocht str -> Opgezocht str
+                                    UitHetHoofd str -> Opgezocht str
+                                    _ -> Vraagteken 
+                        else Vraagteken
+                _ -> old
+            ) 
+            status.gekocht
+        }
 
 -- view
 viewWoord : WoordraadStatus -> Html Msg
@@ -81,7 +93,7 @@ viewWoord status =
           , (30, [input (style "height" "100%" :: style "width" "100%" :: style "font-size" "3cqh" :: style "padding" "0cqh 2cqh" :: 
                          placeholder "antwoord" :: value status.woord :: onInput Answer :: centeringstuff) []])
           , (5, [])
-          , (5, [button ([onClick Submit12, style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) [text "\u{00A0}Klaar\u{00A0}"]])
+          , (5, [button ([onClick Submit, style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) [text "\u{00A0}Klaar\u{00A0}"]])
           , (30, [])
           ])
       , (10, [], [])

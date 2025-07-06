@@ -29,3 +29,16 @@ index : List a -> Int -> Maybe a
 index l i = case l of
   [] -> Nothing
   (a :: b) -> if i == 0 then Just a else index b (i - 1)
+
+twelve : List Int
+twelve = [1,2,3,4,5,6,7,8,9,10,11,12]
+
+cmpmb : Maybe Float -> Maybe Float -> Order
+cmpmb a b = case (a,b) of
+  (Nothing, _) -> LT
+  (_, Nothing) -> GT
+  (Just x, Just y) -> compare x y
+
+on : (b -> b -> c) -> (a -> b) -> a -> a -> c
+on bf uf x y =
+    bf (uf x) (uf y)
