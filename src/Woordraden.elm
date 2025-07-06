@@ -49,8 +49,8 @@ woordupdate2 status i letter correct target =
         , koopbaar = List.Extra.updateAt i 
             (\_ -> ((
               case letter of
-                Opgezocht _ -> Wit
-                UitHetHoofd _ -> Paars
+                Opgezocht _ -> Zwart
+                UitHetHoofd _ -> Zwart
                 _ -> Vraagteken
               ), 0, False
             )) 

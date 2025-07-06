@@ -45,7 +45,7 @@ init : String -> (Model, Cmd Msg)
 init oauthtoken =
   ( HomeScreen { now = Time.millisToPosix 0, thesheet = Nothing, username = "", oauth = oauthtoken, waiting = False }
   , Cmd.batch [Task.perform Tick Time.now
-              , readSpreadsheet oauthtoken]
+              ] --, readSpreadsheet oauthtoken]
   )
 
 
@@ -60,7 +60,7 @@ update msg model =
       StartGame -> case status.username of
         "" -> (model, Cmd.none)
         naam -> case status.thesheet of
-          Nothing -> (model, Cmd.none)
+          Nothing -> (InGame (startgame status.now {woord="", vragen=Dict.empty, antwoorden=Dict.empty, volgorde=Dict.empty} status.oauth), Cmd.none) --(model, Cmd.none)
           Just sheet -> case Dict.get naam sheet of
             Nothing -> (HomeScreen {status | waiting = True}, adduser naam status.oauth)
             Just info -> (InGame (startgame status.now info status.oauth), logstartgame info naam status.now status.oauth)

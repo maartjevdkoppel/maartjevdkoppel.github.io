@@ -5440,38 +5440,35 @@ var $elm$time$Time$Zone = F2(
 	});
 var $elm$time$Time$customZone = $elm$time$Time$Zone;
 var $elm$time$Time$now = _Time_now($elm$time$Time$millisToPosix);
-var $author$project$Types$DataReceived = function (a) {
-	return {$: 'DataReceived', a: a};
+var $author$project$Main$init = function (oauthtoken) {
+	return _Utils_Tuple2(
+		$author$project$Main$HomeScreen(
+			{
+				now: $elm$time$Time$millisToPosix(0),
+				oauth: oauthtoken,
+				thesheet: $elm$core$Maybe$Nothing,
+				username: '',
+				waiting: false
+			}),
+		$elm$core$Platform$Cmd$batch(
+			_List_fromArray(
+				[
+					A2($elm$core$Task$perform, $author$project$Types$Tick, $elm$time$Time$now)
+				])));
 };
-var $elm$http$Http$BadStatus_ = F2(
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $elm$time$Time$Every = F2(
 	function (a, b) {
-		return {$: 'BadStatus_', a: a, b: b};
+		return {$: 'Every', a: a, b: b};
 	});
-var $elm$http$Http$BadUrl_ = function (a) {
-	return {$: 'BadUrl_', a: a};
-};
-var $elm$http$Http$GoodStatus_ = F2(
-	function (a, b) {
-		return {$: 'GoodStatus_', a: a, b: b};
+var $elm$time$Time$State = F2(
+	function (taggers, processes) {
+		return {processes: processes, taggers: taggers};
 	});
-var $elm$http$Http$NetworkError_ = {$: 'NetworkError_'};
-var $elm$http$Http$Receiving = function (a) {
-	return {$: 'Receiving', a: a};
-};
-var $elm$http$Http$Sending = function (a) {
-	return {$: 'Sending', a: a};
-};
-var $elm$http$Http$Timeout_ = {$: 'Timeout_'};
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
-var $elm$core$Maybe$isJust = function (maybe) {
-	if (maybe.$ === 'Just') {
-		return true;
-	} else {
-		return false;
-	}
-};
-var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
+var $elm$time$Time$init = $elm$core$Task$succeed(
+	A2($elm$time$Time$State, $elm$core$Dict$empty, $elm$core$Dict$empty));
 var $elm$core$Basics$compare = _Utils_compare;
 var $elm$core$Dict$get = F2(
 	function (targetKey, dict) {
@@ -5612,6 +5609,344 @@ var $elm$core$Dict$insert = F3(
 			return x;
 		}
 	});
+var $elm$time$Time$addMySub = F2(
+	function (_v0, state) {
+		var interval = _v0.a;
+		var tagger = _v0.b;
+		var _v1 = A2($elm$core$Dict$get, interval, state);
+		if (_v1.$ === 'Nothing') {
+			return A3(
+				$elm$core$Dict$insert,
+				interval,
+				_List_fromArray(
+					[tagger]),
+				state);
+		} else {
+			var taggers = _v1.a;
+			return A3(
+				$elm$core$Dict$insert,
+				interval,
+				A2($elm$core$List$cons, tagger, taggers),
+				state);
+		}
+	});
+var $elm$core$Process$kill = _Scheduler_kill;
+var $elm$core$Dict$foldl = F3(
+	function (func, acc, dict) {
+		foldl:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return acc;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$func = func,
+					$temp$acc = A3(
+					func,
+					key,
+					value,
+					A3($elm$core$Dict$foldl, func, acc, left)),
+					$temp$dict = right;
+				func = $temp$func;
+				acc = $temp$acc;
+				dict = $temp$dict;
+				continue foldl;
+			}
+		}
+	});
+var $elm$core$Dict$merge = F6(
+	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
+		var stepState = F3(
+			function (rKey, rValue, _v0) {
+				stepState:
+				while (true) {
+					var list = _v0.a;
+					var result = _v0.b;
+					if (!list.b) {
+						return _Utils_Tuple2(
+							list,
+							A3(rightStep, rKey, rValue, result));
+					} else {
+						var _v2 = list.a;
+						var lKey = _v2.a;
+						var lValue = _v2.b;
+						var rest = list.b;
+						if (_Utils_cmp(lKey, rKey) < 0) {
+							var $temp$rKey = rKey,
+								$temp$rValue = rValue,
+								$temp$_v0 = _Utils_Tuple2(
+								rest,
+								A3(leftStep, lKey, lValue, result));
+							rKey = $temp$rKey;
+							rValue = $temp$rValue;
+							_v0 = $temp$_v0;
+							continue stepState;
+						} else {
+							if (_Utils_cmp(lKey, rKey) > 0) {
+								return _Utils_Tuple2(
+									list,
+									A3(rightStep, rKey, rValue, result));
+							} else {
+								return _Utils_Tuple2(
+									rest,
+									A4(bothStep, lKey, lValue, rValue, result));
+							}
+						}
+					}
+				}
+			});
+		var _v3 = A3(
+			$elm$core$Dict$foldl,
+			stepState,
+			_Utils_Tuple2(
+				$elm$core$Dict$toList(leftDict),
+				initialResult),
+			rightDict);
+		var leftovers = _v3.a;
+		var intermediateResult = _v3.b;
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v4, result) {
+					var k = _v4.a;
+					var v = _v4.b;
+					return A3(leftStep, k, v, result);
+				}),
+			intermediateResult,
+			leftovers);
+	});
+var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
+var $elm$time$Time$setInterval = _Time_setInterval;
+var $elm$core$Process$spawn = _Scheduler_spawn;
+var $elm$time$Time$spawnHelp = F3(
+	function (router, intervals, processes) {
+		if (!intervals.b) {
+			return $elm$core$Task$succeed(processes);
+		} else {
+			var interval = intervals.a;
+			var rest = intervals.b;
+			var spawnTimer = $elm$core$Process$spawn(
+				A2(
+					$elm$time$Time$setInterval,
+					interval,
+					A2($elm$core$Platform$sendToSelf, router, interval)));
+			var spawnRest = function (id) {
+				return A3(
+					$elm$time$Time$spawnHelp,
+					router,
+					rest,
+					A3($elm$core$Dict$insert, interval, id, processes));
+			};
+			return A2($elm$core$Task$andThen, spawnRest, spawnTimer);
+		}
+	});
+var $elm$time$Time$onEffects = F3(
+	function (router, subs, _v0) {
+		var processes = _v0.processes;
+		var rightStep = F3(
+			function (_v6, id, _v7) {
+				var spawns = _v7.a;
+				var existing = _v7.b;
+				var kills = _v7.c;
+				return _Utils_Tuple3(
+					spawns,
+					existing,
+					A2(
+						$elm$core$Task$andThen,
+						function (_v5) {
+							return kills;
+						},
+						$elm$core$Process$kill(id)));
+			});
+		var newTaggers = A3($elm$core$List$foldl, $elm$time$Time$addMySub, $elm$core$Dict$empty, subs);
+		var leftStep = F3(
+			function (interval, taggers, _v4) {
+				var spawns = _v4.a;
+				var existing = _v4.b;
+				var kills = _v4.c;
+				return _Utils_Tuple3(
+					A2($elm$core$List$cons, interval, spawns),
+					existing,
+					kills);
+			});
+		var bothStep = F4(
+			function (interval, taggers, id, _v3) {
+				var spawns = _v3.a;
+				var existing = _v3.b;
+				var kills = _v3.c;
+				return _Utils_Tuple3(
+					spawns,
+					A3($elm$core$Dict$insert, interval, id, existing),
+					kills);
+			});
+		var _v1 = A6(
+			$elm$core$Dict$merge,
+			leftStep,
+			bothStep,
+			rightStep,
+			newTaggers,
+			processes,
+			_Utils_Tuple3(
+				_List_Nil,
+				$elm$core$Dict$empty,
+				$elm$core$Task$succeed(_Utils_Tuple0)));
+		var spawnList = _v1.a;
+		var existingDict = _v1.b;
+		var killTask = _v1.c;
+		return A2(
+			$elm$core$Task$andThen,
+			function (newProcesses) {
+				return $elm$core$Task$succeed(
+					A2($elm$time$Time$State, newTaggers, newProcesses));
+			},
+			A2(
+				$elm$core$Task$andThen,
+				function (_v2) {
+					return A3($elm$time$Time$spawnHelp, router, spawnList, existingDict);
+				},
+				killTask));
+	});
+var $elm$time$Time$onSelfMsg = F3(
+	function (router, interval, state) {
+		var _v0 = A2($elm$core$Dict$get, interval, state.taggers);
+		if (_v0.$ === 'Nothing') {
+			return $elm$core$Task$succeed(state);
+		} else {
+			var taggers = _v0.a;
+			var tellTaggers = function (time) {
+				return $elm$core$Task$sequence(
+					A2(
+						$elm$core$List$map,
+						function (tagger) {
+							return A2(
+								$elm$core$Platform$sendToApp,
+								router,
+								tagger(time));
+						},
+						taggers));
+			};
+			return A2(
+				$elm$core$Task$andThen,
+				function (_v1) {
+					return $elm$core$Task$succeed(state);
+				},
+				A2($elm$core$Task$andThen, tellTaggers, $elm$time$Time$now));
+		}
+	});
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var $elm$time$Time$subMap = F2(
+	function (f, _v0) {
+		var interval = _v0.a;
+		var tagger = _v0.b;
+		return A2(
+			$elm$time$Time$Every,
+			interval,
+			A2($elm$core$Basics$composeL, f, tagger));
+	});
+_Platform_effectManagers['Time'] = _Platform_createManager($elm$time$Time$init, $elm$time$Time$onEffects, $elm$time$Time$onSelfMsg, 0, $elm$time$Time$subMap);
+var $elm$time$Time$subscription = _Platform_leaf('Time');
+var $elm$time$Time$every = F2(
+	function (interval, tagger) {
+		return $elm$time$Time$subscription(
+			A2($elm$time$Time$Every, interval, tagger));
+	});
+var $author$project$Main$subscriptions = function (_v0) {
+	return A2($elm$time$Time$every, 1000, $author$project$Types$Tick);
+};
+var $author$project$Main$Afrekenen = function (a) {
+	return {$: 'Afrekenen', a: a};
+};
+var $author$project$Main$InGame = function (a) {
+	return {$: 'InGame', a: a};
+};
+var $author$project$Types$Submit = {$: 'Submit'};
+var $author$project$Letters$Wit = {$: 'Wit'};
+var $author$project$Main$Woordraden = function (a) {
+	return {$: 'Woordraden', a: a};
+};
+var $author$project$Types$UserAdded = function (a) {
+	return {$: 'UserAdded', a: a};
+};
+var $elm$json$Json$Encode$list = F2(
+	function (func, entries) {
+		return _Json_wrap(
+			A3(
+				$elm$core$List$foldl,
+				_Json_addEntry(func),
+				_Json_emptyArray(_Utils_Tuple0),
+				entries));
+	});
+var $elm$json$Json$Encode$object = function (pairs) {
+	return _Json_wrap(
+		A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v0, obj) {
+					var k = _v0.a;
+					var v = _v0.b;
+					return A3(_Json_addField, k, v, obj);
+				}),
+			_Json_emptyObject(_Utils_Tuple0),
+			pairs));
+};
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $author$project$Database$adduserjson = function (name) {
+	return $elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'range',
+				$elm$json$Json$Encode$string('usernames!A1')),
+				_Utils_Tuple2(
+				'majorDimension',
+				$elm$json$Json$Encode$string('ROWS')),
+				_Utils_Tuple2(
+				'values',
+				A2(
+					$elm$json$Json$Encode$list,
+					function (x) {
+						return A2(
+							$elm$json$Json$Encode$list,
+							$elm$json$Json$Encode$string,
+							_List_fromArray(
+								[x]));
+					},
+					_List_fromArray(
+						[name])))
+			]));
+};
+var $elm$http$Http$BadStatus_ = F2(
+	function (a, b) {
+		return {$: 'BadStatus_', a: a, b: b};
+	});
+var $elm$http$Http$BadUrl_ = function (a) {
+	return {$: 'BadUrl_', a: a};
+};
+var $elm$http$Http$GoodStatus_ = F2(
+	function (a, b) {
+		return {$: 'GoodStatus_', a: a, b: b};
+	});
+var $elm$http$Http$NetworkError_ = {$: 'NetworkError_'};
+var $elm$http$Http$Receiving = function (a) {
+	return {$: 'Receiving', a: a};
+};
+var $elm$http$Http$Sending = function (a) {
+	return {$: 'Sending', a: a};
+};
+var $elm$http$Http$Timeout_ = {$: 'Timeout_'};
+var $elm$core$Maybe$isJust = function (maybe) {
+	if (maybe.$ === 'Just') {
+		return true;
+	} else {
+		return false;
+	}
+};
 var $elm$core$Dict$getMin = function (dict) {
 	getMin:
 	while (true) {
@@ -5985,31 +6320,18 @@ var $elm$core$Dict$update = F3(
 			return A2($elm$core$Dict$remove, targetKey, dictionary);
 		}
 	});
-var $elm$http$Http$emptyBody = _Http_emptyBody;
-var $elm$json$Json$Decode$decodeString = _Json_runOnString;
 var $elm$core$Basics$composeR = F3(
 	function (f, g, x) {
 		return g(
 			f(x));
 	});
-var $elm$http$Http$expectStringResponse = F2(
+var $elm$http$Http$expectBytesResponse = F2(
 	function (toMsg, toResult) {
 		return A3(
 			_Http_expect,
-			'',
-			$elm$core$Basics$identity,
+			'arraybuffer',
+			_Http_toDataView,
 			A2($elm$core$Basics$composeR, toResult, toMsg));
-	});
-var $elm$core$Result$mapError = F2(
-	function (f, result) {
-		if (result.$ === 'Ok') {
-			var v = result.a;
-			return $elm$core$Result$Ok(v);
-		} else {
-			var e = result.a;
-			return $elm$core$Result$Err(
-				f(e));
-		}
 	});
 var $elm$http$Http$BadBody = function (a) {
 	return {$: 'BadBody', a: a};
@@ -6022,6 +6344,17 @@ var $elm$http$Http$BadUrl = function (a) {
 };
 var $elm$http$Http$NetworkError = {$: 'NetworkError'};
 var $elm$http$Http$Timeout = {$: 'Timeout'};
+var $elm$core$Result$mapError = F2(
+	function (f, result) {
+		if (result.$ === 'Ok') {
+			var v = result.a;
+			return $elm$core$Result$Ok(v);
+		} else {
+			var e = result.a;
+			return $elm$core$Result$Err(
+				f(e));
+		}
+	});
 var $elm$http$Http$resolve = F2(
 	function (toResult, response) {
 		switch (response.$) {
@@ -6045,338 +6378,26 @@ var $elm$http$Http$resolve = F2(
 					toResult(body));
 		}
 	});
-var $elm$http$Http$expectJson = F2(
-	function (toMsg, decoder) {
-		return A2(
-			$elm$http$Http$expectStringResponse,
-			toMsg,
-			$elm$http$Http$resolve(
-				function (string) {
-					return A2(
-						$elm$core$Result$mapError,
-						$elm$json$Json$Decode$errorToString,
-						A2($elm$json$Json$Decode$decodeString, decoder, string));
-				}));
-	});
+var $elm$http$Http$expectWhatever = function (toMsg) {
+	return A2(
+		$elm$http$Http$expectBytesResponse,
+		toMsg,
+		$elm$http$Http$resolve(
+			function (_v0) {
+				return $elm$core$Result$Ok(_Utils_Tuple0);
+			}));
+};
 var $elm$http$Http$Header = F2(
 	function (a, b) {
 		return {$: 'Header', a: a, b: b};
 	});
 var $elm$http$Http$header = $elm$http$Http$Header;
-var $elm$json$Json$Decode$field = _Json_decodeField;
-var $elm$json$Json$Decode$list = _Json_decodeList;
-var $elm$json$Json$Decode$string = _Json_decodeString;
-var $elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
-	});
-var $elm$core$Dict$fromList = function (assocs) {
-	return A3(
-		$elm$core$List$foldl,
-		F2(
-			function (_v0, dict) {
-				var key = _v0.a;
-				var value = _v0.b;
-				return A3($elm$core$Dict$insert, key, value, dict);
-			}),
-		$elm$core$Dict$empty,
-		assocs);
+var $elm$http$Http$jsonBody = function (value) {
+	return A2(
+		_Http_pair,
+		'application/json',
+		A2($elm$json$Json$Encode$encode, 0, value));
 };
-var $author$project$Utils$twelve = _List_fromArray(
-	[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-var $elm$core$Tuple$pair = F2(
-	function (a, b) {
-		return _Utils_Tuple2(a, b);
-	});
-var $elm_community$list_extra$List$Extra$zip = $elm$core$List$map2($elm$core$Tuple$pair);
-var $author$project$Database$f = A2(
-	$elm$core$Basics$composeL,
-	$elm$core$Dict$fromList,
-	$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve));
-var $author$project$Utils$cmpmb = F2(
-	function (a, b) {
-		var _v0 = _Utils_Tuple2(a, b);
-		if (_v0.a.$ === 'Nothing') {
-			var _v1 = _v0.a;
-			return $elm$core$Basics$LT;
-		} else {
-			if (_v0.b.$ === 'Nothing') {
-				var _v2 = _v0.b;
-				return $elm$core$Basics$GT;
-			} else {
-				var x = _v0.a.a;
-				var y = _v0.b.a;
-				return A2($elm$core$Basics$compare, x, y);
-			}
-		}
-	});
-var $author$project$Utils$on = F4(
-	function (bf, uf, x, y) {
-		return A2(
-			bf,
-			uf(x),
-			uf(y));
-	});
-var $elm$core$Tuple$second = function (_v0) {
-	var y = _v0.b;
-	return y;
-};
-var $elm$core$List$sortWith = _List_sortWith;
-var $author$project$Database$maakvolgorde = A2(
-	$elm$core$Basics$composeL,
-	A2(
-		$elm$core$Basics$composeL,
-		A2(
-			$elm$core$Basics$composeL,
-			A2(
-				$elm$core$Basics$composeL,
-				$elm$core$Dict$fromList,
-				$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve)),
-			$elm$core$List$map($elm$core$Tuple$first)),
-		$elm$core$List$sortWith(
-			A2($author$project$Utils$on, $author$project$Utils$cmpmb, $elm$core$Tuple$second))),
-	$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve));
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
-var $elm$core$String$replace = F3(
-	function (before, after, string) {
-		return A2(
-			$elm$core$String$join,
-			after,
-			A2($elm$core$String$split, before, string));
-	});
-var $elm$core$List$drop = F2(
-	function (n, list) {
-		drop:
-		while (true) {
-			if (n <= 0) {
-				return list;
-			} else {
-				if (!list.b) {
-					return list;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs;
-					n = $temp$n;
-					list = $temp$list;
-					continue drop;
-				}
-			}
-		}
-	});
-var $elm$core$List$takeReverse = F3(
-	function (n, list, kept) {
-		takeReverse:
-		while (true) {
-			if (n <= 0) {
-				return kept;
-			} else {
-				if (!list.b) {
-					return kept;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs,
-						$temp$kept = A2($elm$core$List$cons, x, kept);
-					n = $temp$n;
-					list = $temp$list;
-					kept = $temp$kept;
-					continue takeReverse;
-				}
-			}
-		}
-	});
-var $elm$core$List$takeTailRec = F2(
-	function (n, list) {
-		return $elm$core$List$reverse(
-			A3($elm$core$List$takeReverse, n, list, _List_Nil));
-	});
-var $elm$core$List$takeFast = F3(
-	function (ctr, n, list) {
-		if (n <= 0) {
-			return _List_Nil;
-		} else {
-			var _v0 = _Utils_Tuple2(n, list);
-			_v0$1:
-			while (true) {
-				_v0$5:
-				while (true) {
-					if (!_v0.b.b) {
-						return list;
-					} else {
-						if (_v0.b.b.b) {
-							switch (_v0.a) {
-								case 1:
-									break _v0$1;
-								case 2:
-									var _v2 = _v0.b;
-									var x = _v2.a;
-									var _v3 = _v2.b;
-									var y = _v3.a;
-									return _List_fromArray(
-										[x, y]);
-								case 3:
-									if (_v0.b.b.b.b) {
-										var _v4 = _v0.b;
-										var x = _v4.a;
-										var _v5 = _v4.b;
-										var y = _v5.a;
-										var _v6 = _v5.b;
-										var z = _v6.a;
-										return _List_fromArray(
-											[x, y, z]);
-									} else {
-										break _v0$5;
-									}
-								default:
-									if (_v0.b.b.b.b && _v0.b.b.b.b.b) {
-										var _v7 = _v0.b;
-										var x = _v7.a;
-										var _v8 = _v7.b;
-										var y = _v8.a;
-										var _v9 = _v8.b;
-										var z = _v9.a;
-										var _v10 = _v9.b;
-										var w = _v10.a;
-										var tl = _v10.b;
-										return (ctr > 1000) ? A2(
-											$elm$core$List$cons,
-											x,
-											A2(
-												$elm$core$List$cons,
-												y,
-												A2(
-													$elm$core$List$cons,
-													z,
-													A2(
-														$elm$core$List$cons,
-														w,
-														A2($elm$core$List$takeTailRec, n - 4, tl))))) : A2(
-											$elm$core$List$cons,
-											x,
-											A2(
-												$elm$core$List$cons,
-												y,
-												A2(
-													$elm$core$List$cons,
-													z,
-													A2(
-														$elm$core$List$cons,
-														w,
-														A3($elm$core$List$takeFast, ctr + 1, n - 4, tl)))));
-									} else {
-										break _v0$5;
-									}
-							}
-						} else {
-							if (_v0.a === 1) {
-								break _v0$1;
-							} else {
-								break _v0$5;
-							}
-						}
-					}
-				}
-				return list;
-			}
-			var _v1 = _v0.b;
-			var x = _v1.a;
-			return _List_fromArray(
-				[x]);
-		}
-	});
-var $elm$core$List$take = F2(
-	function (n, list) {
-		return A3($elm$core$List$takeFast, 0, n, list);
-	});
-var $elm_community$list_extra$List$Extra$splitAt = F2(
-	function (n, xs) {
-		return _Utils_Tuple2(
-			A2($elm$core$List$take, n, xs),
-			A2($elm$core$List$drop, n, xs));
-	});
-var $elm$core$List$tail = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(xs);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
-var $elm$core$String$toFloat = _String_toFloat;
-var $elm_community$maybe_extra$Maybe$Extra$cons = F2(
-	function (item, list) {
-		if (item.$ === 'Just') {
-			var v = item.a;
-			return A2($elm$core$List$cons, v, list);
-		} else {
-			return list;
-		}
-	});
-var $elm_community$maybe_extra$Maybe$Extra$values = A2($elm$core$List$foldr, $elm_community$maybe_extra$Maybe$Extra$cons, _List_Nil);
-var $author$project$Database$tovraagsheet = A2(
-	$elm$core$Basics$composeR,
-	$elm$core$List$tail,
-	$elm$core$Maybe$map(
-		A2(
-			$elm$core$Basics$composeR,
-			$elm$core$List$map(
-				function (row) {
-					var _v0 = A2($elm_community$list_extra$List$Extra$splitAt, 27, row);
-					if (_v0.a.b && _v0.a.b.b) {
-						var _v1 = _v0.a;
-						var naam = _v1.a;
-						var _v2 = _v1.b;
-						var woord = _v2.a;
-						var vragenantwoordenvolgorde = _v0.b;
-						var _v3 = A2($elm_community$list_extra$List$Extra$splitAt, 12, vragenantwoordenvolgorde);
-						var vragen = _v3.a;
-						var antwoordenvolgorde = _v3.b;
-						var _v4 = A2($elm_community$list_extra$List$Extra$splitAt, 12, antwoordenvolgorde);
-						var antwoorden = _v4.a;
-						var volgorde = _v4.b;
-						return $elm$core$Maybe$Just(
-							_Utils_Tuple2(
-								naam,
-								{
-									antwoorden: $author$project$Database$f(antwoorden),
-									volgorde: $author$project$Database$maakvolgorde(
-										A2(
-											$elm$core$List$map,
-											A2(
-												$elm$core$Basics$composeL,
-												$elm$core$String$toFloat,
-												A2($elm$core$String$replace, ',', '.')),
-											volgorde)),
-									vragen: $author$project$Database$f(vragen),
-									woord: woord
-								}));
-					} else {
-						return $elm$core$Maybe$Nothing;
-					}
-				}),
-			A2($elm$core$Basics$composeR, $elm_community$maybe_extra$Maybe$Extra$values, $elm$core$Dict$fromList))));
-var $author$project$Database$parse = A2(
-	$elm$json$Json$Decode$field,
-	'values',
-	A2(
-		$elm$json$Json$Decode$map,
-		$author$project$Database$tovraagsheet,
-		$elm$json$Json$Decode$list(
-			$elm$json$Json$Decode$list($elm$json$Json$Decode$string))));
 var $elm$http$Http$Request = function (a) {
 	return {$: 'Request', a: a};
 };
@@ -6386,8 +6407,6 @@ var $elm$http$Http$State = F2(
 	});
 var $elm$http$Http$init = $elm$core$Task$succeed(
 	A2($elm$http$Http$State, $elm$core$Dict$empty, _List_Nil));
-var $elm$core$Process$kill = _Scheduler_kill;
-var $elm$core$Process$spawn = _Scheduler_spawn;
 var $elm$http$Http$updateReqs = F3(
 	function (router, cmds, reqs) {
 		updateReqs:
@@ -6547,375 +6566,6 @@ var $elm$http$Http$request = function (r) {
 };
 var $author$project$Database$url = function (sheet) {
 	return 'https://sheets.googleapis.com/v4/spreadsheets/1_CbSNxoK-esYMFhj2kq7c7QIF6sJxCs1caYO8NgZso0/values/' + sheet;
-};
-var $author$project$Database$readSpreadsheet = function (oauth) {
-	return $elm$http$Http$request(
-		{
-			body: $elm$http$Http$emptyBody,
-			expect: A2($elm$http$Http$expectJson, $author$project$Types$DataReceived, $author$project$Database$parse),
-			headers: _List_fromArray(
-				[
-					A2($elm$http$Http$header, 'Authorization', 'Bearer ' + oauth)
-				]),
-			method: 'GET',
-			timeout: $elm$core$Maybe$Nothing,
-			tracker: $elm$core$Maybe$Nothing,
-			url: $author$project$Database$url('mensen')
-		});
-};
-var $author$project$Main$init = function (oauthtoken) {
-	return _Utils_Tuple2(
-		$author$project$Main$HomeScreen(
-			{
-				now: $elm$time$Time$millisToPosix(0),
-				oauth: oauthtoken,
-				thesheet: $elm$core$Maybe$Nothing,
-				username: '',
-				waiting: false
-			}),
-		$elm$core$Platform$Cmd$batch(
-			_List_fromArray(
-				[
-					A2($elm$core$Task$perform, $author$project$Types$Tick, $elm$time$Time$now),
-					$author$project$Database$readSpreadsheet(oauthtoken)
-				])));
-};
-var $elm$time$Time$Every = F2(
-	function (a, b) {
-		return {$: 'Every', a: a, b: b};
-	});
-var $elm$time$Time$State = F2(
-	function (taggers, processes) {
-		return {processes: processes, taggers: taggers};
-	});
-var $elm$time$Time$init = $elm$core$Task$succeed(
-	A2($elm$time$Time$State, $elm$core$Dict$empty, $elm$core$Dict$empty));
-var $elm$time$Time$addMySub = F2(
-	function (_v0, state) {
-		var interval = _v0.a;
-		var tagger = _v0.b;
-		var _v1 = A2($elm$core$Dict$get, interval, state);
-		if (_v1.$ === 'Nothing') {
-			return A3(
-				$elm$core$Dict$insert,
-				interval,
-				_List_fromArray(
-					[tagger]),
-				state);
-		} else {
-			var taggers = _v1.a;
-			return A3(
-				$elm$core$Dict$insert,
-				interval,
-				A2($elm$core$List$cons, tagger, taggers),
-				state);
-		}
-	});
-var $elm$core$Dict$foldl = F3(
-	function (func, acc, dict) {
-		foldl:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return acc;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var $temp$func = func,
-					$temp$acc = A3(
-					func,
-					key,
-					value,
-					A3($elm$core$Dict$foldl, func, acc, left)),
-					$temp$dict = right;
-				func = $temp$func;
-				acc = $temp$acc;
-				dict = $temp$dict;
-				continue foldl;
-			}
-		}
-	});
-var $elm$core$Dict$merge = F6(
-	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
-		var stepState = F3(
-			function (rKey, rValue, _v0) {
-				stepState:
-				while (true) {
-					var list = _v0.a;
-					var result = _v0.b;
-					if (!list.b) {
-						return _Utils_Tuple2(
-							list,
-							A3(rightStep, rKey, rValue, result));
-					} else {
-						var _v2 = list.a;
-						var lKey = _v2.a;
-						var lValue = _v2.b;
-						var rest = list.b;
-						if (_Utils_cmp(lKey, rKey) < 0) {
-							var $temp$rKey = rKey,
-								$temp$rValue = rValue,
-								$temp$_v0 = _Utils_Tuple2(
-								rest,
-								A3(leftStep, lKey, lValue, result));
-							rKey = $temp$rKey;
-							rValue = $temp$rValue;
-							_v0 = $temp$_v0;
-							continue stepState;
-						} else {
-							if (_Utils_cmp(lKey, rKey) > 0) {
-								return _Utils_Tuple2(
-									list,
-									A3(rightStep, rKey, rValue, result));
-							} else {
-								return _Utils_Tuple2(
-									rest,
-									A4(bothStep, lKey, lValue, rValue, result));
-							}
-						}
-					}
-				}
-			});
-		var _v3 = A3(
-			$elm$core$Dict$foldl,
-			stepState,
-			_Utils_Tuple2(
-				$elm$core$Dict$toList(leftDict),
-				initialResult),
-			rightDict);
-		var leftovers = _v3.a;
-		var intermediateResult = _v3.b;
-		return A3(
-			$elm$core$List$foldl,
-			F2(
-				function (_v4, result) {
-					var k = _v4.a;
-					var v = _v4.b;
-					return A3(leftStep, k, v, result);
-				}),
-			intermediateResult,
-			leftovers);
-	});
-var $elm$time$Time$setInterval = _Time_setInterval;
-var $elm$time$Time$spawnHelp = F3(
-	function (router, intervals, processes) {
-		if (!intervals.b) {
-			return $elm$core$Task$succeed(processes);
-		} else {
-			var interval = intervals.a;
-			var rest = intervals.b;
-			var spawnTimer = $elm$core$Process$spawn(
-				A2(
-					$elm$time$Time$setInterval,
-					interval,
-					A2($elm$core$Platform$sendToSelf, router, interval)));
-			var spawnRest = function (id) {
-				return A3(
-					$elm$time$Time$spawnHelp,
-					router,
-					rest,
-					A3($elm$core$Dict$insert, interval, id, processes));
-			};
-			return A2($elm$core$Task$andThen, spawnRest, spawnTimer);
-		}
-	});
-var $elm$time$Time$onEffects = F3(
-	function (router, subs, _v0) {
-		var processes = _v0.processes;
-		var rightStep = F3(
-			function (_v6, id, _v7) {
-				var spawns = _v7.a;
-				var existing = _v7.b;
-				var kills = _v7.c;
-				return _Utils_Tuple3(
-					spawns,
-					existing,
-					A2(
-						$elm$core$Task$andThen,
-						function (_v5) {
-							return kills;
-						},
-						$elm$core$Process$kill(id)));
-			});
-		var newTaggers = A3($elm$core$List$foldl, $elm$time$Time$addMySub, $elm$core$Dict$empty, subs);
-		var leftStep = F3(
-			function (interval, taggers, _v4) {
-				var spawns = _v4.a;
-				var existing = _v4.b;
-				var kills = _v4.c;
-				return _Utils_Tuple3(
-					A2($elm$core$List$cons, interval, spawns),
-					existing,
-					kills);
-			});
-		var bothStep = F4(
-			function (interval, taggers, id, _v3) {
-				var spawns = _v3.a;
-				var existing = _v3.b;
-				var kills = _v3.c;
-				return _Utils_Tuple3(
-					spawns,
-					A3($elm$core$Dict$insert, interval, id, existing),
-					kills);
-			});
-		var _v1 = A6(
-			$elm$core$Dict$merge,
-			leftStep,
-			bothStep,
-			rightStep,
-			newTaggers,
-			processes,
-			_Utils_Tuple3(
-				_List_Nil,
-				$elm$core$Dict$empty,
-				$elm$core$Task$succeed(_Utils_Tuple0)));
-		var spawnList = _v1.a;
-		var existingDict = _v1.b;
-		var killTask = _v1.c;
-		return A2(
-			$elm$core$Task$andThen,
-			function (newProcesses) {
-				return $elm$core$Task$succeed(
-					A2($elm$time$Time$State, newTaggers, newProcesses));
-			},
-			A2(
-				$elm$core$Task$andThen,
-				function (_v2) {
-					return A3($elm$time$Time$spawnHelp, router, spawnList, existingDict);
-				},
-				killTask));
-	});
-var $elm$time$Time$onSelfMsg = F3(
-	function (router, interval, state) {
-		var _v0 = A2($elm$core$Dict$get, interval, state.taggers);
-		if (_v0.$ === 'Nothing') {
-			return $elm$core$Task$succeed(state);
-		} else {
-			var taggers = _v0.a;
-			var tellTaggers = function (time) {
-				return $elm$core$Task$sequence(
-					A2(
-						$elm$core$List$map,
-						function (tagger) {
-							return A2(
-								$elm$core$Platform$sendToApp,
-								router,
-								tagger(time));
-						},
-						taggers));
-			};
-			return A2(
-				$elm$core$Task$andThen,
-				function (_v1) {
-					return $elm$core$Task$succeed(state);
-				},
-				A2($elm$core$Task$andThen, tellTaggers, $elm$time$Time$now));
-		}
-	});
-var $elm$time$Time$subMap = F2(
-	function (f, _v0) {
-		var interval = _v0.a;
-		var tagger = _v0.b;
-		return A2(
-			$elm$time$Time$Every,
-			interval,
-			A2($elm$core$Basics$composeL, f, tagger));
-	});
-_Platform_effectManagers['Time'] = _Platform_createManager($elm$time$Time$init, $elm$time$Time$onEffects, $elm$time$Time$onSelfMsg, 0, $elm$time$Time$subMap);
-var $elm$time$Time$subscription = _Platform_leaf('Time');
-var $elm$time$Time$every = F2(
-	function (interval, tagger) {
-		return $elm$time$Time$subscription(
-			A2($elm$time$Time$Every, interval, tagger));
-	});
-var $author$project$Main$subscriptions = function (_v0) {
-	return A2($elm$time$Time$every, 1000, $author$project$Types$Tick);
-};
-var $author$project$Main$Afrekenen = function (a) {
-	return {$: 'Afrekenen', a: a};
-};
-var $author$project$Main$InGame = function (a) {
-	return {$: 'InGame', a: a};
-};
-var $author$project$Types$Submit = {$: 'Submit'};
-var $author$project$Letters$Wit = {$: 'Wit'};
-var $author$project$Main$Woordraden = function (a) {
-	return {$: 'Woordraden', a: a};
-};
-var $author$project$Types$UserAdded = function (a) {
-	return {$: 'UserAdded', a: a};
-};
-var $elm$json$Json$Encode$list = F2(
-	function (func, entries) {
-		return _Json_wrap(
-			A3(
-				$elm$core$List$foldl,
-				_Json_addEntry(func),
-				_Json_emptyArray(_Utils_Tuple0),
-				entries));
-	});
-var $elm$json$Json$Encode$object = function (pairs) {
-	return _Json_wrap(
-		A3(
-			$elm$core$List$foldl,
-			F2(
-				function (_v0, obj) {
-					var k = _v0.a;
-					var v = _v0.b;
-					return A3(_Json_addField, k, v, obj);
-				}),
-			_Json_emptyObject(_Utils_Tuple0),
-			pairs));
-};
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $author$project$Database$adduserjson = function (name) {
-	return $elm$json$Json$Encode$object(
-		_List_fromArray(
-			[
-				_Utils_Tuple2(
-				'range',
-				$elm$json$Json$Encode$string('usernames!A1')),
-				_Utils_Tuple2(
-				'majorDimension',
-				$elm$json$Json$Encode$string('ROWS')),
-				_Utils_Tuple2(
-				'values',
-				A2(
-					$elm$json$Json$Encode$list,
-					function (x) {
-						return A2(
-							$elm$json$Json$Encode$list,
-							$elm$json$Json$Encode$string,
-							_List_fromArray(
-								[x]));
-					},
-					_List_fromArray(
-						[name])))
-			]));
-};
-var $elm$http$Http$expectBytesResponse = F2(
-	function (toMsg, toResult) {
-		return A3(
-			_Http_expect,
-			'arraybuffer',
-			_Http_toDataView,
-			A2($elm$core$Basics$composeR, toResult, toMsg));
-	});
-var $elm$http$Http$expectWhatever = function (toMsg) {
-	return A2(
-		$elm$http$Http$expectBytesResponse,
-		toMsg,
-		$elm$http$Http$resolve(
-			function (_v0) {
-				return $elm$core$Result$Ok(_Utils_Tuple0);
-			}));
-};
-var $elm$http$Http$jsonBody = function (value) {
-	return A2(
-		_Http_pair,
-		'application/json',
-		A2($elm$json$Json$Encode$encode, 0, value));
 };
 var $author$project$Database$adduser = F2(
 	function (name, oauth) {
@@ -7327,6 +6977,18 @@ var $author$project$Letters$UitHetHoofd = function (a) {
 	return {$: 'UitHetHoofd', a: a};
 };
 var $author$project$Letters$Vraagteken = {$: 'Vraagteken'};
+var $elm$core$Dict$fromList = function (assocs) {
+	return A3(
+		$elm$core$List$foldl,
+		F2(
+			function (_v0, dict) {
+				var key = _v0.a;
+				var value = _v0.b;
+				return A3($elm$core$Dict$insert, key, value, dict);
+			}),
+		$elm$core$Dict$empty,
+		assocs);
+};
 var $elm$core$Dict$member = F2(
 	function (key, dict) {
 		var _v0 = A2($elm$core$Dict$get, key, dict);
@@ -7350,6 +7012,11 @@ var $elm$core$Maybe$withDefault = F2(
 			return _default;
 		}
 	});
+var $elm$core$Tuple$pair = F2(
+	function (a, b) {
+		return _Utils_Tuple2(a, b);
+	});
+var $elm_community$list_extra$List$Extra$zip = $elm$core$List$map2($elm$core$Tuple$pair);
 var $author$project$Hoofdspel$naarWoordRaden = F2(
 	function (status, i) {
 		var _v0 = A2($elm$core$Dict$get, i, status.gegevenantwoorden);
@@ -7396,6 +7063,338 @@ var $author$project$Hoofdspel$naarWoordRaden = F2(
 			}
 		}
 	});
+var $author$project$Types$DataReceived = function (a) {
+	return {$: 'DataReceived', a: a};
+};
+var $elm$http$Http$emptyBody = _Http_emptyBody;
+var $elm$json$Json$Decode$decodeString = _Json_runOnString;
+var $elm$http$Http$expectStringResponse = F2(
+	function (toMsg, toResult) {
+		return A3(
+			_Http_expect,
+			'',
+			$elm$core$Basics$identity,
+			A2($elm$core$Basics$composeR, toResult, toMsg));
+	});
+var $elm$http$Http$expectJson = F2(
+	function (toMsg, decoder) {
+		return A2(
+			$elm$http$Http$expectStringResponse,
+			toMsg,
+			$elm$http$Http$resolve(
+				function (string) {
+					return A2(
+						$elm$core$Result$mapError,
+						$elm$json$Json$Decode$errorToString,
+						A2($elm$json$Json$Decode$decodeString, decoder, string));
+				}));
+	});
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$list = _Json_decodeList;
+var $author$project$Utils$twelve = _List_fromArray(
+	[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+var $author$project$Database$f = A2(
+	$elm$core$Basics$composeL,
+	$elm$core$Dict$fromList,
+	$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve));
+var $author$project$Utils$cmpmb = F2(
+	function (a, b) {
+		var _v0 = _Utils_Tuple2(a, b);
+		if (_v0.a.$ === 'Nothing') {
+			var _v1 = _v0.a;
+			return $elm$core$Basics$LT;
+		} else {
+			if (_v0.b.$ === 'Nothing') {
+				var _v2 = _v0.b;
+				return $elm$core$Basics$GT;
+			} else {
+				var x = _v0.a.a;
+				var y = _v0.b.a;
+				return A2($elm$core$Basics$compare, x, y);
+			}
+		}
+	});
+var $author$project$Utils$on = F4(
+	function (bf, uf, x, y) {
+		return A2(
+			bf,
+			uf(x),
+			uf(y));
+	});
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $elm$core$List$sortWith = _List_sortWith;
+var $author$project$Database$maakvolgorde = A2(
+	$elm$core$Basics$composeL,
+	A2(
+		$elm$core$Basics$composeL,
+		A2(
+			$elm$core$Basics$composeL,
+			A2(
+				$elm$core$Basics$composeL,
+				$elm$core$Dict$fromList,
+				$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve)),
+			$elm$core$List$map($elm$core$Tuple$first)),
+		$elm$core$List$sortWith(
+			A2($author$project$Utils$on, $author$project$Utils$cmpmb, $elm$core$Tuple$second))),
+	$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve));
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm$core$String$replace = F3(
+	function (before, after, string) {
+		return A2(
+			$elm$core$String$join,
+			after,
+			A2($elm$core$String$split, before, string));
+	});
+var $elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
+var $elm$core$List$takeReverse = F3(
+	function (n, list, kept) {
+		takeReverse:
+		while (true) {
+			if (n <= 0) {
+				return kept;
+			} else {
+				if (!list.b) {
+					return kept;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs,
+						$temp$kept = A2($elm$core$List$cons, x, kept);
+					n = $temp$n;
+					list = $temp$list;
+					kept = $temp$kept;
+					continue takeReverse;
+				}
+			}
+		}
+	});
+var $elm$core$List$takeTailRec = F2(
+	function (n, list) {
+		return $elm$core$List$reverse(
+			A3($elm$core$List$takeReverse, n, list, _List_Nil));
+	});
+var $elm$core$List$takeFast = F3(
+	function (ctr, n, list) {
+		if (n <= 0) {
+			return _List_Nil;
+		} else {
+			var _v0 = _Utils_Tuple2(n, list);
+			_v0$1:
+			while (true) {
+				_v0$5:
+				while (true) {
+					if (!_v0.b.b) {
+						return list;
+					} else {
+						if (_v0.b.b.b) {
+							switch (_v0.a) {
+								case 1:
+									break _v0$1;
+								case 2:
+									var _v2 = _v0.b;
+									var x = _v2.a;
+									var _v3 = _v2.b;
+									var y = _v3.a;
+									return _List_fromArray(
+										[x, y]);
+								case 3:
+									if (_v0.b.b.b.b) {
+										var _v4 = _v0.b;
+										var x = _v4.a;
+										var _v5 = _v4.b;
+										var y = _v5.a;
+										var _v6 = _v5.b;
+										var z = _v6.a;
+										return _List_fromArray(
+											[x, y, z]);
+									} else {
+										break _v0$5;
+									}
+								default:
+									if (_v0.b.b.b.b && _v0.b.b.b.b.b) {
+										var _v7 = _v0.b;
+										var x = _v7.a;
+										var _v8 = _v7.b;
+										var y = _v8.a;
+										var _v9 = _v8.b;
+										var z = _v9.a;
+										var _v10 = _v9.b;
+										var w = _v10.a;
+										var tl = _v10.b;
+										return (ctr > 1000) ? A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A2($elm$core$List$takeTailRec, n - 4, tl))))) : A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A3($elm$core$List$takeFast, ctr + 1, n - 4, tl)))));
+									} else {
+										break _v0$5;
+									}
+							}
+						} else {
+							if (_v0.a === 1) {
+								break _v0$1;
+							} else {
+								break _v0$5;
+							}
+						}
+					}
+				}
+				return list;
+			}
+			var _v1 = _v0.b;
+			var x = _v1.a;
+			return _List_fromArray(
+				[x]);
+		}
+	});
+var $elm$core$List$take = F2(
+	function (n, list) {
+		return A3($elm$core$List$takeFast, 0, n, list);
+	});
+var $elm_community$list_extra$List$Extra$splitAt = F2(
+	function (n, xs) {
+		return _Utils_Tuple2(
+			A2($elm$core$List$take, n, xs),
+			A2($elm$core$List$drop, n, xs));
+	});
+var $elm$core$List$tail = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(xs);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $elm$core$String$toFloat = _String_toFloat;
+var $elm_community$maybe_extra$Maybe$Extra$cons = F2(
+	function (item, list) {
+		if (item.$ === 'Just') {
+			var v = item.a;
+			return A2($elm$core$List$cons, v, list);
+		} else {
+			return list;
+		}
+	});
+var $elm_community$maybe_extra$Maybe$Extra$values = A2($elm$core$List$foldr, $elm_community$maybe_extra$Maybe$Extra$cons, _List_Nil);
+var $author$project$Database$tovraagsheet = A2(
+	$elm$core$Basics$composeR,
+	$elm$core$List$tail,
+	$elm$core$Maybe$map(
+		A2(
+			$elm$core$Basics$composeR,
+			$elm$core$List$map(
+				function (row) {
+					var _v0 = A2($elm_community$list_extra$List$Extra$splitAt, 27, row);
+					if (_v0.a.b && _v0.a.b.b) {
+						var _v1 = _v0.a;
+						var naam = _v1.a;
+						var _v2 = _v1.b;
+						var woord = _v2.a;
+						var vragenantwoordenvolgorde = _v0.b;
+						var _v3 = A2($elm_community$list_extra$List$Extra$splitAt, 12, vragenantwoordenvolgorde);
+						var vragen = _v3.a;
+						var antwoordenvolgorde = _v3.b;
+						var _v4 = A2($elm_community$list_extra$List$Extra$splitAt, 12, antwoordenvolgorde);
+						var antwoorden = _v4.a;
+						var volgorde = _v4.b;
+						return $elm$core$Maybe$Just(
+							_Utils_Tuple2(
+								naam,
+								{
+									antwoorden: $author$project$Database$f(antwoorden),
+									volgorde: $author$project$Database$maakvolgorde(
+										A2(
+											$elm$core$List$map,
+											A2(
+												$elm$core$Basics$composeL,
+												$elm$core$String$toFloat,
+												A2($elm$core$String$replace, ',', '.')),
+											volgorde)),
+									vragen: $author$project$Database$f(vragen),
+									woord: woord
+								}));
+					} else {
+						return $elm$core$Maybe$Nothing;
+					}
+				}),
+			A2($elm$core$Basics$composeR, $elm_community$maybe_extra$Maybe$Extra$values, $elm$core$Dict$fromList))));
+var $author$project$Database$parse = A2(
+	$elm$json$Json$Decode$field,
+	'values',
+	A2(
+		$elm$json$Json$Decode$map,
+		$author$project$Database$tovraagsheet,
+		$elm$json$Json$Decode$list(
+			$elm$json$Json$Decode$list($elm$json$Json$Decode$string))));
+var $author$project$Database$readSpreadsheet = function (oauth) {
+	return $elm$http$Http$request(
+		{
+			body: $elm$http$Http$emptyBody,
+			expect: A2($elm$http$Http$expectJson, $author$project$Types$DataReceived, $author$project$Database$parse),
+			headers: _List_fromArray(
+				[
+					A2($elm$http$Http$header, 'Authorization', 'Bearer ' + oauth)
+				]),
+			method: 'GET',
+			timeout: $elm$core$Maybe$Nothing,
+			tracker: $elm$core$Maybe$Nothing,
+			url: $author$project$Database$url('mensen')
+		});
+};
 var $elm$core$List$repeatHelp = F3(
 	function (result, n, value) {
 		repeatHelp:
@@ -7460,7 +7459,7 @@ var $author$project$Utils$index = F2(
 			}
 		}
 	});
-var $author$project$Letters$Paars = {$: 'Paars'};
+var $author$project$Letters$Zwart = {$: 'Zwart'};
 var $elm_community$list_extra$List$Extra$updateAt = F3(
 	function (index, fn, list) {
 		if (index < 0) {
@@ -7518,9 +7517,9 @@ var $author$project$Woordraden$woordupdate2 = F5(
 							function () {
 								switch (letter.$) {
 									case 'Opgezocht':
-										return $author$project$Letters$Wit;
+										return $author$project$Letters$Zwart;
 									case 'UitHetHoofd':
-										return $author$project$Letters$Paars;
+										return $author$project$Letters$Zwart;
 									default:
 										return $author$project$Letters$Vraagteken;
 								}
@@ -7582,7 +7581,14 @@ var $author$project$Main$update = F2(
 							var naam = _v2;
 							var _v3 = status.thesheet;
 							if (_v3.$ === 'Nothing') {
-								return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+								return _Utils_Tuple2(
+									$author$project$Main$InGame(
+										A3(
+											$author$project$Hoofdspel$startgame,
+											status.now,
+											{antwoorden: $elm$core$Dict$empty, volgorde: $elm$core$Dict$empty, vragen: $elm$core$Dict$empty, woord: ''},
+											status.oauth)),
+									$elm$core$Platform$Cmd$none);
 							} else {
 								var sheet = _v3.a;
 								var _v4 = A2($elm$core$Dict$get, naam, sheet);
@@ -8037,6 +8043,7 @@ var $author$project$Letters$klok = function (millisdiff) {
 					]))
 			]));
 };
+var $author$project$Letters$Paars = {$: 'Paars'};
 var $author$project$Hoofdspel$getBeginLetter = F2(
 	function (status, i) {
 		var _v0 = A2($elm$core$Dict$get, i, status.gegevenantwoorden);
@@ -8214,7 +8221,7 @@ var $author$project$Letters$letters = F3(
 												[
 													$elm$html$Html$text('?')
 												]));
-									default:
+									case 'Streepje':
 										return A2(
 											$elm$html$Html$th,
 											A2(
@@ -8228,6 +8235,14 @@ var $author$project$Letters$letters = F3(
 												[
 													$elm$html$Html$text('-')
 												]));
+									default:
+										return A2(
+											$elm$html$Html$th,
+											A2(
+												$elm$core$List$cons,
+												A2($elm$html$Html$Attributes$style, 'background-color', 'black'),
+												styles),
+											_List_Nil);
 								}
 							},
 							A2(
@@ -8498,7 +8513,7 @@ var $author$project$Hoofdspel$vraagbox = function (status) {
 																			_List_fromArray(
 																				[
 																					$elm$html$Html$text(
-																					A2(
+																					(status.questionNumber === 8) ? 'Vraag 8 is de paardensprong, daar willen jullie misschien samen naar kijken...' : A2(
 																						$elm$core$Maybe$withDefault,
 																						'error: geen vraag ' + $elm$core$String$fromInt(status.questionNumber),
 																						A2($elm$core$Dict$get, status.questionNumber, status.data.vragen)))
@@ -8631,7 +8646,269 @@ var $author$project$Hoofdspel$wiki = function (status) {
 							_Utils_Tuple2(5, _List_Nil),
 							_Utils_Tuple2(
 							90,
-							status.searching ? _List_fromArray(
+							(status.questionNumber === 8) ? _List_fromArray(
+								[
+									A2(
+									$elm$svg$Svg$svg,
+									_Utils_ap(
+										_List_fromArray(
+											[
+												$elm$svg$Svg$Attributes$width('62cqh'),
+												$elm$svg$Svg$Attributes$height('62cqh'),
+												$elm$svg$Svg$Attributes$viewBox('0 0 62cqh 62cqh')
+											]),
+										$author$project$Utils$centeringstuff),
+									_List_fromArray(
+										[
+											A2(
+											$elm$svg$Svg$image,
+											_List_fromArray(
+												[
+													$elm$svg$Svg$Attributes$x('0'),
+													$elm$svg$Svg$Attributes$y('0'),
+													$elm$svg$Svg$Attributes$width('100%'),
+													$elm$svg$Svg$Attributes$height('100%'),
+													$elm$svg$Svg$Attributes$xlinkHref('images/paardensprong.jpeg')
+												]),
+											_List_Nil),
+											A2(
+											$elm$svg$Svg$rect,
+											_List_fromArray(
+												[
+													$elm$svg$Svg$Attributes$fill('#555555'),
+													$elm$svg$Svg$Attributes$opacity('40%'),
+													$elm$svg$Svg$Attributes$x('38%'),
+													$elm$svg$Svg$Attributes$y('37%'),
+													$elm$svg$Svg$Attributes$width('23.5%'),
+													$elm$svg$Svg$Attributes$height('23.5%')
+												]),
+											_List_Nil),
+											A2(
+											$elm$svg$Svg$foreignObject,
+											_List_fromArray(
+												[
+													$elm$svg$Svg$Attributes$x('10.5%'),
+													$elm$svg$Svg$Attributes$y('9%'),
+													$elm$svg$Svg$Attributes$width('23.5%'),
+													$elm$svg$Svg$Attributes$height('23.5%')
+												]),
+											_List_fromArray(
+												[
+													A2(
+													$elm$html$Html$div,
+													A2(
+														$elm$core$List$cons,
+														A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+														A2(
+															$elm$core$List$cons,
+															A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+															A2(
+																$elm$core$List$cons,
+																A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+																$author$project$Utils$centeringstuff))),
+													_List_fromArray(
+														[
+															$elm$html$Html$text('M')
+														]))
+												])),
+											A2(
+											$elm$svg$Svg$foreignObject,
+											_List_fromArray(
+												[
+													$elm$svg$Svg$Attributes$x('38%'),
+													$elm$svg$Svg$Attributes$y('9%'),
+													$elm$svg$Svg$Attributes$width('23.5%'),
+													$elm$svg$Svg$Attributes$height('23.5%')
+												]),
+											_List_fromArray(
+												[
+													A2(
+													$elm$html$Html$div,
+													A2(
+														$elm$core$List$cons,
+														A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+														A2(
+															$elm$core$List$cons,
+															A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+															A2(
+																$elm$core$List$cons,
+																A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+																$author$project$Utils$centeringstuff))),
+													_List_fromArray(
+														[
+															$elm$html$Html$text('M')
+														]))
+												])),
+											A2(
+											$elm$svg$Svg$foreignObject,
+											_List_fromArray(
+												[
+													$elm$svg$Svg$Attributes$x('66%'),
+													$elm$svg$Svg$Attributes$y('9%'),
+													$elm$svg$Svg$Attributes$width('23.5%'),
+													$elm$svg$Svg$Attributes$height('23.5%')
+												]),
+											_List_fromArray(
+												[
+													A2(
+													$elm$html$Html$div,
+													A2(
+														$elm$core$List$cons,
+														A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+														A2(
+															$elm$core$List$cons,
+															A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+															A2(
+																$elm$core$List$cons,
+																A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+																$author$project$Utils$centeringstuff))),
+													_List_fromArray(
+														[
+															$elm$html$Html$text('M')
+														]))
+												])),
+											A2(
+											$elm$svg$Svg$foreignObject,
+											_List_fromArray(
+												[
+													$elm$svg$Svg$Attributes$x('10.5%'),
+													$elm$svg$Svg$Attributes$y('37%'),
+													$elm$svg$Svg$Attributes$width('23.5%'),
+													$elm$svg$Svg$Attributes$height('23.5%')
+												]),
+											_List_fromArray(
+												[
+													A2(
+													$elm$html$Html$div,
+													A2(
+														$elm$core$List$cons,
+														A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+														A2(
+															$elm$core$List$cons,
+															A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+															A2(
+																$elm$core$List$cons,
+																A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+																$author$project$Utils$centeringstuff))),
+													_List_fromArray(
+														[
+															$elm$html$Html$text('M')
+														]))
+												])),
+											A2(
+											$elm$svg$Svg$foreignObject,
+											_List_fromArray(
+												[
+													$elm$svg$Svg$Attributes$x('66%'),
+													$elm$svg$Svg$Attributes$y('37%'),
+													$elm$svg$Svg$Attributes$width('23.5%'),
+													$elm$svg$Svg$Attributes$height('23.5%')
+												]),
+											_List_fromArray(
+												[
+													A2(
+													$elm$html$Html$div,
+													A2(
+														$elm$core$List$cons,
+														A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+														A2(
+															$elm$core$List$cons,
+															A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+															A2(
+																$elm$core$List$cons,
+																A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+																$author$project$Utils$centeringstuff))),
+													_List_fromArray(
+														[
+															$elm$html$Html$text('M')
+														]))
+												])),
+											A2(
+											$elm$svg$Svg$foreignObject,
+											_List_fromArray(
+												[
+													$elm$svg$Svg$Attributes$x('10.5%'),
+													$elm$svg$Svg$Attributes$y('65%'),
+													$elm$svg$Svg$Attributes$width('23.5%'),
+													$elm$svg$Svg$Attributes$height('23.5%')
+												]),
+											_List_fromArray(
+												[
+													A2(
+													$elm$html$Html$div,
+													A2(
+														$elm$core$List$cons,
+														A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+														A2(
+															$elm$core$List$cons,
+															A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+															A2(
+																$elm$core$List$cons,
+																A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+																$author$project$Utils$centeringstuff))),
+													_List_fromArray(
+														[
+															$elm$html$Html$text('M')
+														]))
+												])),
+											A2(
+											$elm$svg$Svg$foreignObject,
+											_List_fromArray(
+												[
+													$elm$svg$Svg$Attributes$x('38%'),
+													$elm$svg$Svg$Attributes$y('65%'),
+													$elm$svg$Svg$Attributes$width('23.5%'),
+													$elm$svg$Svg$Attributes$height('23.5%')
+												]),
+											_List_fromArray(
+												[
+													A2(
+													$elm$html$Html$div,
+													A2(
+														$elm$core$List$cons,
+														A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+														A2(
+															$elm$core$List$cons,
+															A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+															A2(
+																$elm$core$List$cons,
+																A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+																$author$project$Utils$centeringstuff))),
+													_List_fromArray(
+														[
+															$elm$html$Html$text('M')
+														]))
+												])),
+											A2(
+											$elm$svg$Svg$foreignObject,
+											_List_fromArray(
+												[
+													$elm$svg$Svg$Attributes$x('66%'),
+													$elm$svg$Svg$Attributes$y('65%'),
+													$elm$svg$Svg$Attributes$width('23.5%'),
+													$elm$svg$Svg$Attributes$height('23.5%')
+												]),
+											_List_fromArray(
+												[
+													A2(
+													$elm$html$Html$div,
+													A2(
+														$elm$core$List$cons,
+														A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+														A2(
+															$elm$core$List$cons,
+															A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+															A2(
+																$elm$core$List$cons,
+																A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+																$author$project$Utils$centeringstuff))),
+													_List_fromArray(
+														[
+															$elm$html$Html$text('M')
+														]))
+												]))
+										]))
+								]) : (status.searching ? _List_fromArray(
 								[
 									A2(
 									$elm$svg$Svg$svg,
@@ -8664,7 +8941,7 @@ var $author$project$Hoofdspel$wiki = function (status) {
 													_List_Nil)
 												]))
 										]))
-								]) : _List_Nil),
+								]) : _List_Nil)),
 							_Utils_Tuple2(5, _List_Nil)
 						])))
 			]));

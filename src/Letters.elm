@@ -13,6 +13,7 @@ type Letter = UitHetHoofd String
             | Opgezocht String
             | Paars
             | Wit
+            | Zwart
             | Vraagteken
             | Streepje
 
@@ -31,14 +32,15 @@ letters lastQuestion ls onclick =
                                   Nothing -> []
                                   Just f -> [onClick (f i)] 
                   in case l of
-                        Opgezocht letter   -> th (style "background-color" "white" :: styles) [div event [text ((String.toUpper << String.slice 0 1) letter)]]
-                        UitHetHoofd letter -> th 
-                                                (style "background-image" "url('images/uithethoofd.jpg')" :: styles) 
-                                                [div event [text ((String.toUpper << String.slice 0 1) letter)]]
-                        Paars              -> th (style "background-image" "url('images/uithethoofd.jpg')" :: styles) []
-                        Wit                -> th (style "background-color" "white" :: styles) []
-                        Vraagteken         -> th (style "background-color" "white" :: styles) [text "?"]
-                        Streepje           -> th (style "background-color" "black" :: style "color" "white" :: styles) [text "-"]
+                      Opgezocht letter   -> th (style "background-color" "white" :: styles) [div event [text ((String.toUpper << String.slice 0 1) letter)]]
+                      UitHetHoofd letter -> th 
+                                              (style "background-image" "url('images/uithethoofd.jpg')" :: styles) 
+                                              [div event [text ((String.toUpper << String.slice 0 1) letter)]]
+                      Paars              -> th (style "background-image" "url('images/uithethoofd.jpg')" :: styles) []
+                      Wit                -> th (style "background-color" "white" :: styles) []
+                      Vraagteken         -> th (style "background-color" "white" :: styles) [text "?"]
+                      Streepje           -> th (style "background-color" "black" :: style "color" "white" :: styles) [text "-"]
+                      Zwart              -> th (style "background-color" "black" :: styles) []
                 )
                 (List.Extra.zip [1,2,3,4,5,6,7,8,9,10,11,12] ls)))
         ) :: (numbersbelow lastQuestion)

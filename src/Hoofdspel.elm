@@ -103,12 +103,28 @@ wiki status = rows
       ])
   , (85, [], cols
     [ (5, [])
-    , (90, if status.searching 
+    , (90, if status.questionNumber == 8 
+            then
+              [Svg.svg ([Svg.width "62cqh", Svg.height "62cqh", Svg.viewBox "0 0 62cqh 62cqh"] ++ centeringstuff)
+                [ Svg.image [Svg.x "0", Svg.y "0", Svg.width "100%", Svg.height "100%", Svg.xlinkHref "images/paardensprong.jpeg"] []
+                , Svg.rect [Svg.fill "#555555", Svg.opacity "40%", Svg.x "38%",   Svg.y "37%", Svg.width "23.5%", Svg.height "23.5%"] []                
+                , Svg.foreignObject [Svg.x "10.5%", Svg.y "9%",  Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
+                , Svg.foreignObject [Svg.x "38%",   Svg.y "9%",  Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
+                , Svg.foreignObject [Svg.x "66%",   Svg.y "9%",  Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
+                , Svg.foreignObject [Svg.x "10.5%", Svg.y "37%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
+                , Svg.foreignObject [Svg.x "66%",   Svg.y "37%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
+                , Svg.foreignObject [Svg.x "10.5%", Svg.y "65%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
+                , Svg.foreignObject [Svg.x "38%",   Svg.y "65%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
+                , Svg.foreignObject [Svg.x "66%",   Svg.y "65%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
+                ]
+              ]
+            else if status.searching 
               then [Svg.svg svgfullsize
                             [ Svg.rect (svgfullsize ++ [Svg.fill "#ffffff"]) []
                             , Svg.foreignObject svgfullsize
                                 [embed [type_ "text/html", src "https://nl.wikipedia.org", style "width" "100%", style "height" "100%"] []] 
-                            ]] else [])
+                            ]] 
+              else [])
     , (5, [])
     ])
   ]
@@ -135,7 +151,9 @@ vraagbox status = rows
                               , button [onClick NextQ,     id "btn__forward", style "height" "0%", style "width" "0%", style "position" "relative", style "top" (if status.questionNumber > 11 || status.searching then "-500%" else "-50%"), style "left"  "10%"] []]])
                 , (45, [], cols
                   [ (5, [])
-                  , (90, [p [style "width" "95%"] [text (Maybe.withDefault ("error: geen vraag " ++ String.fromInt status.questionNumber) (Dict.get status.questionNumber status.data.vragen))]])
+                  , (90, [p [style "width" "95%"] [text (if status.questionNumber == 8 
+                                                          then "Vraag 8 is de paardensprong, daar willen jullie misschien samen naar kijken..." 
+                                                          else Maybe.withDefault ("error: geen vraag " ++ String.fromInt status.questionNumber) (Dict.get status.questionNumber status.data.vragen))]])
                   ])
                 , (15, [], [input (centeringstuff ++ [style "height" "100%", style "width" "60%", style "font-size" "3cqh", style "padding" "0cqh 2cqh", placeholder "antwoord", value (Maybe.withDefault "" (Dict.get status.questionNumber status.gegevenantwoorden)), onInput Answer]) []])
                 , (5, [], [])
