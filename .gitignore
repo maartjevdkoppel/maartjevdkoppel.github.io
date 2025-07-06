@@ -4,4 +4,5 @@ elm-stuff
 repl-temp-*
 # generated javascript: output of elm
 main.js
-apikey
+
+node_modules
