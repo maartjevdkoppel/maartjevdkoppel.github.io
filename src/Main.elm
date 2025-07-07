@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 
 import Browser
@@ -9,6 +9,7 @@ import Html.Events exposing (onClick, onInput)
 import Task
 import Time
 import Process
+import Audio
 
 import Afrekenen exposing (..)
 import Database exposing (..)
@@ -18,34 +19,43 @@ import Types exposing (..)
 import Utils exposing (..)
 import Woordraden exposing (..)
 import Http exposing (Error(..))
+import Json.Encode
+import Json.Decode
+
+
+port audioPortToJS : Json.Encode.Value -> Cmd msg
+port audioPortFromJS : (Json.Decode.Value -> msg) -> Sub msg
 
 -- MAIN
 
-main : Program String Model Msg
+main : Program String (Audio.Model Msg Model) (Audio.Msg Msg)
 main =
-  Browser.element
+  Audio.elementWithAudio
     { init = init
     , view = view
     , update = update
     , subscriptions = subscriptions
+    , audio = audio
+    , audioPort = { toJS = audioPortToJS, fromJS = audioPortFromJS }
     }
 
 
 -- MODEL
 
 
-type Model = HomeScreen {now : Time.Posix, thesheet : Maybe Vraagsheet, username : String, oauth : String, waiting : Bool } --, spreadsheettext : String }
+type Model = HomeScreen {now : Time.Posix, thesheet : Maybe Vraagsheet, username : String, oauth : String, waiting : Bool, muziek : Maybe Audio.Source } --, spreadsheettext : String }
            | InGame HoofdStatus
            | Woordraden WoordraadStatus
            | Afrekenen Afrekenen
 
 
 
-init : String -> (Model, Cmd Msg)
+init : String -> (Model, Cmd Msg, Audio.AudioCmd Msg)
 init oauthtoken =
-  ( HomeScreen { now = Time.millisToPosix 0, thesheet = Nothing, username = "", oauth = oauthtoken, waiting = False }
+  ( HomeScreen { now = Time.millisToPosix 0, thesheet = Nothing, username = "", oauth = oauthtoken, waiting = False, muziek = Nothing }
   , Cmd.batch [Task.perform Tick Time.now
               ] --, readSpreadsheet oauthtoken]
+  , Audio.loadAudio SoundLoaded "https://maartjevdkoppel.github.io/audio/tune.mp3"
   )
 
 
@@ -53,29 +63,29 @@ init oauthtoken =
 -- UPDATE
 
 
-update : Msg -> Model -> (Model, Cmd Msg)
-update msg model =
+update : Audio.AudioData -> Msg -> Model -> (Model, Cmd Msg, Audio.AudioCmd Msg)
+update _ msg model =
   case model of
     HomeScreen status -> case msg of
       StartGame -> case status.username of
-        "" -> (model, Cmd.none)
+        "" -> (model, Cmd.none, Audio.cmdNone)
         naam -> case status.thesheet of
-          Nothing -> (InGame (startgame status.now {woord="", vragen=Dict.empty, antwoorden=Dict.empty, volgorde=Dict.empty} status.oauth), Cmd.none) --(model, Cmd.none)
+          Nothing -> (InGame (startgame status.now {woord="", vragen=Dict.empty, antwoorden=Dict.empty, volgorde=Dict.empty, paardsprongrng=(1,1)} status.oauth), Cmd.none, Audio.cmdNone) --(model, Cmd.none)
           Just sheet -> case Dict.get naam sheet of
-            Nothing -> (HomeScreen {status | waiting = True}, adduser naam status.oauth)
-            Just info -> (InGame (startgame status.now info status.oauth), logstartgame info naam status.now status.oauth)
+            Nothing -> (HomeScreen {status | waiting = True}, adduser naam status.oauth, Audio.cmdNone)
+            Just info -> (InGame (startgame status.now info status.oauth), logstartgame info naam status.now status.oauth, Audio.cmdNone)
       
       --(InGame (startgame status.now), Cmd.none)
-      Tick newtime -> (HomeScreen {status | now = newtime }, Cmd.none)
+      Tick newtime -> (HomeScreen {status | now = newtime }, Cmd.none, Audio.cmdNone)
       DataReceived result ->
         case result of
-          Ok data -> ( HomeScreen {status | thesheet = data}, Cmd.none)
-          _ -> ( model, Cmd.none )
+          Ok data -> ( HomeScreen {status | thesheet = data}, Cmd.none, Audio.cmdNone)
+          _ -> ( model, Cmd.none , Audio.cmdNone)
       UserAdded r -> case r of
-        Ok () -> ( HomeScreen status, Process.sleep 2000 |> \_ -> readSpreadsheet status.oauth)
-        Err e -> (HomeScreen {status | username = "Error adding user" }, Cmd.none)
-      Answer naam -> (HomeScreen {status | username = naam}, Cmd.none)
-      _ -> (model, Cmd.none)
+        Ok () -> ( HomeScreen status, Process.sleep 2000 |> \_ -> readSpreadsheet status.oauth, Audio.cmdNone)
+        Err e -> (HomeScreen {status | username = "Error adding user" }, Cmd.none, Audio.cmdNone)
+      Answer naam -> (HomeScreen {status | username = naam}, Cmd.none, Audio.cmdNone)
+      _ -> (model, Cmd.none, Audio.cmdNone)
 
     InGame status -> case msg of
       NaarWoordraden -> (Woordraden 
@@ -87,11 +97,11 @@ update msg model =
         , woord = ""
         , oauth = status.oauth
         , correctwoord = status.data.woord
-        }, Cmd.none)
+        }, Cmd.none, Audio.cmdNone)
       _ -> case hoofdupdate msg status of
-        (status2, cmd2) -> (InGame status2, cmd2)
+        (status2, cmd2) -> (InGame status2, cmd2, Audio.cmdNone)
     Woordraden status -> case msg of
-      Tick newtime -> (Woordraden { status | currentTime = newtime}, if Time.posixToMillis newtime > Time.posixToMillis status.timeTheGameEnds then Task.perform (\_ -> Submit) (Task.succeed ()) else Cmd.none)
+      Tick newtime -> (Woordraden { status | currentTime = newtime}, if Time.posixToMillis newtime > Time.posixToMillis status.timeTheGameEnds then Task.perform (\_ -> Submit) (Task.succeed ()) else Cmd.none, Audio.cmdNone)
       Submit -> if status.woord == status.correctwoord 
                 then (Afrekenen { basis = status.punten
                                 , uithethoofd = List.sum (List.map (\(l1,_,b) -> case l1 of
@@ -100,17 +110,17 @@ update msg model =
                                       _ -> 0
                                     ) status.koopbaar)
                                 , fout = List.length (List.filter (\(_,_,b) -> not b) status.koopbaar)
-                                }, Cmd.none) 
-                else (model, Cmd.none) -- TODO
-      _ -> (Woordraden (woordupdate msg status), Cmd.none)
-    Afrekenen status -> (model, Cmd.none)
+                                }, Cmd.none, Audio.cmdNone) 
+                else (model, Cmd.none, Audio.cmdNone) -- TODO
+      _ -> (Woordraden (woordupdate msg status), Cmd.none, Audio.cmdNone)
+    Afrekenen status -> (model, Cmd.none, Audio.cmdNone)
       
 
 -- SUBSCRIPTIONS
 
 
-subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions : Audio.AudioData -> Model -> Sub Msg
+subscriptions _ _ =
   Time.every 1000 Tick
 
 
@@ -118,8 +128,8 @@ subscriptions _ =
 -- VIEW
 
 
-view : Model -> Html Msg
-view model =
+view : Audio.AudioData -> Model -> Html Msg
+view _ model =
   case model of
     HomeScreen status -> div [] (Utils.rows -- TODO: highscores
       [ (20, [], [input [placeholder "naam", value status.username, onInput Answer] []])
@@ -135,3 +145,10 @@ view model =
     InGame status -> viewGame status
     Woordraden status -> viewWoord status
     Afrekenen status -> viewAfrekenen status
+
+-- AUDIO
+audio _ model = case model of
+  HomeScreen status -> case status.muziek of
+    Nothing -> Audio.silence
+    Just muziek -> Audio.audio muziek status.now 
+  _ -> Audio.silence

@@ -87,8 +87,13 @@ tovraagsheet =
       case List.Extra.splitAt 27 row of
         (naam :: woord :: _, vragenantwoordenvolgorde) ->
           let (vragen, antwoordenvolgorde) = List.Extra.splitAt 12 vragenantwoordenvolgorde
-              (antwoorden, volgorde)       = List.Extra.splitAt 12 antwoordenvolgorde
-          in Just (naam, {woord = woord, vragen = f vragen, antwoorden = f antwoorden, volgorde = maakvolgorde (List.map (String.toFloat << String.replace "," ".") volgorde)})
+              (antwoorden, volgorde)  = List.Extra.splitAt 12 antwoordenvolgorde
+          in Just (naam, { woord = woord, vragen = f vragen, antwoorden = f antwoorden
+                         , volgorde = maakvolgorde (List.map (String.toFloat << String.replace "," ".") volgorde)
+                         , paardsprongrng = case List.map (String.toFloat << String.replace "," ".") volgorde of
+                                              Just n1 :: Just n2 :: _ -> (if n1<0.5 then -1 else 1, ceiling (8*n2))
+                                              _ -> (1,8)
+                         })
         _ -> Nothing
     )
     >> Maybe.Extra.values

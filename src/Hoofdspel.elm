@@ -105,19 +105,7 @@ wiki status = rows
     [ (5, [])
     , (90, if status.questionNumber == 8 
             then
-              [Svg.svg ([Svg.width "62cqh", Svg.height "62cqh", Svg.viewBox "0 0 62cqh 62cqh"] ++ centeringstuff)
-                [ Svg.image [Svg.x "0", Svg.y "0", Svg.width "100%", Svg.height "100%", Svg.xlinkHref "images/paardensprong.jpeg"] []
-                , Svg.rect [Svg.fill "#555555", Svg.opacity "40%", Svg.x "38%",   Svg.y "37%", Svg.width "23.5%", Svg.height "23.5%"] []                
-                , Svg.foreignObject [Svg.x "10.5%", Svg.y "9%",  Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
-                , Svg.foreignObject [Svg.x "38%",   Svg.y "9%",  Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
-                , Svg.foreignObject [Svg.x "66%",   Svg.y "9%",  Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
-                , Svg.foreignObject [Svg.x "10.5%", Svg.y "37%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
-                , Svg.foreignObject [Svg.x "66%",   Svg.y "37%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
-                , Svg.foreignObject [Svg.x "10.5%", Svg.y "65%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
-                , Svg.foreignObject [Svg.x "38%",   Svg.y "65%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
-                , Svg.foreignObject [Svg.x "66%",   Svg.y "65%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text "M"]]                
-                ]
-              ]
+              paardensprong status
             else if status.searching 
               then [Svg.svg svgfullsize
                             [ Svg.rect (svgfullsize ++ [Svg.fill "#ffffff"]) []
@@ -129,7 +117,30 @@ wiki status = rows
     ])
   ]
 
-
+paardensprong : HoofdStatus -> List (Html Msg)
+paardensprong status = 
+  let -- todo: random
+      klokmee = Tuple.first status.data.paardsprongrng -- 1 of -1
+      startplek = Tuple.second status.data.paardsprongrng -- int tussen 1 en 8 (inclusief)
+      sprongwoord =
+        case Dict.get 8 status.data.antwoorden of
+          Nothing -> "Error"
+          Just str -> str
+      f i = let ix = 8 + startplek + i * klokmee - 1 in String.slice ix (ix+1) (sprongwoord ++ sprongwoord ++ sprongwoord)
+  in
+  [Svg.svg ([Svg.width "62cqh", Svg.height "62cqh", Svg.viewBox "0 0 62cqh 62cqh"] ++ centeringstuff)
+    [ Svg.image [Svg.x "0", Svg.y "0", Svg.width "100%", Svg.height "100%", Svg.xlinkHref "images/paardensprong.jpeg"] []
+    , Svg.rect [Svg.fill "#555555", Svg.opacity "40%", Svg.x "38%",   Svg.y "37%", Svg.width "23.5%", Svg.height "23.5%"] []                
+    , Svg.foreignObject [Svg.x "10.5%", Svg.y "9%",  Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 1)]]                 
+    , Svg.foreignObject [Svg.x "38%",   Svg.y "9%",  Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 4)]]                 
+    , Svg.foreignObject [Svg.x "66%",   Svg.y "9%",  Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 7)]]                 
+    , Svg.foreignObject [Svg.x "10.5%", Svg.y "37%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 6)]]                 
+    , Svg.foreignObject [Svg.x "66%",   Svg.y "37%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 2)]]                 
+    , Svg.foreignObject [Svg.x "10.5%", Svg.y "65%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 3)]]                 
+    , Svg.foreignObject [Svg.x "38%",   Svg.y "65%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 8)]]                 
+    , Svg.foreignObject [Svg.x "66%",   Svg.y "65%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 5)]]                 
+    ]
+  ]
 
 
 vraagbox : HoofdStatus -> List (Html Msg)
