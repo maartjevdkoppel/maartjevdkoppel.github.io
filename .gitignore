@@ -2,7 +2,5 @@
 elm-stuff
 # elm-repl generated files
 repl-temp-*
-# generated javascript: output of elm
-main.js
 
 node_modules
