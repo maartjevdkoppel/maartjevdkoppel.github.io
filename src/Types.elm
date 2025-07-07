@@ -20,6 +20,7 @@ type Msg
   | DataReceived (Result Http.Error (Maybe Vraagsheet)) 
   | UserAdded ( Result Http.Error ())
   | SoundLoaded (Result Audio.LoadError Audio.Source)
+  | PlayAudio
 
 
 type alias Vraagsheet = Dict.Dict String VragenAntwoorden

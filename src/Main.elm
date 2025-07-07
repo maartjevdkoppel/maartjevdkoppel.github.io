@@ -55,7 +55,7 @@ init oauthtoken =
   ( HomeScreen { now = Time.millisToPosix 0, thesheet = Nothing, username = "", oauth = oauthtoken, waiting = False, muziek = Nothing }
   , Cmd.batch [Task.perform Tick Time.now
               ] --, readSpreadsheet oauthtoken]
-  , Audio.loadAudio SoundLoaded "https://maartjevdkoppel.github.io/audio/tune.mp3"
+  , Audio.cmdNone
   )
 
 
@@ -85,6 +85,7 @@ update _ msg model =
         Ok () -> ( HomeScreen status, Process.sleep 2000 |> \_ -> readSpreadsheet status.oauth, Audio.cmdNone)
         Err e -> (HomeScreen {status | username = "Error adding user" }, Cmd.none, Audio.cmdNone)
       Answer naam -> (HomeScreen {status | username = naam}, Cmd.none, Audio.cmdNone)
+      PlayAudio -> (model, Cmd.none, Audio.loadAudio SoundLoaded "https://maartjevdkoppel.github.io/audio/tune.mp3")
       _ -> (model, Cmd.none, Audio.cmdNone)
 
     InGame status -> case msg of
@@ -131,17 +132,20 @@ subscriptions _ _ =
 view : Audio.AudioData -> Model -> Html Msg
 view _ model =
   case model of
-    HomeScreen status -> div [] (Utils.rows -- TODO: highscores
-      [ (20, [], [input [placeholder "naam", value status.username, onInput Answer] []])
-      , (20, [], case (status.username, Maybe.andThen (Dict.get status.username) status.thesheet) of
-                  ("", _) -> []
-                  (_, Nothing) -> if status.waiting 
-                                  then [text "Even geduld alstublieft"] 
-                                  else [button [onClick StartGame] [text "Schrijf je in"]]
-                  _ -> [button [onClick StartGame] [text "Begin het spel!"]]
-       )
-      -- , (60, [], [text status.spreadsheettext])
-      ])
+    HomeScreen status -> case status.muziek of
+      Nothing -> button [onClick PlayAudio] [text "Goeienavondhartelijk welkom bij twee voor 12"]
+      Just _ ->
+        div [] (Utils.rows -- TODO: highscores
+        [ (20, [], [input [placeholder "naam", value status.username, onInput Answer] []])
+        , (20, [], case (status.username, Maybe.andThen (Dict.get status.username) status.thesheet) of
+                    ("", _) -> []
+                    (_, Nothing) -> if status.waiting 
+                                    then [text "Even geduld alstublieft"] 
+                                    else [button [onClick StartGame] [text "Schrijf je in"]]
+                    _ -> [button [onClick StartGame] [text "Begin het spel!"]]
+        )
+        -- , (60, [], [text status.spreadsheettext])
+        ])
     InGame status -> viewGame status
     Woordraden status -> viewWoord status
     Afrekenen status -> viewAfrekenen status

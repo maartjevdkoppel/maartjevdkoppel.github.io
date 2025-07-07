@@ -7178,51 +7178,13 @@ var $MartinSStewart$elm_audio$Audio$elementWithAudio = A2(
 var $author$project$Main$HomeScreen = function (a) {
 	return {$: 'HomeScreen', a: a};
 };
-var $author$project$Types$SoundLoaded = function (a) {
-	return {$: 'SoundLoaded', a: a};
-};
 var $author$project$Types$Tick = function (a) {
 	return {$: 'Tick', a: a};
 };
-var $MartinSStewart$elm_audio$Audio$AudioLoadRequest = function (a) {
-	return {$: 'AudioLoadRequest', a: a};
+var $MartinSStewart$elm_audio$Audio$AudioCmdGroup = function (a) {
+	return {$: 'AudioCmdGroup', a: a};
 };
-var $MartinSStewart$elm_audio$Audio$ErrorThatHappensWhenYouLoadMoreThan1000SoundsDueToHackyWorkAroundToMakeThisPackageBehaveMoreLikeAnEffectPackage = {$: 'ErrorThatHappensWhenYouLoadMoreThan1000SoundsDueToHackyWorkAroundToMakeThisPackageBehaveMoreLikeAnEffectPackage'};
-var $MartinSStewart$elm_audio$Audio$enumeratedResults = A2(
-	$mgold$elm_nonempty_list$List$Nonempty$Nonempty,
-	$elm$core$Result$Err($MartinSStewart$elm_audio$Audio$ErrorThatHappensWhenYouLoadMoreThan1000SoundsDueToHackyWorkAroundToMakeThisPackageBehaveMoreLikeAnEffectPackage),
-	_Utils_ap(
-		_List_fromArray(
-			[
-				$elm$core$Result$Err($MartinSStewart$elm_audio$Audio$FailedToDecode),
-				$elm$core$Result$Err($MartinSStewart$elm_audio$Audio$NetworkError),
-				$elm$core$Result$Err($MartinSStewart$elm_audio$Audio$UnknownError)
-			]),
-		A2(
-			$elm$core$List$map,
-			function (bufferId) {
-				return $elm$core$Result$Ok(
-					$MartinSStewart$elm_audio$Audio$File(
-						{
-							bufferId: $MartinSStewart$elm_audio$Audio$BufferId(bufferId)
-						}));
-			},
-			A2($elm$core$List$range, 0, 1000))));
-var $MartinSStewart$elm_audio$Audio$loadAudio = F2(
-	function (userMsg, url) {
-		return $MartinSStewart$elm_audio$Audio$AudioLoadRequest(
-			{
-				audioUrl: url,
-				userMsg: A2(
-					$mgold$elm_nonempty_list$List$Nonempty$map,
-					function (results) {
-						return _Utils_Tuple2(
-							results,
-							userMsg(results));
-					},
-					$MartinSStewart$elm_audio$Audio$enumeratedResults)
-			});
-	});
+var $MartinSStewart$elm_audio$Audio$cmdNone = $MartinSStewart$elm_audio$Audio$AudioCmdGroup(_List_Nil);
 var $elm$time$Time$Name = function (a) {
 	return {$: 'Name', a: a};
 };
@@ -7251,7 +7213,7 @@ var $author$project$Main$init = function (oauthtoken) {
 				[
 					A2($elm$core$Task$perform, $author$project$Types$Tick, $elm$time$Time$now)
 				])),
-		A2($MartinSStewart$elm_audio$Audio$loadAudio, $author$project$Types$SoundLoaded, 'https://maartjevdkoppel.github.io/audio/tune.mp3'));
+		$MartinSStewart$elm_audio$Audio$cmdNone);
 };
 var $elm$time$Time$Every = F2(
 	function (a, b) {
@@ -7494,6 +7456,9 @@ var $author$project$Main$Afrekenen = function (a) {
 };
 var $author$project$Main$InGame = function (a) {
 	return {$: 'InGame', a: a};
+};
+var $author$project$Types$SoundLoaded = function (a) {
+	return {$: 'SoundLoaded', a: a};
 };
 var $author$project$Types$Submit = {$: 'Submit'};
 var $author$project$Letters$Wit = {$: 'Wit'};
@@ -7806,10 +7771,6 @@ var $author$project$Database$adduser = F2(
 				url: $author$project$Database$url('usernames!A1:append?valueInputOption=RAW')
 			});
 	});
-var $MartinSStewart$elm_audio$Audio$AudioCmdGroup = function (a) {
-	return {$: 'AudioCmdGroup', a: a};
-};
-var $MartinSStewart$elm_audio$Audio$cmdNone = $MartinSStewart$elm_audio$Audio$AudioCmdGroup(_List_Nil);
 var $author$project$Types$NaarWoordraden = {$: 'NaarWoordraden'};
 var $elm$core$Basics$modBy = _Basics_modBy;
 var $author$project$Utils$evensec = function (t) {
@@ -7884,6 +7845,45 @@ var $author$project$Hoofdspel$hoofdupdate = F2(
 			default:
 				return _Utils_Tuple2(status, $elm$core$Platform$Cmd$none);
 		}
+	});
+var $MartinSStewart$elm_audio$Audio$AudioLoadRequest = function (a) {
+	return {$: 'AudioLoadRequest', a: a};
+};
+var $MartinSStewart$elm_audio$Audio$ErrorThatHappensWhenYouLoadMoreThan1000SoundsDueToHackyWorkAroundToMakeThisPackageBehaveMoreLikeAnEffectPackage = {$: 'ErrorThatHappensWhenYouLoadMoreThan1000SoundsDueToHackyWorkAroundToMakeThisPackageBehaveMoreLikeAnEffectPackage'};
+var $MartinSStewart$elm_audio$Audio$enumeratedResults = A2(
+	$mgold$elm_nonempty_list$List$Nonempty$Nonempty,
+	$elm$core$Result$Err($MartinSStewart$elm_audio$Audio$ErrorThatHappensWhenYouLoadMoreThan1000SoundsDueToHackyWorkAroundToMakeThisPackageBehaveMoreLikeAnEffectPackage),
+	_Utils_ap(
+		_List_fromArray(
+			[
+				$elm$core$Result$Err($MartinSStewart$elm_audio$Audio$FailedToDecode),
+				$elm$core$Result$Err($MartinSStewart$elm_audio$Audio$NetworkError),
+				$elm$core$Result$Err($MartinSStewart$elm_audio$Audio$UnknownError)
+			]),
+		A2(
+			$elm$core$List$map,
+			function (bufferId) {
+				return $elm$core$Result$Ok(
+					$MartinSStewart$elm_audio$Audio$File(
+						{
+							bufferId: $MartinSStewart$elm_audio$Audio$BufferId(bufferId)
+						}));
+			},
+			A2($elm$core$List$range, 0, 1000))));
+var $MartinSStewart$elm_audio$Audio$loadAudio = F2(
+	function (userMsg, url) {
+		return $MartinSStewart$elm_audio$Audio$AudioLoadRequest(
+			{
+				audioUrl: url,
+				userMsg: A2(
+					$mgold$elm_nonempty_list$List$Nonempty$map,
+					function (results) {
+						return _Utils_Tuple2(
+							results,
+							userMsg(results));
+					},
+					$MartinSStewart$elm_audio$Audio$enumeratedResults)
+			});
 	});
 var $waratuman$elm_iso8601_date_strings$Iso8601$fromMonth = function (month) {
 	switch (month.$) {
@@ -8721,6 +8721,11 @@ var $author$project$Main$update = F3(
 									{username: naam})),
 							$elm$core$Platform$Cmd$none,
 							$MartinSStewart$elm_audio$Audio$cmdNone);
+					case 'PlayAudio':
+						return _Utils_Tuple3(
+							model,
+							$elm$core$Platform$Cmd$none,
+							A2($MartinSStewart$elm_audio$Audio$loadAudio, $author$project$Types$SoundLoaded, 'https://maartjevdkoppel.github.io/audio/tune.mp3'));
 					default:
 						return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
 				}
@@ -8822,6 +8827,7 @@ var $author$project$Main$update = F3(
 var $author$project$Types$Answer = function (a) {
 	return {$: 'Answer', a: a};
 };
+var $author$project$Types$PlayAudio = {$: 'PlayAudio'};
 var $author$project$Types$StartGame = {$: 'StartGame'};
 var $elm$core$Maybe$andThen = F2(
 	function (callback, maybeValue) {
@@ -10253,76 +10259,90 @@ var $author$project$Main$view = F2(
 		switch (model.$) {
 			case 'HomeScreen':
 				var status = model.a;
-				return A2(
-					$elm$html$Html$div,
-					_List_Nil,
-					$author$project$Utils$rows(
+				var _v2 = status.muziek;
+				if (_v2.$ === 'Nothing') {
+					return A2(
+						$elm$html$Html$button,
 						_List_fromArray(
 							[
-								_Utils_Tuple3(
-								20,
-								_List_Nil,
-								_List_fromArray(
-									[
-										A2(
-										$elm$html$Html$input,
-										_List_fromArray(
-											[
-												$elm$html$Html$Attributes$placeholder('naam'),
-												$elm$html$Html$Attributes$value(status.username),
-												$elm$html$Html$Events$onInput($author$project$Types$Answer)
-											]),
-										_List_Nil)
-									])),
-								_Utils_Tuple3(
-								20,
-								_List_Nil,
-								function () {
-									var _v2 = _Utils_Tuple2(
-										status.username,
-										A2(
-											$elm$core$Maybe$andThen,
-											$elm$core$Dict$get(status.username),
-											status.thesheet));
-									if (_v2.a === '') {
-										return _List_Nil;
-									} else {
-										if (_v2.b.$ === 'Nothing') {
-											var _v3 = _v2.b;
-											return status.waiting ? _List_fromArray(
+								$elm$html$Html$Events$onClick($author$project$Types$PlayAudio)
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text('Goeienavondhartelijk welkom bij twee voor 12')
+							]));
+				} else {
+					return A2(
+						$elm$html$Html$div,
+						_List_Nil,
+						$author$project$Utils$rows(
+							_List_fromArray(
+								[
+									_Utils_Tuple3(
+									20,
+									_List_Nil,
+									_List_fromArray(
+										[
+											A2(
+											$elm$html$Html$input,
+											_List_fromArray(
 												[
-													$elm$html$Html$text('Even geduld alstublieft')
-												]) : _List_fromArray(
-												[
-													A2(
-													$elm$html$Html$button,
-													_List_fromArray(
-														[
-															$elm$html$Html$Events$onClick($author$project$Types$StartGame)
-														]),
-													_List_fromArray(
-														[
-															$elm$html$Html$text('Schrijf je in')
-														]))
-												]);
+													$elm$html$Html$Attributes$placeholder('naam'),
+													$elm$html$Html$Attributes$value(status.username),
+													$elm$html$Html$Events$onInput($author$project$Types$Answer)
+												]),
+											_List_Nil)
+										])),
+									_Utils_Tuple3(
+									20,
+									_List_Nil,
+									function () {
+										var _v3 = _Utils_Tuple2(
+											status.username,
+											A2(
+												$elm$core$Maybe$andThen,
+												$elm$core$Dict$get(status.username),
+												status.thesheet));
+										if (_v3.a === '') {
+											return _List_Nil;
 										} else {
-											return _List_fromArray(
-												[
-													A2(
-													$elm$html$Html$button,
-													_List_fromArray(
-														[
-															$elm$html$Html$Events$onClick($author$project$Types$StartGame)
-														]),
-													_List_fromArray(
-														[
-															$elm$html$Html$text('Begin het spel!')
-														]))
-												]);
+											if (_v3.b.$ === 'Nothing') {
+												var _v4 = _v3.b;
+												return status.waiting ? _List_fromArray(
+													[
+														$elm$html$Html$text('Even geduld alstublieft')
+													]) : _List_fromArray(
+													[
+														A2(
+														$elm$html$Html$button,
+														_List_fromArray(
+															[
+																$elm$html$Html$Events$onClick($author$project$Types$StartGame)
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text('Schrijf je in')
+															]))
+													]);
+											} else {
+												return _List_fromArray(
+													[
+														A2(
+														$elm$html$Html$button,
+														_List_fromArray(
+															[
+																$elm$html$Html$Events$onClick($author$project$Types$StartGame)
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text('Begin het spel!')
+															]))
+													]);
+											}
 										}
-									}
-								}())
-							])));
+									}())
+								])));
+				}
 			case 'InGame':
 				var status = model.a;
 				return $author$project$Hoofdspel$viewGame(status);
