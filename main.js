@@ -8782,7 +8782,7 @@ var $author$project$Main$update = F3(
 										A2(
 										$MartinSStewart$elm_audio$Audio$loadAudio,
 										$author$project$Types$soundloaded('tik'),
-										'https://maartjevdkoppel.github.io/audio/tik.m4a'),
+										'https://maartjevdkoppel.github.io/audio/tik.mp3'),
 										A2(
 										$MartinSStewart$elm_audio$Audio$loadAudio,
 										$author$project$Types$soundloaded('raden'),
