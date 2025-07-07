@@ -88,7 +88,7 @@ update _ msg model =
       Answer naam -> (HomeScreen {status | username = naam}, Cmd.none, Audio.cmdNone)
       PlayAudio -> (model, Cmd.none, Audio.cmdBatch 
           [ Audio.loadAudio (soundloaded "tune")  "https://maartjevdkoppel.github.io/audio/tune.mp3"
-          , Audio.loadAudio (soundloaded "tik")   "https://maartjevdkoppel.github.io/audio/tik.m4a"
+          , Audio.loadAudio (soundloaded "tik")   "https://maartjevdkoppel.github.io/audio/tik.mp3"
           , Audio.loadAudio (soundloaded "raden") "https://maartjevdkoppel.github.io/audio/woordraad.mp3"
           ])
       SoundLoaded result -> case result of
