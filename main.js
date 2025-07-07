@@ -4744,8 +4744,10 @@ var $author$project$Main$audio = F2(
 			if (_v2.$ === 'Nothing') {
 				return $MartinSStewart$elm_audio$Audio$silence;
 			} else {
-				var muziek = _v2.a;
-				return A2($MartinSStewart$elm_audio$Audio$audio, muziek, status.now);
+				var _v3 = _v2.a;
+				var muziek = _v3.a;
+				var tijd = _v3.b;
+				return A2($MartinSStewart$elm_audio$Audio$audio, muziek, tijd);
 			}
 		} else {
 			return $MartinSStewart$elm_audio$Audio$silence;
@@ -8726,6 +8728,23 @@ var $author$project$Main$update = F3(
 							model,
 							$elm$core$Platform$Cmd$none,
 							A2($MartinSStewart$elm_audio$Audio$loadAudio, $author$project$Types$SoundLoaded, 'https://maartjevdkoppel.github.io/audio/tune.mp3'));
+					case 'SoundLoaded':
+						var result = msg.a;
+						if (result.$ === 'Ok') {
+							var muziek = result.a;
+							return _Utils_Tuple3(
+								$author$project$Main$HomeScreen(
+									_Utils_update(
+										status,
+										{
+											muziek: $elm$core$Maybe$Just(
+												_Utils_Tuple2(muziek, status.now))
+										})),
+								$elm$core$Platform$Cmd$none,
+								$MartinSStewart$elm_audio$Audio$cmdNone);
+						} else {
+							return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
+						}
 					default:
 						return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
 				}
@@ -8753,9 +8772,9 @@ var $author$project$Main$update = F3(
 						$elm$core$Platform$Cmd$none,
 						$MartinSStewart$elm_audio$Audio$cmdNone);
 				} else {
-					var _v10 = A2($author$project$Hoofdspel$hoofdupdate, msg, status);
-					var status2 = _v10.a;
-					var cmd2 = _v10.b;
+					var _v11 = A2($author$project$Hoofdspel$hoofdupdate, msg, status);
+					var status2 = _v11.a;
+					var cmd2 = _v11.b;
 					return _Utils_Tuple3(
 						$author$project$Main$InGame(status2),
 						cmd2,
@@ -8775,7 +8794,7 @@ var $author$project$Main$update = F3(
 								$elm$time$Time$posixToMillis(newtime),
 								$elm$time$Time$posixToMillis(status.timeTheGameEnds)) > 0) ? A2(
 								$elm$core$Task$perform,
-								function (_v12) {
+								function (_v13) {
 									return $author$project$Types$Submit;
 								},
 								$elm$core$Task$succeed(_Utils_Tuple0)) : $elm$core$Platform$Cmd$none,
@@ -8788,17 +8807,17 @@ var $author$project$Main$update = F3(
 									fout: $elm$core$List$length(
 										A2(
 											$elm$core$List$filter,
-											function (_v13) {
-												var b = _v13.c;
+											function (_v14) {
+												var b = _v14.c;
 												return !b;
 											},
 											status.koopbaar)),
 									uithethoofd: $elm$core$List$sum(
 										A2(
 											$elm$core$List$map,
-											function (_v14) {
-												var l1 = _v14.a;
-												var b = _v14.c;
+											function (_v15) {
+												var l1 = _v15.a;
+												var b = _v15.c;
 												switch (l1.$) {
 													case 'UitHetHoofd':
 														return b ? 1 : 0;

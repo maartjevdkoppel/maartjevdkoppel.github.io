@@ -43,7 +43,7 @@ main =
 -- MODEL
 
 
-type Model = HomeScreen {now : Time.Posix, thesheet : Maybe Vraagsheet, username : String, oauth : String, waiting : Bool, muziek : Maybe Audio.Source } --, spreadsheettext : String }
+type Model = HomeScreen {now : Time.Posix, thesheet : Maybe Vraagsheet, username : String, oauth : String, waiting : Bool, muziek : Maybe (Audio.Source, Time.Posix) } --, spreadsheettext : String }
            | InGame HoofdStatus
            | Woordraden WoordraadStatus
            | Afrekenen Afrekenen
@@ -56,6 +56,7 @@ init oauthtoken =
   , Cmd.batch [Task.perform Tick Time.now
               ] --, readSpreadsheet oauthtoken]
   , Audio.cmdNone
+  -- , Audio.loadAudio SoundLoaded "https://maartjevdkoppel.github.io/audio/tune.mp3"
   )
 
 
@@ -86,6 +87,9 @@ update _ msg model =
         Err e -> (HomeScreen {status | username = "Error adding user" }, Cmd.none, Audio.cmdNone)
       Answer naam -> (HomeScreen {status | username = naam}, Cmd.none, Audio.cmdNone)
       PlayAudio -> (model, Cmd.none, Audio.loadAudio SoundLoaded "https://maartjevdkoppel.github.io/audio/tune.mp3")
+      SoundLoaded result -> case result of
+        Ok muziek -> (HomeScreen {status | muziek = Just (muziek, status.now) }, Cmd.none, Audio.cmdNone)
+        _ -> (model, Cmd.none, Audio.cmdNone)
       _ -> (model, Cmd.none, Audio.cmdNone)
 
     InGame status -> case msg of
@@ -154,5 +158,5 @@ view _ model =
 audio _ model = case model of
   HomeScreen status -> case status.muziek of
     Nothing -> Audio.silence
-    Just muziek -> Audio.audio muziek status.now 
+    Just (muziek, tijd) -> Audio.audio muziek tijd 
   _ -> Audio.silence
