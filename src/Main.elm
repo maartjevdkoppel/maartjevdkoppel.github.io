@@ -43,7 +43,7 @@ main =
 -- MODEL
 
 
-type Model = HomeScreen {now : Time.Posix, thesheet : Maybe Vraagsheet, username : String, oauth : String, waiting : Bool, muziek : Maybe (Audio.Source, Time.Posix) } --, spreadsheettext : String }
+type Model = HomeScreen {now : Time.Posix, thesheet : Maybe Vraagsheet, username : String, oauth : String, waiting : Bool, muziek : Adios, muziekstart : Time.Posix } --, spreadsheettext : String }
            | InGame HoofdStatus
            | Woordraden WoordraadStatus
            | Afrekenen Afrekenen
@@ -52,7 +52,7 @@ type Model = HomeScreen {now : Time.Posix, thesheet : Maybe Vraagsheet, username
 
 init : String -> (Model, Cmd Msg, Audio.AudioCmd Msg)
 init oauthtoken =
-  ( HomeScreen { now = Time.millisToPosix 0, thesheet = Nothing, username = "", oauth = oauthtoken, waiting = False, muziek = Nothing }
+  ( HomeScreen { now = Time.millisToPosix 0, thesheet = Nothing, username = "", oauth = oauthtoken, waiting = False, muziek = {tune=Nothing, tik=Nothing, raden=Nothing}, muziekstart = Time.millisToPosix 0 }
   , Cmd.batch [Task.perform Tick Time.now
               ] --, readSpreadsheet oauthtoken]
   , Audio.cmdNone
@@ -71,10 +71,10 @@ update _ msg model =
       StartGame -> case status.username of
         "" -> (model, Cmd.none, Audio.cmdNone)
         naam -> case status.thesheet of
-          Nothing -> (InGame (startgame status.now {woord="", vragen=Dict.empty, antwoorden=Dict.empty, volgorde=Dict.empty, paardsprongrng=(1,1)} status.oauth), Cmd.none, Audio.cmdNone) --(model, Cmd.none)
+          Nothing -> (InGame (startgame status.now {woord="", vragen=Dict.empty, antwoorden=Dict.empty, volgorde=Dict.empty, paardsprongrng=(1,1)} status.oauth status.muziek), Cmd.none, Audio.cmdNone) --(model, Cmd.none)
           Just sheet -> case Dict.get naam sheet of
             Nothing -> (HomeScreen {status | waiting = True}, adduser naam status.oauth, Audio.cmdNone)
-            Just info -> (InGame (startgame status.now info status.oauth), logstartgame info naam status.now status.oauth, Audio.cmdNone)
+            Just info -> (InGame (startgame status.now info status.oauth status.muziek), logstartgame info naam status.now status.oauth, Audio.cmdNone)
       
       --(InGame (startgame status.now), Cmd.none)
       Tick newtime -> (HomeScreen {status | now = newtime }, Cmd.none, Audio.cmdNone)
@@ -86,9 +86,21 @@ update _ msg model =
         Ok () -> ( HomeScreen status, Process.sleep 2000 |> \_ -> readSpreadsheet status.oauth, Audio.cmdNone)
         Err e -> (HomeScreen {status | username = "Error adding user" }, Cmd.none, Audio.cmdNone)
       Answer naam -> (HomeScreen {status | username = naam}, Cmd.none, Audio.cmdNone)
-      PlayAudio -> (model, Cmd.none, Audio.loadAudio SoundLoaded "https://maartjevdkoppel.github.io/audio/tune.mp3")
+      PlayAudio -> (model, Cmd.none, Audio.cmdBatch 
+          [ Audio.loadAudio (soundloaded "tune")  "https://maartjevdkoppel.github.io/audio/tune.mp3"
+          , Audio.loadAudio (soundloaded "tik")   "https://maartjevdkoppel.github.io/audio/tik.m4a"
+          , Audio.loadAudio (soundloaded "raden") "https://maartjevdkoppel.github.io/audio/woordraad.mp3"
+          ])
       SoundLoaded result -> case result of
-        Ok muziek -> (HomeScreen {status | muziek = Just (muziek, status.now) }, Cmd.none, Audio.cmdNone)
+        Ok (sound, id) -> let x = status.muziek in (HomeScreen {status | muziek = case id of
+            "tune" ->  {x | tune  = Just sound} 
+            "tik" ->   {x | tik   = Just sound}
+            "raden" -> {x | raden = Just sound}
+            _ -> status.muziek
+          , muziekstart = case id of
+            "tune" -> status.now
+            _ -> status.muziekstart
+          }, Cmd.none, Audio.cmdNone)
         _ -> (model, Cmd.none, Audio.cmdNone)
       _ -> (model, Cmd.none, Audio.cmdNone)
 
@@ -102,7 +114,16 @@ update _ msg model =
         , woord = ""
         , oauth = status.oauth
         , correctwoord = status.data.woord
+        , muziek = Maybe.map (\x -> (x,status.currentTime)) status.muziek.raden
         }, Cmd.none, Audio.cmdNone)
+      SoundLoaded result -> case result of
+        Ok (sound, id) -> let x = status.muziek in (InGame {status | muziek = case id of
+            "tune" ->  {x | tune  = Just sound} 
+            "tik" ->   {x | tik   = Just sound}
+            "raden" -> {x | raden = Just sound}
+            _ -> status.muziek
+          }, Cmd.none, Audio.cmdNone)
+        _ -> (InGame status, Cmd.none, Audio.cmdNone)
       _ -> case hoofdupdate msg status of
         (status2, cmd2) -> (InGame status2, cmd2, Audio.cmdNone)
     Woordraden status -> case msg of
@@ -136,7 +157,7 @@ subscriptions _ _ =
 view : Audio.AudioData -> Model -> Html Msg
 view _ model =
   case model of
-    HomeScreen status -> case status.muziek of
+    HomeScreen status -> case status.muziek.tune of
       Nothing -> button [onClick PlayAudio] [text "Goeienavondhartelijk welkom bij twee voor 12"]
       Just _ ->
         div [] (Utils.rows -- TODO: highscores
@@ -156,7 +177,15 @@ view _ model =
 
 -- AUDIO
 audio _ model = case model of
-  HomeScreen status -> case status.muziek of
+  HomeScreen status -> case status.muziek.tune of
     Nothing -> Audio.silence
-    Just (muziek, tijd) -> Audio.audio muziek tijd 
+    Just muziek -> Audio.audio muziek status.muziekstart 
+  InGame status -> case status.muziek.tik of
+    Nothing -> Audio.silence
+    Just muziek -> if status.searching && evensec status.currentTime
+      then Audio.audio muziek status.currentTime
+      else Audio.silence
+  Woordraden status -> case status.muziek of
+    Nothing -> Audio.silence
+    Just (muziek, tijd) -> Audio.audio muziek tijd
   _ -> Audio.silence

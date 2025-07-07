@@ -13,6 +13,7 @@ import Svg.Attributes as Svg
 import Time
 import List.Extra
 import Task
+import Audio
 
 -- model
 type alias HoofdStatus = 
@@ -26,12 +27,13 @@ type alias HoofdStatus =
   , searched : Set.Set Int
   , data : VragenAntwoorden
   , oauth : String
+  , muziek : Adios
   }
 
 -- update
 
-startgame : Time.Posix -> VragenAntwoorden -> String -> HoofdStatus
-startgame now info oauth = 
+startgame : Time.Posix -> VragenAntwoorden -> String -> Adios -> HoofdStatus
+startgame now info oauth adios = 
   { currentTime= Time.millisToPosix ((Time.posixToMillis now) + 1000) 
   , timeTheGameEnds=Time.millisToPosix (Time.posixToMillis now + 12*60*1000+1000)
   , gegevenantwoorden = Dict.empty
@@ -42,6 +44,7 @@ startgame now info oauth =
   , searched = Set.empty
   , data = info
   , oauth = oauth
+  , muziek = adios
   }
 
 hoofdupdate : Msg -> HoofdStatus -> (HoofdStatus, Cmd Msg)

@@ -12,6 +12,7 @@ import Html.Attributes exposing (placeholder, value, style, src, type_, disabled
 import List.Extra
 import Html.Events exposing (onInput)
 import Html.Events exposing (onClick)
+import Audio
 
 -- model
 type alias WoordraadStatus =
@@ -23,6 +24,7 @@ type alias WoordraadStatus =
   , woord : String
   , correctwoord : String
   , oauth : String
+  , muziek : Maybe (Audio.Source, Time.Posix)
   }
 
 -- update

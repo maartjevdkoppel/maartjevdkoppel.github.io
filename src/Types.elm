@@ -19,9 +19,11 @@ type Msg
   | Submit
   | DataReceived (Result Http.Error (Maybe Vraagsheet)) 
   | UserAdded ( Result Http.Error ())
-  | SoundLoaded (Result Audio.LoadError Audio.Source)
+  | SoundLoaded (Result Audio.LoadError (Audio.Source, String))
   | PlayAudio
 
+soundloaded str = SoundLoaded << Result.map (\x->(x,str))
+type alias Adios = {tune : Maybe Audio.Source, tik : Maybe Audio.Source, raden : Maybe Audio.Source}
 
 type alias Vraagsheet = Dict.Dict String VragenAntwoorden
 type alias VragenAntwoorden = 
