@@ -4753,33 +4753,24 @@ var $MartinSStewart$elm_audio$Audio$silence = $MartinSStewart$elm_audio$Audio$gr
 var $author$project$Main$audio = F2(
 	function (_v0, model) {
 		switch (model.$) {
-			case 'HomeScreen':
+			case 'InGame':
 				var status = model.a;
-				var _v2 = status.muziek.tune;
+				var _v2 = status.muziek.tik;
 				if (_v2.$ === 'Nothing') {
 					return $MartinSStewart$elm_audio$Audio$silence;
 				} else {
 					var muziek = _v2.a;
-					return A2($MartinSStewart$elm_audio$Audio$audio, muziek, status.muziekstart);
-				}
-			case 'InGame':
-				var status = model.a;
-				var _v3 = status.muziek.tik;
-				if (_v3.$ === 'Nothing') {
-					return $MartinSStewart$elm_audio$Audio$silence;
-				} else {
-					var muziek = _v3.a;
 					return (status.searching && $author$project$Utils$evensec(status.currentTime)) ? A2($MartinSStewart$elm_audio$Audio$audio, muziek, status.currentTime) : $MartinSStewart$elm_audio$Audio$silence;
 				}
 			case 'Woordraden':
 				var status = model.a;
-				var _v4 = status.muziek;
-				if (_v4.$ === 'Nothing') {
+				var _v3 = status.muziek;
+				if (_v3.$ === 'Nothing') {
 					return $MartinSStewart$elm_audio$Audio$silence;
 				} else {
-					var _v5 = _v4.a;
-					var muziek = _v5.a;
-					var tijd = _v5.b;
+					var _v4 = _v3.a;
+					var muziek = _v4.a;
+					var tijd = _v4.b;
 					return A2($MartinSStewart$elm_audio$Audio$audio, muziek, tijd);
 				}
 			default:
@@ -7206,6 +7197,7 @@ var $MartinSStewart$elm_audio$Audio$elementWithAudio = A2(
 var $author$project$Main$HomeScreen = function (a) {
 	return {$: 'HomeScreen', a: a};
 };
+var $author$project$Main$Setup = {$: 'Setup'};
 var $author$project$Types$Tick = function (a) {
 	return {$: 'Tick', a: a};
 };
@@ -7225,12 +7217,105 @@ var $elm$time$Time$Zone = F2(
 	});
 var $elm$time$Time$customZone = $elm$time$Time$Zone;
 var $elm$time$Time$now = _Time_now($elm$time$Time$millisToPosix);
+var $author$project$Main$encodeVideoEvent = function (event) {
+	switch (event.$) {
+		case 'Setup':
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'kind',
+						$elm$json$Json$Encode$string('setup'))
+					]));
+		case 'Play':
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'kind',
+						$elm$json$Json$Encode$string('play'))
+					]));
+		case 'Pause':
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'kind',
+						$elm$json$Json$Encode$string('pause'))
+					]));
+		case 'Stop':
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'kind',
+						$elm$json$Json$Encode$string('stop'))
+					]));
+		case 'Restart':
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'kind',
+						$elm$json$Json$Encode$string('restart'))
+					]));
+		case 'Mute':
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'kind',
+						$elm$json$Json$Encode$string('mute'))
+					]));
+		case 'Unmute':
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'kind',
+						$elm$json$Json$Encode$string('unmute'))
+					]));
+		case 'VolumeDown':
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'kind',
+						$elm$json$Json$Encode$string('volumedown'))
+					]));
+		case 'VolumeUp':
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'kind',
+						$elm$json$Json$Encode$string('volumeup'))
+					]));
+		default:
+			var position = event.a;
+			return $elm$json$Json$Encode$object(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						'kind',
+						$elm$json$Json$Encode$string('seekto')),
+						_Utils_Tuple2(
+						'position',
+						$elm$json$Json$Encode$float(position))
+					]));
+	}
+};
+var $author$project$Main$videoEventStream = _Platform_outgoingPort('videoEventStream', $elm$core$Basics$identity);
+var $author$project$Main$pushVideoEvent = function (event) {
+	return $author$project$Main$videoEventStream(
+		$author$project$Main$encodeVideoEvent(event));
+};
 var $author$project$Main$init = function (oauthtoken) {
 	return _Utils_Tuple3(
 		$author$project$Main$HomeScreen(
 			{
 				muziek: {raden: $elm$core$Maybe$Nothing, tik: $elm$core$Maybe$Nothing, tune: $elm$core$Maybe$Nothing},
-				muziekstart: $elm$time$Time$millisToPosix(0),
+				muziekstart: $elm$core$Maybe$Nothing,
 				now: $elm$time$Time$millisToPosix(0),
 				oauth: oauthtoken,
 				thesheet: $elm$core$Maybe$Nothing,
@@ -7240,7 +7325,8 @@ var $author$project$Main$init = function (oauthtoken) {
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
 				[
-					A2($elm$core$Task$perform, $author$project$Types$Tick, $elm$time$Time$now)
+					A2($elm$core$Task$perform, $author$project$Types$Tick, $elm$time$Time$now),
+					$author$project$Main$pushVideoEvent($author$project$Main$Setup)
 				])),
 		$MartinSStewart$elm_audio$Audio$cmdNone);
 };
@@ -7486,6 +7572,7 @@ var $author$project$Main$Afrekenen = function (a) {
 var $author$project$Main$InGame = function (a) {
 	return {$: 'InGame', a: a};
 };
+var $author$project$Main$Play = {$: 'Play'};
 var $author$project$Types$Submit = {$: 'Submit'};
 var $author$project$Letters$Wit = {$: 'Wit'};
 var $author$project$Main$Woordraden = function (a) {
@@ -8756,7 +8843,7 @@ var $author$project$Main$update = F3(
 								function (_v8) {
 									return $author$project$Database$readSpreadsheet(status.oauth);
 								}(
-									$elm$core$Process$sleep(2000)),
+									$elm$core$Process$sleep(1000)),
 								$MartinSStewart$elm_audio$Audio$cmdNone);
 						} else {
 							var e = r.a;
@@ -8779,8 +8866,13 @@ var $author$project$Main$update = F3(
 							$MartinSStewart$elm_audio$Audio$cmdNone);
 					case 'PlayAudio':
 						return _Utils_Tuple3(
-							model,
-							$elm$core$Platform$Cmd$none,
+							$author$project$Main$HomeScreen(
+								_Utils_update(
+									status,
+									{
+										muziekstart: $elm$core$Maybe$Just(status.now)
+									})),
+							$author$project$Main$pushVideoEvent($author$project$Main$Play),
 							$MartinSStewart$elm_audio$Audio$cmdBatch(
 								_List_fromArray(
 									[
@@ -8832,13 +8924,6 @@ var $author$project$Main$update = F3(
 													default:
 														return status.muziek;
 												}
-											}(),
-											muziekstart: function () {
-												if (id === 'tune') {
-													return status.now;
-												} else {
-													return status.muziekstart;
-												}
 											}()
 										})),
 								$elm$core$Platform$Cmd$none,
@@ -8882,9 +8967,9 @@ var $author$project$Main$update = F3(
 					case 'SoundLoaded':
 						var result = msg.a;
 						if (result.$ === 'Ok') {
-							var _v15 = result.a;
-							var sound = _v15.a;
-							var id = _v15.b;
+							var _v14 = result.a;
+							var sound = _v14.a;
+							var id = _v14.b;
 							var x = status.muziek;
 							return _Utils_Tuple3(
 								$author$project$Main$InGame(
@@ -8925,9 +9010,9 @@ var $author$project$Main$update = F3(
 								$MartinSStewart$elm_audio$Audio$cmdNone);
 						}
 					default:
-						var _v17 = A2($author$project$Hoofdspel$hoofdupdate, msg, status);
-						var status2 = _v17.a;
-						var cmd2 = _v17.b;
+						var _v16 = A2($author$project$Hoofdspel$hoofdupdate, msg, status);
+						var status2 = _v16.a;
+						var cmd2 = _v16.b;
 						return _Utils_Tuple3(
 							$author$project$Main$InGame(status2),
 							cmd2,
@@ -8947,7 +9032,7 @@ var $author$project$Main$update = F3(
 								$elm$time$Time$posixToMillis(newtime),
 								$elm$time$Time$posixToMillis(status.timeTheGameEnds)) > 0) ? A2(
 								$elm$core$Task$perform,
-								function (_v19) {
+								function (_v18) {
 									return $author$project$Types$Submit;
 								},
 								$elm$core$Task$succeed(_Utils_Tuple0)) : $elm$core$Platform$Cmd$none,
@@ -8960,17 +9045,17 @@ var $author$project$Main$update = F3(
 									fout: $elm$core$List$length(
 										A2(
 											$elm$core$List$filter,
-											function (_v20) {
-												var b = _v20.c;
+											function (_v19) {
+												var b = _v19.c;
 												return !b;
 											},
 											status.koopbaar)),
 									uithethoofd: $elm$core$List$sum(
 										A2(
 											$elm$core$List$map,
-											function (_v21) {
-												var l1 = _v21.a;
-												var b = _v21.c;
+											function (_v20) {
+												var l1 = _v20.a;
+												var b = _v20.c;
 												switch (l1.$) {
 													case 'UitHetHoofd':
 														return b ? 1 : 0;
@@ -9010,8 +9095,17 @@ var $elm$core$Maybe$andThen = F2(
 			return $elm$core$Maybe$Nothing;
 		}
 	});
+var $elm$html$Html$br = _VirtualDom_node('br');
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
@@ -9061,13 +9155,6 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			$elm$html$Html$Events$alwaysStop,
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
-var $elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$string(string));
-	});
 var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$core$List$intersperse = F2(
@@ -9125,9 +9212,18 @@ var $author$project$Utils$rows = function (xs) {
 			},
 			xs));
 };
+var $elm$html$Html$source = _VirtualDom_node('source');
+var $elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
+var $elm$html$Html$video = _VirtualDom_node('video');
 var $author$project$Afrekenen$viewAfrekenen = function (status) {
 	return A2(
 		$elm$html$Html$div,
@@ -9593,7 +9689,6 @@ var $author$project$Letters$punten = function (x) {
 };
 var $author$project$Types$NextQ = {$: 'NextQ'};
 var $author$project$Types$PreviousQ = {$: 'PreviousQ'};
-var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$svg$Svg$image = $elm$svg$Svg$trustedNode('image');
 var $elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
 var $elm$html$Html$p = _VirtualDom_node('p');
@@ -10111,13 +10206,6 @@ var $author$project$Hoofdspel$paardensprong = function (status) {
 				}()))
 		]);
 };
-var $elm$html$Html$Attributes$src = function (url) {
-	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'src',
-		_VirtualDom_noJavaScriptOrHtmlUri(url));
-};
-var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $author$project$Hoofdspel$wiki = function (status) {
 	return $author$project$Utils$rows(
 		_List_fromArray(
@@ -10157,10 +10245,10 @@ var $author$project$Hoofdspel$wiki = function (status) {
 											$elm$html$Html$text('\u00A0\uD83D\uDD14\u00A0Bellen!\u00A0\uD83D\uDD14\u00A0')
 										]) : ((status.questionNumber === 8) ? _List_fromArray(
 										[
-											$elm$html$Html$text('\u00A0Dat zoeken we op!\u00A0')
+											$elm$html$Html$text('\u00A0Paardensprong bekijken\u00A0')
 										]) : _List_fromArray(
 										[
-											$elm$html$Html$text('\u00A0Paardensprong bekijken\u00A0')
+											$elm$html$Html$text('\u00A0Dat zoeken we op!\u00A0')
 										])))
 								])),
 							_Utils_Tuple3(
@@ -10465,28 +10553,84 @@ var $author$project$Main$view = F2(
 		switch (model.$) {
 			case 'HomeScreen':
 				var status = model.a;
-				var _v2 = status.muziek.tune;
+				var _v2 = status.muziekstart;
 				if (_v2.$ === 'Nothing') {
 					return A2(
-						$elm$html$Html$button,
+						$elm$html$Html$video,
 						_List_fromArray(
 							[
+								$elm$html$Html$Attributes$id('media-video'),
+								A2($elm$html$Html$Attributes$style, 'width', '100%'),
 								$elm$html$Html$Events$onClick($author$project$Types$PlayAudio)
 							]),
 						_List_fromArray(
 							[
-								$elm$html$Html$text('Goeienavondhartelijk welkom bij twee voor 12')
+								A2(
+								$elm$html$Html$source,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$src('video/intro.mp4'),
+										$elm$html$Html$Attributes$type_('video/mp4')
+									]),
+								_List_Nil)
 							]));
 				} else {
-					return A2(
+					var ms = _v2.a;
+					return (($elm$time$Time$posixToMillis(status.now) - $elm$time$Time$posixToMillis(ms)) <= 1000) ? A2(
+						$elm$html$Html$video,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$id('media-video'),
+								A2($elm$html$Html$Attributes$style, 'width', '100%'),
+								$elm$html$Html$Events$onClick($author$project$Types$PlayAudio)
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$source,
+								_List_fromArray(
+									[
+										$elm$html$Html$Attributes$src('video/intro.mp4'),
+										$elm$html$Html$Attributes$type_('video/mp4')
+									]),
+								_List_Nil)
+							])) : A2(
 						$elm$html$Html$div,
-						_List_Nil,
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'background-image', 'url(\'images/leeg.jpeg\')'),
+								A2($elm$html$Html$Attributes$style, 'background-size', '100%'),
+								A2($elm$html$Html$Attributes$style, 'height', '100%')
+							]),
 						$author$project$Utils$rows(
 							_List_fromArray(
 								[
+									_Utils_Tuple3(30, _List_Nil, _List_Nil),
 									_Utils_Tuple3(
-									20,
-									_List_Nil,
+									30,
+									_List_fromArray(
+										[
+											A2($elm$html$Html$Attributes$style, 'color', 'white'),
+											A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+											A2($elm$html$Html$Attributes$style, 'font-size', '5cqh'),
+											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+											A2($elm$html$Html$Attributes$style, 'width', '100%')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('Goeienavond, hartelijk welkom bij 2 voor 12.'),
+											A2($elm$html$Html$br, _List_Nil, _List_Nil),
+											$elm$html$Html$text('Vandaag spelen we met een nieuwe kandidaat.'),
+											A2($elm$html$Html$br, _List_Nil, _List_Nil),
+											$elm$html$Html$text('Wil je je voorstellen?')
+										])),
+									_Utils_Tuple3(
+									10,
+									_List_fromArray(
+										[
+											A2($elm$html$Html$Attributes$style, 'left', '50%'),
+											A2($elm$html$Html$Attributes$style, 'font-size', '4cqh')
+										]),
 									_List_fromArray(
 										[
 											A2(
@@ -10500,7 +10644,7 @@ var $author$project$Main$view = F2(
 											_List_Nil)
 										])),
 									_Utils_Tuple3(
-									20,
+									30,
 									_List_Nil,
 									function () {
 										var _v3 = _Utils_Tuple2(
@@ -10510,13 +10654,16 @@ var $author$project$Main$view = F2(
 												$elm$core$Dict$get(status.username),
 												status.thesheet));
 										if (_v3.a === '') {
-											return _List_Nil;
+											return _List_fromArray(
+												[
+													$elm$html$Html$text('')
+												]);
 										} else {
 											if (_v3.b.$ === 'Nothing') {
 												var _v4 = _v3.b;
 												return status.waiting ? _List_fromArray(
 													[
-														$elm$html$Html$text('Even geduld alstublieft')
+														$elm$html$Html$text('Je staat op de wachtrij, er zijn nog 3586 kandidaten voor je. (Dit kan 10-20 seconden duren)')
 													]) : _List_fromArray(
 													[
 														A2(

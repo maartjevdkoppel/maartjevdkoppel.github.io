@@ -10,3 +10,4 @@ klokanimatie
 geluid:
   letter kopen (kloktik)
   woord gefaald
+elm-animator: fade video weg

@@ -160,6 +160,60 @@
           flags: token
         });
       startAudio(app)
+      
+      var video = null;
+
+      app.ports.videoEventStream.subscribe(function (event) {
+        switch (event.kind) {
+          case "setup":
+            video = document.getElementById("media-video");
+            console.log(video);
+            break;
+          case "pause":
+            video.pause();
+            console.log("Pausing");
+            break;
+          case "play":
+            video.play();
+            console.log("Playing");
+            break;
+          case "stop":
+            video.pause();
+            video.currentTime = 0;
+            console.log("Stopping");
+            break;
+          case "restart":
+            video.currentTime = 0;
+            console.log("Restarting");
+            break;
+          case "volumedown":
+            var newVolume = Math.max(video.volume - 0.1, 0.0).toFixed(1);
+            video.volume = newVolume;
+            console.log("Volume Down, at " + video.volume);
+            break;
+          case "volumeup":
+            var newVolume = Math.min(video.volume + 0.1, 1.0).toFixed(1);
+            video.volume = newVolume;
+            console.log("Volume Up, at " + video.volume);
+            break;
+          case "mute":
+            video.muted = true;
+            console.log("Mute");
+            break;
+          case "unmute":
+            video.muted = false;
+            console.log("Unmute");
+            break;
+          case "seekto":
+            video.currentTime = event.position;
+            console.log("Seeked to " + event.position);
+            break;
+          default:
+            console.log("Unexpected event:");
+            console.log(event);
+        }
+      });
+
     });
   </script>
 </body>
