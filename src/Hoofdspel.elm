@@ -28,6 +28,7 @@ type alias HoofdStatus =
   , data : VragenAntwoorden
   , oauth : String
   , muziek : Adios
+  , paardensprongbegintijd : Maybe Time.Posix
   }
 
 -- update
@@ -45,6 +46,7 @@ startgame now info oauth adios =
   , data = info
   , oauth = oauth
   , muziek = adios
+  , paardensprongbegintijd = Nothing
   }
 
 hoofdupdate : Msg -> HoofdStatus -> (HoofdStatus, Cmd Msg)
@@ -61,8 +63,12 @@ hoofdupdate msg status =
         StartStopWiki -> ({ status | searching = not status.searching, searched = Set.insert status.questionNumber status.searched}, Cmd.none)
         Answer answer -> ({ status | gegevenantwoorden = Dict.insert status.questionNumber answer status.gegevenantwoorden}, Cmd.none)
         PreviousQ -> ({status | questionNumber = status.questionNumber - 1}, Cmd.none)
-        NextQ     -> ({status | questionNumber = status.questionNumber + 1
-                              , lastQuestion = max status.lastQuestion (status.questionNumber + 1)}, Cmd.none)
+        NextQ     -> if status.questionNumber == 7 -- naar paardensprong
+                     then ({status | questionNumber = 8
+                                   , paardensprongbegintijd = Just status.currentTime
+                                   , lastQuestion = max status.lastQuestion (status.questionNumber + 1)}, Cmd.none)
+                     else ({status | questionNumber = status.questionNumber + 1
+                                   , lastQuestion = max status.lastQuestion (status.questionNumber + 1)}, Cmd.none)
         _ -> (status, Cmd.none)
 
 
@@ -101,14 +107,21 @@ naarWoordRaden status i = case Dict.get i status.gegevenantwoorden of
 wiki : HoofdStatus -> List (Html Msg)
 wiki status = rows 
   [ (10, [], rows
-      [ (30, [style "height" "100%"], [button ([onClick StartStopWiki,  style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) [text "\u{00A0}Dat zoeken we op!\u{00A0}"]])--TODO: belletje om te stoppen met zoeken
+      [ (30, [style "height" "100%"], [button ([onClick StartStopWiki,  style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) 
+            (if status.searching then [text "\u{00A0}\u{1F514}\u{00A0}Bellen!\u{00A0}\u{1F514}\u{00A0}"]
+                                 else if status.questionNumber == 8
+                                      then [text "\u{00A0}Paardensprong bekijken\u{00A0}"]
+                                      else [text "\u{00A0}Dat zoeken we op!\u{00A0}"])])
       , (30, [style "height" "100%"], [button ([onClick NaarWoordraden, style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) [text "\u{00A0}Beginnen met het woord\u{00A0}"]])
       ])
   , (85, [], cols
     [ (5, [])
     , (90, if status.questionNumber == 8 
             then
-              paardensprong status
+              case (status.searching, status.paardensprongbegintijd) of
+                (False, Nothing) -> []
+                (True, _) -> paardensprong status
+                (False, Just psbt) -> if Time.posixToMillis status.currentTime - Time.posixToMillis psbt <=30000 then paardensprong status else []
             else if status.searching 
               then [Svg.svg svgfullsize
                             [ Svg.rect (svgfullsize ++ [Svg.fill "#ffffff"]) []
@@ -131,9 +144,8 @@ paardensprong status =
           Just str -> str
       f i = let ix = 8 + startplek + i * klokmee - 1 in String.slice ix (ix+1) (sprongwoord ++ sprongwoord ++ sprongwoord)
   in
-  [Svg.svg ([Svg.width "62cqh", Svg.height "62cqh", Svg.viewBox "0 0 62cqh 62cqh"] ++ centeringstuff)
-    [ Svg.image [Svg.x "0", Svg.y "0", Svg.width "100%", Svg.height "100%", Svg.xlinkHref "images/paardensprong.jpeg"] []
-    , Svg.rect [Svg.fill "#555555", Svg.opacity "40%", Svg.x "38%",   Svg.y "37%", Svg.width "23.5%", Svg.height "23.5%"] []                
+  [ Svg.svg ([Svg.width "62cqh", Svg.height "62cqh", Svg.viewBox "0 0 62cqh 62cqh"] ++ centeringstuff)
+    ([ Svg.image [Svg.x "0", Svg.y "0", Svg.width "100%", Svg.height "100%", Svg.xlinkHref "images/paardensprong.jpeg"] []
     , Svg.foreignObject [Svg.x "10.5%", Svg.y "9%",  Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 1)]]                 
     , Svg.foreignObject [Svg.x "38%",   Svg.y "9%",  Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 4)]]                 
     , Svg.foreignObject [Svg.x "66%",   Svg.y "9%",  Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 7)]]                 
@@ -142,7 +154,11 @@ paardensprong status =
     , Svg.foreignObject [Svg.x "10.5%", Svg.y "65%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 3)]]                 
     , Svg.foreignObject [Svg.x "38%",   Svg.y "65%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 8)]]                 
     , Svg.foreignObject [Svg.x "66%",   Svg.y "65%", Svg.width "23.5%", Svg.height "23.5%"] [div (style "font-size" "10cqh" :: style "font-weight" "bolder" :: style "text-align" "center" :: centeringstuff) [text (f 5)]]                 
-    ]
+    ] ++ -- Svg.rect [Svg.fill "#555555", Svg.opacity "40%", Svg.x "38%",   Svg.y "37%", Svg.width "23.5%", Svg.height "23.5%"] (
+        case status.paardensprongbegintijd of
+          Nothing -> []
+          Just psbt -> if Time.posixToMillis status.currentTime - Time.posixToMillis psbt >= 30000 then [] else (klokje "50%" (Time.posixToMillis status.currentTime - Time.posixToMillis psbt))
+    )
   ]
 
 

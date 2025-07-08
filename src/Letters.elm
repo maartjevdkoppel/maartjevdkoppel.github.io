@@ -57,17 +57,23 @@ numbersbelow lastQuestion =
 
 klok : Int -> Html Msg
 klok millisdiff = 
+  Svg.svg svgfullsize
+             ( Svg.rect [Svg.x "0", Svg.y "0", Svg.width "calc(100% - 7.5cqh)", Svg.height "100%", Svg.fill "rgb(227, 7, 20)"] []
+             :: klokje "100% - 7.5cqh" millisdiff)
+
+klokje : String -> Int -> List (Svg.Svg Msg)
+klokje cx millisdiff = 
   let second = modBy 60 (millisdiff // 1000)
       secondstr = if second > 9 then String.fromInt second else "0"++String.fromInt second
       minute = (millisdiff // 1000) // 60
       minutestr = if minute > 9 then String.fromInt minute else "0"++String.fromInt minute
-  in Svg.svg svgfullsize
-             [ Svg.rect [Svg.x "0", Svg.y "0", Svg.width "calc(100% - 7.5cqh)", Svg.height "100%", Svg.fill "rgb(227, 7, 20)"] []
-             , Svg.circle [Svg.cx "calc(100% - 7.5cqh)", Svg.cy "50%", Svg.r "7.5cqh", Svg.fill "rgb(227, 7, 20)"] []
-             , Svg.circle [Svg.cx "calc(100% - 7.5cqh)", Svg.cy "50%", Svg.r "6.5cqh", Svg.stroke "#ffffff", Svg.strokeWidth "0.7cqh", Svg.fill "none"] []
-             , Svg.foreignObject [Svg.x "calc(100% - 15cqh)", Svg.y "0", Svg.width "15cqh", Svg.height "100%"] 
-                                 [div ([style "color" "white", style "text-align" "center", style "font-size" "3.8cqh"]++centeringstuff) 
-                                       [text (minutestr ++ ":" ++ secondstr)]]]
+  in 
+  [ Svg.circle [Svg.cx ("calc(" ++cx++")"), Svg.cy "50%", Svg.r "7.5cqh", Svg.fill "rgb(227, 7, 20)"] []
+  , Svg.circle [Svg.cx ("calc(" ++cx++")"), Svg.cy "50%", Svg.r "6.5cqh", Svg.stroke "#ffffff", Svg.strokeWidth "0.7cqh", Svg.fill "none"] []
+  , Svg.foreignObject [Svg.x ("calc(" ++cx++" - 7.5cqh)"), Svg.y "0", Svg.width "15cqh", Svg.height "100%"] 
+                      [div ([style "color" "white", style "text-align" "center", style "font-size" "3.8cqh"]++centeringstuff) 
+                            [text (minutestr ++ ":" ++ secondstr)]]
+  ]
 
 punten : Int -> Html Msg
 punten x =

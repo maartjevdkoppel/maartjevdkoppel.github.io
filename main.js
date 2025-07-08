@@ -7856,7 +7856,15 @@ var $author$project$Hoofdspel$hoofdupdate = F2(
 						{questionNumber: status.questionNumber - 1}),
 					$elm$core$Platform$Cmd$none);
 			case 'NextQ':
-				return _Utils_Tuple2(
+				return (status.questionNumber === 7) ? _Utils_Tuple2(
+					_Utils_update(
+						status,
+						{
+							lastQuestion: A2($elm$core$Basics$max, status.lastQuestion, status.questionNumber + 1),
+							paardensprongbegintijd: $elm$core$Maybe$Just(status.currentTime),
+							questionNumber: 8
+						}),
+					$elm$core$Platform$Cmd$none) : _Utils_Tuple2(
 					_Utils_update(
 						status,
 						{
@@ -8525,6 +8533,7 @@ var $author$project$Hoofdspel$startgame = F4(
 			lastQuestion: 1,
 			muziek: adios,
 			oauth: oauth,
+			paardensprongbegintijd: $elm$core$Maybe$Nothing,
 			punten: 500,
 			questionNumber: 1,
 			searched: $elm$core$Set$empty,
@@ -9183,6 +9192,8 @@ var $author$project$Utils$cols = function (xs) {
 		},
 		xs);
 };
+var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $author$project$Utils$centeringstuff = _List_fromArray(
 	[
 		A2($elm$html$Html$Attributes$style, 'top', '50%'),
@@ -9194,50 +9205,26 @@ var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
 var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
-var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var $elm$svg$Svg$foreignObject = $elm$svg$Svg$trustedNode('foreignObject');
-var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
-var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
 var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
 var $elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
-var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
-var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
-var $author$project$Utils$svgfullsize = _List_fromArray(
-	[
-		$elm$svg$Svg$Attributes$width('100%'),
-		$elm$svg$Svg$Attributes$height('100%'),
-		$elm$svg$Svg$Attributes$viewBox('0 0 100% 100%')
-	]);
 var $elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
 var $elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
-var $author$project$Letters$klok = function (millisdiff) {
-	var second = A2($elm$core$Basics$modBy, 60, (millisdiff / 1000) | 0);
-	var secondstr = (second > 9) ? $elm$core$String$fromInt(second) : ('0' + $elm$core$String$fromInt(second));
-	var minute = (((millisdiff / 1000) | 0) / 60) | 0;
-	var minutestr = (minute > 9) ? $elm$core$String$fromInt(minute) : ('0' + $elm$core$String$fromInt(minute));
-	return A2(
-		$elm$svg$Svg$svg,
-		$author$project$Utils$svgfullsize,
-		_List_fromArray(
+var $author$project$Letters$klokje = F2(
+	function (cx, millisdiff) {
+		var second = A2($elm$core$Basics$modBy, 60, (millisdiff / 1000) | 0);
+		var secondstr = (second > 9) ? $elm$core$String$fromInt(second) : ('0' + $elm$core$String$fromInt(second));
+		var minute = (((millisdiff / 1000) | 0) / 60) | 0;
+		var minutestr = (minute > 9) ? $elm$core$String$fromInt(minute) : ('0' + $elm$core$String$fromInt(minute));
+		return _List_fromArray(
 			[
-				A2(
-				$elm$svg$Svg$rect,
-				_List_fromArray(
-					[
-						$elm$svg$Svg$Attributes$x('0'),
-						$elm$svg$Svg$Attributes$y('0'),
-						$elm$svg$Svg$Attributes$width('calc(100% - 7.5cqh)'),
-						$elm$svg$Svg$Attributes$height('100%'),
-						$elm$svg$Svg$Attributes$fill('rgb(227, 7, 20)')
-					]),
-				_List_Nil),
 				A2(
 				$elm$svg$Svg$circle,
 				_List_fromArray(
 					[
-						$elm$svg$Svg$Attributes$cx('calc(100% - 7.5cqh)'),
+						$elm$svg$Svg$Attributes$cx('calc(' + (cx + ')')),
 						$elm$svg$Svg$Attributes$cy('50%'),
 						$elm$svg$Svg$Attributes$r('7.5cqh'),
 						$elm$svg$Svg$Attributes$fill('rgb(227, 7, 20)')
@@ -9247,7 +9234,7 @@ var $author$project$Letters$klok = function (millisdiff) {
 				$elm$svg$Svg$circle,
 				_List_fromArray(
 					[
-						$elm$svg$Svg$Attributes$cx('calc(100% - 7.5cqh)'),
+						$elm$svg$Svg$Attributes$cx('calc(' + (cx + ')')),
 						$elm$svg$Svg$Attributes$cy('50%'),
 						$elm$svg$Svg$Attributes$r('6.5cqh'),
 						$elm$svg$Svg$Attributes$stroke('#ffffff'),
@@ -9259,7 +9246,7 @@ var $author$project$Letters$klok = function (millisdiff) {
 				$elm$svg$Svg$foreignObject,
 				_List_fromArray(
 					[
-						$elm$svg$Svg$Attributes$x('calc(100% - 15cqh)'),
+						$elm$svg$Svg$Attributes$x('calc(' + (cx + ' - 7.5cqh)')),
 						$elm$svg$Svg$Attributes$y('0'),
 						$elm$svg$Svg$Attributes$width('15cqh'),
 						$elm$svg$Svg$Attributes$height('100%')
@@ -9281,7 +9268,35 @@ var $author$project$Letters$klok = function (millisdiff) {
 								$elm$html$Html$text(minutestr + (':' + secondstr))
 							]))
 					]))
-			]));
+			]);
+	});
+var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
+var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
+var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
+var $author$project$Utils$svgfullsize = _List_fromArray(
+	[
+		$elm$svg$Svg$Attributes$width('100%'),
+		$elm$svg$Svg$Attributes$height('100%'),
+		$elm$svg$Svg$Attributes$viewBox('0 0 100% 100%')
+	]);
+var $author$project$Letters$klok = function (millisdiff) {
+	return A2(
+		$elm$svg$Svg$svg,
+		$author$project$Utils$svgfullsize,
+		A2(
+			$elm$core$List$cons,
+			A2(
+				$elm$svg$Svg$rect,
+				_List_fromArray(
+					[
+						$elm$svg$Svg$Attributes$x('0'),
+						$elm$svg$Svg$Attributes$y('0'),
+						$elm$svg$Svg$Attributes$width('calc(100% - 7.5cqh)'),
+						$elm$svg$Svg$Attributes$height('100%'),
+						$elm$svg$Svg$Attributes$fill('rgb(227, 7, 20)')
+					]),
+				_List_Nil),
+			A2($author$project$Letters$klokje, '100% - 7.5cqh', millisdiff)));
 };
 var $author$project$Letters$Paars = {$: 'Paars'};
 var $author$project$Hoofdspel$getBeginLetter = F2(
@@ -9804,11 +9819,11 @@ var $elm$html$Html$embed = _VirtualDom_node('embed');
 var $author$project$Hoofdspel$paardensprong = function (status) {
 	var startplek = status.data.paardsprongrng.b;
 	var sprongwoord = function () {
-		var _v0 = A2($elm$core$Dict$get, 8, status.data.antwoorden);
-		if (_v0.$ === 'Nothing') {
+		var _v1 = A2($elm$core$Dict$get, 8, status.data.antwoorden);
+		if (_v1.$ === 'Nothing') {
 			return 'Error';
 		} else {
-			var str = _v0.a;
+			var str = _v1.a;
 			return str;
 		}
 	}();
@@ -9835,264 +9850,265 @@ var $author$project$Hoofdspel$paardensprong = function (status) {
 						$elm$svg$Svg$Attributes$viewBox('0 0 62cqh 62cqh')
 					]),
 				$author$project$Utils$centeringstuff),
-			_List_fromArray(
-				[
-					A2(
-					$elm$svg$Svg$image,
-					_List_fromArray(
-						[
-							$elm$svg$Svg$Attributes$x('0'),
-							$elm$svg$Svg$Attributes$y('0'),
-							$elm$svg$Svg$Attributes$width('100%'),
-							$elm$svg$Svg$Attributes$height('100%'),
-							$elm$svg$Svg$Attributes$xlinkHref('images/paardensprong.jpeg')
-						]),
-					_List_Nil),
-					A2(
-					$elm$svg$Svg$rect,
-					_List_fromArray(
-						[
-							$elm$svg$Svg$Attributes$fill('#555555'),
-							$elm$svg$Svg$Attributes$opacity('40%'),
-							$elm$svg$Svg$Attributes$x('38%'),
-							$elm$svg$Svg$Attributes$y('37%'),
-							$elm$svg$Svg$Attributes$width('23.5%'),
-							$elm$svg$Svg$Attributes$height('23.5%')
-						]),
-					_List_Nil),
-					A2(
-					$elm$svg$Svg$foreignObject,
-					_List_fromArray(
-						[
-							$elm$svg$Svg$Attributes$x('10.5%'),
-							$elm$svg$Svg$Attributes$y('9%'),
-							$elm$svg$Svg$Attributes$width('23.5%'),
-							$elm$svg$Svg$Attributes$height('23.5%')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$div,
-							A2(
-								$elm$core$List$cons,
-								A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+			_Utils_ap(
+				_List_fromArray(
+					[
+						A2(
+						$elm$svg$Svg$image,
+						_List_fromArray(
+							[
+								$elm$svg$Svg$Attributes$x('0'),
+								$elm$svg$Svg$Attributes$y('0'),
+								$elm$svg$Svg$Attributes$width('100%'),
+								$elm$svg$Svg$Attributes$height('100%'),
+								$elm$svg$Svg$Attributes$xlinkHref('images/paardensprong.jpeg')
+							]),
+						_List_Nil),
+						A2(
+						$elm$svg$Svg$foreignObject,
+						_List_fromArray(
+							[
+								$elm$svg$Svg$Attributes$x('10.5%'),
+								$elm$svg$Svg$Attributes$y('9%'),
+								$elm$svg$Svg$Attributes$width('23.5%'),
+								$elm$svg$Svg$Attributes$height('23.5%')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
 								A2(
 									$elm$core$List$cons,
-									A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+									A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
 									A2(
 										$elm$core$List$cons,
-										A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-										$author$project$Utils$centeringstuff))),
-							_List_fromArray(
-								[
-									$elm$html$Html$text(
-									f(1))
-								]))
-						])),
-					A2(
-					$elm$svg$Svg$foreignObject,
-					_List_fromArray(
-						[
-							$elm$svg$Svg$Attributes$x('38%'),
-							$elm$svg$Svg$Attributes$y('9%'),
-							$elm$svg$Svg$Attributes$width('23.5%'),
-							$elm$svg$Svg$Attributes$height('23.5%')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$div,
-							A2(
-								$elm$core$List$cons,
-								A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+										A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+										A2(
+											$elm$core$List$cons,
+											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+											$author$project$Utils$centeringstuff))),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										f(1))
+									]))
+							])),
+						A2(
+						$elm$svg$Svg$foreignObject,
+						_List_fromArray(
+							[
+								$elm$svg$Svg$Attributes$x('38%'),
+								$elm$svg$Svg$Attributes$y('9%'),
+								$elm$svg$Svg$Attributes$width('23.5%'),
+								$elm$svg$Svg$Attributes$height('23.5%')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
 								A2(
 									$elm$core$List$cons,
-									A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+									A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
 									A2(
 										$elm$core$List$cons,
-										A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-										$author$project$Utils$centeringstuff))),
-							_List_fromArray(
-								[
-									$elm$html$Html$text(
-									f(4))
-								]))
-						])),
-					A2(
-					$elm$svg$Svg$foreignObject,
-					_List_fromArray(
-						[
-							$elm$svg$Svg$Attributes$x('66%'),
-							$elm$svg$Svg$Attributes$y('9%'),
-							$elm$svg$Svg$Attributes$width('23.5%'),
-							$elm$svg$Svg$Attributes$height('23.5%')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$div,
-							A2(
-								$elm$core$List$cons,
-								A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+										A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+										A2(
+											$elm$core$List$cons,
+											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+											$author$project$Utils$centeringstuff))),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										f(4))
+									]))
+							])),
+						A2(
+						$elm$svg$Svg$foreignObject,
+						_List_fromArray(
+							[
+								$elm$svg$Svg$Attributes$x('66%'),
+								$elm$svg$Svg$Attributes$y('9%'),
+								$elm$svg$Svg$Attributes$width('23.5%'),
+								$elm$svg$Svg$Attributes$height('23.5%')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
 								A2(
 									$elm$core$List$cons,
-									A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+									A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
 									A2(
 										$elm$core$List$cons,
-										A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-										$author$project$Utils$centeringstuff))),
-							_List_fromArray(
-								[
-									$elm$html$Html$text(
-									f(7))
-								]))
-						])),
-					A2(
-					$elm$svg$Svg$foreignObject,
-					_List_fromArray(
-						[
-							$elm$svg$Svg$Attributes$x('10.5%'),
-							$elm$svg$Svg$Attributes$y('37%'),
-							$elm$svg$Svg$Attributes$width('23.5%'),
-							$elm$svg$Svg$Attributes$height('23.5%')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$div,
-							A2(
-								$elm$core$List$cons,
-								A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+										A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+										A2(
+											$elm$core$List$cons,
+											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+											$author$project$Utils$centeringstuff))),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										f(7))
+									]))
+							])),
+						A2(
+						$elm$svg$Svg$foreignObject,
+						_List_fromArray(
+							[
+								$elm$svg$Svg$Attributes$x('10.5%'),
+								$elm$svg$Svg$Attributes$y('37%'),
+								$elm$svg$Svg$Attributes$width('23.5%'),
+								$elm$svg$Svg$Attributes$height('23.5%')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
 								A2(
 									$elm$core$List$cons,
-									A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+									A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
 									A2(
 										$elm$core$List$cons,
-										A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-										$author$project$Utils$centeringstuff))),
-							_List_fromArray(
-								[
-									$elm$html$Html$text(
-									f(6))
-								]))
-						])),
-					A2(
-					$elm$svg$Svg$foreignObject,
-					_List_fromArray(
-						[
-							$elm$svg$Svg$Attributes$x('66%'),
-							$elm$svg$Svg$Attributes$y('37%'),
-							$elm$svg$Svg$Attributes$width('23.5%'),
-							$elm$svg$Svg$Attributes$height('23.5%')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$div,
-							A2(
-								$elm$core$List$cons,
-								A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+										A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+										A2(
+											$elm$core$List$cons,
+											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+											$author$project$Utils$centeringstuff))),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										f(6))
+									]))
+							])),
+						A2(
+						$elm$svg$Svg$foreignObject,
+						_List_fromArray(
+							[
+								$elm$svg$Svg$Attributes$x('66%'),
+								$elm$svg$Svg$Attributes$y('37%'),
+								$elm$svg$Svg$Attributes$width('23.5%'),
+								$elm$svg$Svg$Attributes$height('23.5%')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
 								A2(
 									$elm$core$List$cons,
-									A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+									A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
 									A2(
 										$elm$core$List$cons,
-										A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-										$author$project$Utils$centeringstuff))),
-							_List_fromArray(
-								[
-									$elm$html$Html$text(
-									f(2))
-								]))
-						])),
-					A2(
-					$elm$svg$Svg$foreignObject,
-					_List_fromArray(
-						[
-							$elm$svg$Svg$Attributes$x('10.5%'),
-							$elm$svg$Svg$Attributes$y('65%'),
-							$elm$svg$Svg$Attributes$width('23.5%'),
-							$elm$svg$Svg$Attributes$height('23.5%')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$div,
-							A2(
-								$elm$core$List$cons,
-								A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+										A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+										A2(
+											$elm$core$List$cons,
+											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+											$author$project$Utils$centeringstuff))),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										f(2))
+									]))
+							])),
+						A2(
+						$elm$svg$Svg$foreignObject,
+						_List_fromArray(
+							[
+								$elm$svg$Svg$Attributes$x('10.5%'),
+								$elm$svg$Svg$Attributes$y('65%'),
+								$elm$svg$Svg$Attributes$width('23.5%'),
+								$elm$svg$Svg$Attributes$height('23.5%')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
 								A2(
 									$elm$core$List$cons,
-									A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+									A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
 									A2(
 										$elm$core$List$cons,
-										A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-										$author$project$Utils$centeringstuff))),
-							_List_fromArray(
-								[
-									$elm$html$Html$text(
-									f(3))
-								]))
-						])),
-					A2(
-					$elm$svg$Svg$foreignObject,
-					_List_fromArray(
-						[
-							$elm$svg$Svg$Attributes$x('38%'),
-							$elm$svg$Svg$Attributes$y('65%'),
-							$elm$svg$Svg$Attributes$width('23.5%'),
-							$elm$svg$Svg$Attributes$height('23.5%')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$div,
-							A2(
-								$elm$core$List$cons,
-								A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+										A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+										A2(
+											$elm$core$List$cons,
+											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+											$author$project$Utils$centeringstuff))),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										f(3))
+									]))
+							])),
+						A2(
+						$elm$svg$Svg$foreignObject,
+						_List_fromArray(
+							[
+								$elm$svg$Svg$Attributes$x('38%'),
+								$elm$svg$Svg$Attributes$y('65%'),
+								$elm$svg$Svg$Attributes$width('23.5%'),
+								$elm$svg$Svg$Attributes$height('23.5%')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
 								A2(
 									$elm$core$List$cons,
-									A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+									A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
 									A2(
 										$elm$core$List$cons,
-										A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-										$author$project$Utils$centeringstuff))),
-							_List_fromArray(
-								[
-									$elm$html$Html$text(
-									f(8))
-								]))
-						])),
-					A2(
-					$elm$svg$Svg$foreignObject,
-					_List_fromArray(
-						[
-							$elm$svg$Svg$Attributes$x('66%'),
-							$elm$svg$Svg$Attributes$y('65%'),
-							$elm$svg$Svg$Attributes$width('23.5%'),
-							$elm$svg$Svg$Attributes$height('23.5%')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							$elm$html$Html$div,
-							A2(
-								$elm$core$List$cons,
-								A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
+										A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+										A2(
+											$elm$core$List$cons,
+											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+											$author$project$Utils$centeringstuff))),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										f(8))
+									]))
+							])),
+						A2(
+						$elm$svg$Svg$foreignObject,
+						_List_fromArray(
+							[
+								$elm$svg$Svg$Attributes$x('66%'),
+								$elm$svg$Svg$Attributes$y('65%'),
+								$elm$svg$Svg$Attributes$width('23.5%'),
+								$elm$svg$Svg$Attributes$height('23.5%')
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
 								A2(
 									$elm$core$List$cons,
-									A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+									A2($elm$html$Html$Attributes$style, 'font-size', '10cqh'),
 									A2(
 										$elm$core$List$cons,
-										A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-										$author$project$Utils$centeringstuff))),
-							_List_fromArray(
-								[
-									$elm$html$Html$text(
-									f(5))
-								]))
-						]))
-				]))
+										A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+										A2(
+											$elm$core$List$cons,
+											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+											$author$project$Utils$centeringstuff))),
+								_List_fromArray(
+									[
+										$elm$html$Html$text(
+										f(5))
+									]))
+							]))
+					]),
+				function () {
+					var _v0 = status.paardensprongbegintijd;
+					if (_v0.$ === 'Nothing') {
+						return _List_Nil;
+					} else {
+						var psbt = _v0.a;
+						return (($elm$time$Time$posixToMillis(status.currentTime) - $elm$time$Time$posixToMillis(psbt)) >= 30000) ? _List_Nil : A2(
+							$author$project$Letters$klokje,
+							'50%',
+							$elm$time$Time$posixToMillis(status.currentTime) - $elm$time$Time$posixToMillis(psbt));
+					}
+				}()))
 		]);
 };
 var $elm$html$Html$Attributes$src = function (url) {
@@ -10136,10 +10152,16 @@ var $author$project$Hoofdspel$wiki = function (status) {
 												A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
 											]),
 										$author$project$Utils$centeringstuff),
-									_List_fromArray(
+									status.searching ? _List_fromArray(
+										[
+											$elm$html$Html$text('\u00A0\uD83D\uDD14\u00A0Bellen!\u00A0\uD83D\uDD14\u00A0')
+										]) : ((status.questionNumber === 8) ? _List_fromArray(
 										[
 											$elm$html$Html$text('\u00A0Dat zoeken we op!\u00A0')
-										]))
+										]) : _List_fromArray(
+										[
+											$elm$html$Html$text('\u00A0Paardensprong bekijken\u00A0')
+										])))
 								])),
 							_Utils_Tuple3(
 							30,
@@ -10180,40 +10202,61 @@ var $author$project$Hoofdspel$wiki = function (status) {
 							_Utils_Tuple2(5, _List_Nil),
 							_Utils_Tuple2(
 							90,
-							(status.questionNumber === 8) ? $author$project$Hoofdspel$paardensprong(status) : (status.searching ? _List_fromArray(
-								[
-									A2(
-									$elm$svg$Svg$svg,
-									$author$project$Utils$svgfullsize,
-									_List_fromArray(
-										[
-											A2(
-											$elm$svg$Svg$rect,
-											_Utils_ap(
+							function () {
+								if (status.questionNumber === 8) {
+									var _v0 = _Utils_Tuple2(status.searching, status.paardensprongbegintijd);
+									if (_v0.a) {
+										return $author$project$Hoofdspel$paardensprong(status);
+									} else {
+										if (_v0.b.$ === 'Nothing') {
+											var _v1 = _v0.b;
+											return _List_Nil;
+										} else {
+											var psbt = _v0.b.a;
+											return (($elm$time$Time$posixToMillis(status.currentTime) - $elm$time$Time$posixToMillis(psbt)) <= 30000) ? $author$project$Hoofdspel$paardensprong(status) : _List_Nil;
+										}
+									}
+								} else {
+									if (status.searching) {
+										return _List_fromArray(
+											[
+												A2(
+												$elm$svg$Svg$svg,
 												$author$project$Utils$svgfullsize,
 												_List_fromArray(
 													[
-														$elm$svg$Svg$Attributes$fill('#ffffff')
-													])),
-											_List_Nil),
-											A2(
-											$elm$svg$Svg$foreignObject,
-											$author$project$Utils$svgfullsize,
-											_List_fromArray(
-												[
-													A2(
-													$elm$html$Html$embed,
-													_List_fromArray(
-														[
-															$elm$html$Html$Attributes$type_('text/html'),
-															$elm$html$Html$Attributes$src('https://nl.wikipedia.org'),
-															A2($elm$html$Html$Attributes$style, 'width', '100%'),
-															A2($elm$html$Html$Attributes$style, 'height', '100%')
-														]),
-													_List_Nil)
-												]))
-										]))
-								]) : _List_Nil)),
+														A2(
+														$elm$svg$Svg$rect,
+														_Utils_ap(
+															$author$project$Utils$svgfullsize,
+															_List_fromArray(
+																[
+																	$elm$svg$Svg$Attributes$fill('#ffffff')
+																])),
+														_List_Nil),
+														A2(
+														$elm$svg$Svg$foreignObject,
+														$author$project$Utils$svgfullsize,
+														_List_fromArray(
+															[
+																A2(
+																$elm$html$Html$embed,
+																_List_fromArray(
+																	[
+																		$elm$html$Html$Attributes$type_('text/html'),
+																		$elm$html$Html$Attributes$src('https://nl.wikipedia.org'),
+																		A2($elm$html$Html$Attributes$style, 'width', '100%'),
+																		A2($elm$html$Html$Attributes$style, 'height', '100%')
+																	]),
+																_List_Nil)
+															]))
+													]))
+											]);
+									} else {
+										return _List_Nil;
+									}
+								}
+							}()),
 							_Utils_Tuple2(5, _List_Nil)
 						])))
 			]));
