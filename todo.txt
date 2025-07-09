@@ -1,13 +1,10 @@
 eindscherm(en)
 highscores
-beginscherm (tidididudidididie tudududu goeienavondhartelijk welkom bij twee voor twaalf)
 score schrijven
 spreadsheet:
   logica voor geen herhaling 8 en 12 letter woorden
-case insensitivity
 ruimte voor vraag
 klokanimatie
 geluid:
   letter kopen (kloktik)
-  woord gefaald
 elm-animator: fade video weg

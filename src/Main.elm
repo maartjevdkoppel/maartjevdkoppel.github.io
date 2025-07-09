@@ -23,8 +23,12 @@ import Json.Encode
 import Json.Decode
 
 
+-- PORTS
+
+port videoEventStream : Json.Encode.Value -> Cmd msg
 port audioPortToJS : Json.Encode.Value -> Cmd msg
 port audioPortFromJS : (Json.Decode.Value -> msg) -> Sub msg
+port confetti : Json.Encode.Value -> Cmd msg
 
 -- MAIN
 
@@ -52,7 +56,7 @@ type Model = HomeScreen {now : Time.Posix, thesheet : Maybe Vraagsheet, username
 
 init : String -> (Model, Cmd Msg, Audio.AudioCmd Msg)
 init oauthtoken =
-  ( HomeScreen { now = Time.millisToPosix 0, thesheet = Nothing, username = "", oauth = oauthtoken, waiting = False, muziek = {tune=Nothing, tik=Nothing, raden=Nothing}, muziekstart = Nothing }
+  ( HomeScreen { now = Time.millisToPosix 0, thesheet = Nothing, username = "", oauth = oauthtoken, waiting = False, muziek = {tune=Nothing, tik=Nothing, raden=Nothing, faal = Nothing}, muziekstart = Nothing }
   , Cmd.batch [ Task.perform Tick Time.now
               , pushVideoEvent Setup
               --, readSpreadsheet oauthtoken
@@ -93,6 +97,7 @@ update _ msg model =
                       [ Audio.loadAudio (soundloaded "tune")  "https://maartjevdkoppel.github.io/audio/tune.mp3"
                       , Audio.loadAudio (soundloaded "tik")   "https://maartjevdkoppel.github.io/audio/tik.mp3"
                       , Audio.loadAudio (soundloaded "raden") "https://maartjevdkoppel.github.io/audio/woordraad.mp3"
+                      , Audio.loadAudio (soundloaded "faal")  "https://maartjevdkoppel.github.io/audio/woord-faal.mp3"
                       ]
                    )
       SoundLoaded result -> case result of
@@ -100,6 +105,7 @@ update _ msg model =
             "tune" ->  {x | tune  = Just sound} 
             "tik" ->   {x | tik   = Just sound}
             "raden" -> {x | raden = Just sound}
+            "faal" ->  {x | faal  = Just sound}
             _ -> status.muziek
           -- , muziekstart = case id of
           --   "tune" -> status.now
@@ -118,7 +124,9 @@ update _ msg model =
         , woord = ""
         , oauth = status.oauth
         , correctwoord = status.data.woord
-        , muziek = Maybe.map (\x -> (x,status.currentTime)) status.muziek.raden
+        , muziek  = Maybe.map (\x -> (x,status.currentTime)) status.muziek.raden
+        , kooptik = Maybe.map (\x -> (x,Time.millisToPosix 0)) status.muziek.tik
+        , faal = status.muziek.faal
         }, Cmd.none, Audio.cmdNone)
       SoundLoaded result -> case result of
         Ok (sound, id) -> let x = status.muziek in (InGame {status | muziek = case id of
@@ -132,16 +140,16 @@ update _ msg model =
         (status2, cmd2) -> (InGame status2, cmd2, Audio.cmdNone)
     Woordraden status -> case msg of
       Tick newtime -> (Woordraden { status | currentTime = newtime}, if Time.posixToMillis newtime > Time.posixToMillis status.timeTheGameEnds then Task.perform (\_ -> Submit) (Task.succeed ()) else Cmd.none, Audio.cmdNone)
-      Submit -> if status.woord == status.correctwoord 
-                then (Afrekenen { basis = status.punten
+      Submit -> if testcorrect status.woord status.correctwoord 
+                then (Afrekenen (Win { basis = status.punten
                                 , uithethoofd = List.sum (List.map (\(l1,_,b) -> case l1 of
                                       UitHetHoofd _ -> if b then 1 else 0
                                       Paars -> 1
                                       _ -> 0
                                     ) status.koopbaar)
                                 , fout = List.length (List.filter (\(_,_,b) -> not b) status.koopbaar)
-                                }, Cmd.none, Audio.cmdNone) 
-                else (model, Cmd.none, Audio.cmdNone) -- TODO
+                                }), confetti Json.Encode.null, Audio.cmdNone) 
+                else (Afrekenen (Verlies {gegeven = Dict.empty, juist = Dict.empty, woord = status.woord, faalstart = Maybe.map (\f -> (f, status.currentTime)) status.faal}), Cmd.none, Audio.cmdNone) -- TODO
       _ -> (Woordraden (woordupdate msg status), Cmd.none, Audio.cmdNone)
     Afrekenen status -> (model, Cmd.none, Audio.cmdNone)
       
@@ -197,23 +205,21 @@ audio _ model = case model of
     Just muziek -> if status.searching && evensec status.currentTime
       then Audio.audio muziek status.currentTime
       else Audio.silence
-  Woordraden status -> case status.muziek of
+  Woordraden status -> 
+    let audio1 = case status.muziek of
+          Nothing -> Audio.silence
+          Just (muziek, tijd) -> Audio.audio muziek tijd
+        audio2 = case status.kooptik of
+          Nothing -> Audio.silence
+          Just (muziek, tijd) -> Audio.audio muziek tijd
+    in Audio.group [audio1, audio2]
+  Afrekenen (Verlies info) -> case info.faalstart of
     Nothing -> Audio.silence
-    Just (muziek, tijd) -> Audio.audio muziek tijd
+    Just (muziek, tijd) -> Audio.audio muziek tijd 
   _ -> Audio.silence
 
 
 
--- PORTS
-
-
-{-| This is how we send the video player messages. We are sending out a JSON
-object with the command, where `kind` is always a string with the operation
-name. Different commands may require additional information to be executed.
-These objects should never be constructed by hand but should instead be sent
-via the `pushVideoEvent` function.
--}
-port videoEventStream : Json.Encode.Value -> Cmd msg
 
 
 {-| These are all the kinds of messages that can be sent to the video player.

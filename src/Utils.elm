@@ -42,3 +42,7 @@ cmpmb a b = case (a,b) of
 on : (b -> b -> c) -> (a -> b) -> a -> a -> c
 on bf uf x y =
     bf (uf x) (uf y)
+
+testcorrect : String -> String -> Bool
+testcorrect = let sanitize = String.toLower >> String.filter Char.isAlpha 
+              in on (==) sanitize

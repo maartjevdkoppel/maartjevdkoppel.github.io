@@ -23,7 +23,7 @@ type Msg
   | PlayAudio
 
 soundloaded str = SoundLoaded << Result.map (\x->(x,str))
-type alias Adios = {tune : Maybe Audio.Source, tik : Maybe Audio.Source, raden : Maybe Audio.Source}
+type alias Adios = {tune : Maybe Audio.Source, tik : Maybe Audio.Source, raden : Maybe Audio.Source, faal : Maybe Audio.Source}
 
 type alias Vraagsheet = Dict.Dict String VragenAntwoorden
 type alias VragenAntwoorden = 

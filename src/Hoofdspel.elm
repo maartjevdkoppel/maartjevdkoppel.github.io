@@ -102,7 +102,7 @@ naarWoordRaden status i = case Dict.get i status.gegevenantwoorden of
   Nothing -> (Streepje, Maybe.withDefault 0 (Dict.get i status.data.volgorde), False)
   Just gegevenantwoord -> case Dict.get i (Dict.fromList (List.map (\((k,a),(_,ix)) -> (k,(a,ix))) (List.Extra.zip (Dict.toList status.data.antwoorden) (Dict.toList status.data.volgorde)))) of
     Nothing -> (Vraagteken,0,False) -- error
-    Just (antwoord, index) -> (if Set.member i status.searched then Opgezocht gegevenantwoord else UitHetHoofd gegevenantwoord, index, gegevenantwoord == antwoord)
+    Just (antwoord, index) -> (if Set.member i status.searched then Opgezocht gegevenantwoord else UitHetHoofd gegevenantwoord, index, testcorrect gegevenantwoord antwoord)
 
 wiki : HoofdStatus -> List (Html Msg)
 wiki status = rows 

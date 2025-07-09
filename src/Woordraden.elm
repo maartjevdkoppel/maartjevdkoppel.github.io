@@ -25,6 +25,8 @@ type alias WoordraadStatus =
   , correctwoord : String
   , oauth : String
   , muziek : Maybe (Audio.Source, Time.Posix)
+  , kooptik : Maybe (Audio.Source, Time.Posix)
+  , faal : Maybe Audio.Source -- voor afrekenen
   }
 
 -- update
