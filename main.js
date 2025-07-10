@@ -10739,7 +10739,7 @@ var $author$project$Main$view = F2(
 				} else {
 					var ms = _v2.a;
 					var millisdiff = $elm$time$Time$posixToMillis(status.now) - $elm$time$Time$posixToMillis(ms);
-					return (millisdiff <= 10) ? A2(
+					return (millisdiff <= 18000) ? A2(
 						$elm$html$Html$div,
 						_List_fromArray(
 							[

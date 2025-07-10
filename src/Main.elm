@@ -174,7 +174,7 @@ view _ model =
       Nothing ->
         div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] [video [ id "media-video", style "width" "100%", onClick PlayAudio ] [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]]
       Just ms -> let millisdiff = Time.posixToMillis status.now - Time.posixToMillis ms in
-        if millisdiff <= 10 --18000 
+        if millisdiff <= 18000 
         then
           div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] [video [ id "media-video", onClick PlayAudio, style "width" "100%", style "opacity" (String.fromInt (Basics.max ((16000-(Basics.max 15000 millisdiff)) // 10) 0) ++ "%")] [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]]
         else
