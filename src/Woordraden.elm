@@ -51,15 +51,15 @@ woordupdate2 status i letter correct target =
   else  { status 
         | punten = status.punten - 10
         , koopbaar = List.Extra.updateAt i 
-            (\_ -> ((
+            (\_ -> (if correct then (
               case letter of
-                Opgezocht _ -> Zwart
-                UitHetHoofd _ -> Zwart
+                Opgezocht _ -> Wit
+                UitHetHoofd _ -> Paars
                 _ -> Vraagteken
-              ), 0, False
-            )) 
+              ) else Zwart, 0, False)
+            ) 
             status.koopbaar
-        , gekocht = List.Extra.updateAt target 
+        , gekocht = List.Extra.updateAt (target-1) 
             (\old -> 
               case old of
                 Wit -> if correct 
@@ -71,6 +71,7 @@ woordupdate2 status i letter correct target =
                 _ -> old
             ) 
             status.gekocht
+        , kooptik = Maybe.map (\(m,_)->(m,status.currentTime)) status.kooptik
         }
 
 -- view

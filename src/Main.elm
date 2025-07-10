@@ -1,15 +1,16 @@
 port module Main exposing (..)
 
-
-import Browser
+import Audio
 import Dict
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onClick, onInput)
+import Http exposing (Error(..))
+import Json.Decode
+import Json.Encode
+import Process
 import Task
 import Time
-import Process
-import Audio
 
 import Afrekenen exposing (..)
 import Database exposing (..)
@@ -18,10 +19,6 @@ import Letters exposing (Letter(..))
 import Types exposing (..)
 import Utils exposing (..)
 import Woordraden exposing (..)
-import Http exposing (Error(..))
-import Json.Encode
-import Json.Decode
-
 
 -- PORTS
 
@@ -29,6 +26,10 @@ port videoEventStream : Json.Encode.Value -> Cmd msg
 port audioPortToJS : Json.Encode.Value -> Cmd msg
 port audioPortFromJS : (Json.Decode.Value -> msg) -> Sub msg
 port confetti : Json.Encode.Value -> Cmd msg
+
+
+staatdespreadsheetaan : Bool
+staatdespreadsheetaan = True
 
 -- MAIN
 
@@ -59,7 +60,7 @@ init oauthtoken =
   ( HomeScreen { now = Time.millisToPosix 0, thesheet = Nothing, username = "", oauth = oauthtoken, waiting = False, muziek = {tune=Nothing, tik=Nothing, raden=Nothing, faal = Nothing}, muziekstart = Nothing }
   , Cmd.batch [ Task.perform Tick Time.now
               , pushVideoEvent Setup
-              --, readSpreadsheet oauthtoken
+              , if staatdespreadsheetaan then readSpreadsheet oauthtoken else Cmd.none
               ] 
   , Audio.cmdNone
   )
@@ -159,7 +160,7 @@ update _ msg model =
 
 subscriptions : Audio.AudioData -> Model -> Sub Msg
 subscriptions _ _ =
-  Time.every 1000 Tick
+  Time.every 50 Tick
 
 
 
@@ -171,11 +172,11 @@ view _ model =
   case model of
     HomeScreen status -> case status.muziekstart of
       Nothing ->
-        video [ id "media-video", style "width" "100%", onClick PlayAudio ] [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]
-      Just ms -> 
-        if Time.posixToMillis status.now - Time.posixToMillis ms <= 1000 --17000
+        div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] [video [ id "media-video", style "width" "100%", onClick PlayAudio ] [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]]
+      Just ms -> let millisdiff = Time.posixToMillis status.now - Time.posixToMillis ms in
+        if millisdiff <= 10 --18000 
         then
-          video [ id "media-video", style "width" "100%", onClick PlayAudio ] [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]
+          div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] [video [ id "media-video", onClick PlayAudio, style "width" "100%", style "opacity" (String.fromInt (Basics.max ((16000-(Basics.max 15000 millisdiff)) // 10) 0) ++ "%")] [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]]
         else
           div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] (Utils.rows -- TODO: highscores
           [ (30, [], [])
@@ -202,13 +203,13 @@ audio _ model = case model of
   --   Just muziek -> Audio.audio muziek status.muziekstart 
   InGame status -> case status.muziek.tik of
     Nothing -> Audio.silence
-    Just muziek -> if status.searching && evensec status.currentTime
-      then Audio.audio muziek status.currentTime
+    Just muziek -> if status.searching 
+      then Audio.audio muziek status.recentstetik
       else Audio.silence
   Woordraden status -> 
     let audio1 = case status.muziek of
           Nothing -> Audio.silence
-          Just (muziek, tijd) -> Audio.audio muziek tijd
+          Just (muziek, tijd) -> Audio.scaleVolume 0.2 (Audio.audio muziek tijd)
         audio2 = case status.kooptik of
           Nothing -> Audio.silence
           Just (muziek, tijd) -> Audio.audio muziek tijd

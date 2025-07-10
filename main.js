@@ -4708,7 +4708,6 @@ var $elm$core$Set$toList = function (_v0) {
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
-var $elm$core$Basics$and = _Basics_and;
 var $elm$core$Maybe$Nothing = {$: 'Nothing'};
 var $elm$core$Basics$identity = function (x) {
 	return x;
@@ -4730,25 +4729,34 @@ var $MartinSStewart$elm_audio$Audio$audio = F2(
 	function (source, startTime) {
 		return A3($MartinSStewart$elm_audio$Audio$audioWithConfig, $MartinSStewart$elm_audio$Audio$audioDefaultConfig, source, startTime);
 	});
-var $elm$core$Basics$eq = _Utils_equal;
-var $elm$core$Basics$idiv = _Basics_idiv;
-var $elm$core$Basics$modBy = _Basics_modBy;
-var $elm$time$Time$posixToMillis = function (_v0) {
-	var millis = _v0.a;
-	return millis;
-};
-var $author$project$Utils$evensec = function (t) {
-	return !A2(
-		$elm$core$Basics$modBy,
-		2,
-		($elm$time$Time$posixToMillis(t) / 1000) | 0);
-};
 var $MartinSStewart$elm_audio$Audio$Group = function (a) {
 	return {$: 'Group', a: a};
 };
 var $MartinSStewart$elm_audio$Audio$group = function (audios) {
 	return $MartinSStewart$elm_audio$Audio$Group(audios);
 };
+var $MartinSStewart$elm_audio$Audio$Effect = function (a) {
+	return {$: 'Effect', a: a};
+};
+var $MartinSStewart$elm_audio$Audio$ScaleVolume = function (a) {
+	return {$: 'ScaleVolume', a: a};
+};
+var $elm$core$Basics$gt = _Utils_gt;
+var $elm$core$Basics$max = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) > 0) ? x : y;
+	});
+var $MartinSStewart$elm_audio$Audio$scaleVolume = F2(
+	function (scaleBy, audio_) {
+		return $MartinSStewart$elm_audio$Audio$Effect(
+			{
+				audio: audio_,
+				effectType: $MartinSStewart$elm_audio$Audio$ScaleVolume(
+					{
+						scaleBy: A2($elm$core$Basics$max, 0, scaleBy)
+					})
+			});
+	});
 var $MartinSStewart$elm_audio$Audio$silence = $MartinSStewart$elm_audio$Audio$group(_List_Nil);
 var $author$project$Main$audio = F2(
 	function (_v0, model) {
@@ -4762,7 +4770,7 @@ var $author$project$Main$audio = F2(
 						return $MartinSStewart$elm_audio$Audio$silence;
 					} else {
 						var muziek = _v2.a;
-						return (status.searching && $author$project$Utils$evensec(status.currentTime)) ? A2($MartinSStewart$elm_audio$Audio$audio, muziek, status.currentTime) : $MartinSStewart$elm_audio$Audio$silence;
+						return status.searching ? A2($MartinSStewart$elm_audio$Audio$audio, muziek, status.recentstetik) : $MartinSStewart$elm_audio$Audio$silence;
 					}
 				case 'Woordraden':
 					var status = model.a;
@@ -4785,7 +4793,10 @@ var $author$project$Main$audio = F2(
 							var _v4 = _v3.a;
 							var muziek = _v4.a;
 							var tijd = _v4.b;
-							return A2($MartinSStewart$elm_audio$Audio$audio, muziek, tijd);
+							return A2(
+								$MartinSStewart$elm_audio$Audio$scaleVolume,
+								0.2,
+								A2($MartinSStewart$elm_audio$Audio$audio, muziek, tijd));
 						}
 					}();
 					return $MartinSStewart$elm_audio$Audio$group(
@@ -4839,6 +4850,7 @@ var $elm$core$Maybe$Just = function (a) {
 	return {$: 'Just', a: a};
 };
 var $elm$core$String$all = _String_all;
+var $elm$core$Basics$and = _Basics_and;
 var $elm$core$Basics$append = _Utils_append;
 var $elm$json$Json$Encode$encode = _Json_encode;
 var $elm$core$String$fromInt = _String_fromNumber;
@@ -5079,13 +5091,9 @@ var $elm$core$Basics$apR = F2(
 	function (x, f) {
 		return f(x);
 	});
+var $elm$core$Basics$eq = _Utils_equal;
 var $elm$core$Basics$floor = _Basics_floor;
 var $elm$core$Elm$JsArray$length = _JsArray_length;
-var $elm$core$Basics$gt = _Utils_gt;
-var $elm$core$Basics$max = F2(
-	function (x, y) {
-		return (_Utils_cmp(x, y) > 0) ? x : y;
-	});
 var $elm$core$Basics$mul = _Basics_mul;
 var $elm$core$Array$SubTree = function (a) {
 	return {$: 'SubTree', a: a};
@@ -5156,6 +5164,7 @@ var $elm$core$Array$builderToArray = F2(
 				builder.tail);
 		}
 	});
+var $elm$core$Basics$idiv = _Basics_idiv;
 var $elm$core$Basics$lt = _Utils_lt;
 var $elm$core$Array$initializeHelp = F5(
 	function (fn, fromIndex, len, nodeList, tail) {
@@ -5556,6 +5565,10 @@ var $elm$time$Time$Posix = function (a) {
 	return {$: 'Posix', a: a};
 };
 var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
+var $elm$time$Time$posixToMillis = function (_v0) {
+	var millis = _v0.a;
+	return millis;
+};
 var $elm$core$Basics$round = _Basics_round;
 var $ianmackenzie$elm_units$Duration$addTo = F2(
 	function (time, duration) {
@@ -7179,9 +7192,6 @@ var $MartinSStewart$elm_audio$Audio$update = F3(
 var $ianmackenzie$elm_units$Duration$milliseconds = function (numMilliseconds) {
 	return $ianmackenzie$elm_units$Duration$seconds(0.001 * numMilliseconds);
 };
-var $MartinSStewart$elm_audio$Audio$Effect = function (a) {
-	return {$: 'Effect', a: a};
-};
 var $MartinSStewart$elm_audio$Audio$Offset = function (a) {
 	return {$: 'Offset', a: a};
 };
@@ -7345,307 +7355,8 @@ var $author$project$Main$pushVideoEvent = function (event) {
 	return $author$project$Main$videoEventStream(
 		$author$project$Main$encodeVideoEvent(event));
 };
-var $author$project$Main$init = function (oauthtoken) {
-	return _Utils_Tuple3(
-		$author$project$Main$HomeScreen(
-			{
-				muziek: {faal: $elm$core$Maybe$Nothing, raden: $elm$core$Maybe$Nothing, tik: $elm$core$Maybe$Nothing, tune: $elm$core$Maybe$Nothing},
-				muziekstart: $elm$core$Maybe$Nothing,
-				now: $elm$time$Time$millisToPosix(0),
-				oauth: oauthtoken,
-				thesheet: $elm$core$Maybe$Nothing,
-				username: '',
-				waiting: false
-			}),
-		$elm$core$Platform$Cmd$batch(
-			_List_fromArray(
-				[
-					A2($elm$core$Task$perform, $author$project$Types$Tick, $elm$time$Time$now),
-					$author$project$Main$pushVideoEvent($author$project$Main$Setup)
-				])),
-		$MartinSStewart$elm_audio$Audio$cmdNone);
-};
-var $elm$time$Time$Every = F2(
-	function (a, b) {
-		return {$: 'Every', a: a, b: b};
-	});
-var $elm$time$Time$State = F2(
-	function (taggers, processes) {
-		return {processes: processes, taggers: taggers};
-	});
-var $elm$time$Time$init = $elm$core$Task$succeed(
-	A2($elm$time$Time$State, $elm$core$Dict$empty, $elm$core$Dict$empty));
-var $elm$time$Time$addMySub = F2(
-	function (_v0, state) {
-		var interval = _v0.a;
-		var tagger = _v0.b;
-		var _v1 = A2($elm$core$Dict$get, interval, state);
-		if (_v1.$ === 'Nothing') {
-			return A3(
-				$elm$core$Dict$insert,
-				interval,
-				_List_fromArray(
-					[tagger]),
-				state);
-		} else {
-			var taggers = _v1.a;
-			return A3(
-				$elm$core$Dict$insert,
-				interval,
-				A2($elm$core$List$cons, tagger, taggers),
-				state);
-		}
-	});
-var $elm$core$Process$kill = _Scheduler_kill;
-var $elm$core$Dict$merge = F6(
-	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
-		var stepState = F3(
-			function (rKey, rValue, _v0) {
-				stepState:
-				while (true) {
-					var list = _v0.a;
-					var result = _v0.b;
-					if (!list.b) {
-						return _Utils_Tuple2(
-							list,
-							A3(rightStep, rKey, rValue, result));
-					} else {
-						var _v2 = list.a;
-						var lKey = _v2.a;
-						var lValue = _v2.b;
-						var rest = list.b;
-						if (_Utils_cmp(lKey, rKey) < 0) {
-							var $temp$rKey = rKey,
-								$temp$rValue = rValue,
-								$temp$_v0 = _Utils_Tuple2(
-								rest,
-								A3(leftStep, lKey, lValue, result));
-							rKey = $temp$rKey;
-							rValue = $temp$rValue;
-							_v0 = $temp$_v0;
-							continue stepState;
-						} else {
-							if (_Utils_cmp(lKey, rKey) > 0) {
-								return _Utils_Tuple2(
-									list,
-									A3(rightStep, rKey, rValue, result));
-							} else {
-								return _Utils_Tuple2(
-									rest,
-									A4(bothStep, lKey, lValue, rValue, result));
-							}
-						}
-					}
-				}
-			});
-		var _v3 = A3(
-			$elm$core$Dict$foldl,
-			stepState,
-			_Utils_Tuple2(
-				$elm$core$Dict$toList(leftDict),
-				initialResult),
-			rightDict);
-		var leftovers = _v3.a;
-		var intermediateResult = _v3.b;
-		return A3(
-			$elm$core$List$foldl,
-			F2(
-				function (_v4, result) {
-					var k = _v4.a;
-					var v = _v4.b;
-					return A3(leftStep, k, v, result);
-				}),
-			intermediateResult,
-			leftovers);
-	});
-var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
-var $elm$time$Time$setInterval = _Time_setInterval;
-var $elm$core$Process$spawn = _Scheduler_spawn;
-var $elm$time$Time$spawnHelp = F3(
-	function (router, intervals, processes) {
-		if (!intervals.b) {
-			return $elm$core$Task$succeed(processes);
-		} else {
-			var interval = intervals.a;
-			var rest = intervals.b;
-			var spawnTimer = $elm$core$Process$spawn(
-				A2(
-					$elm$time$Time$setInterval,
-					interval,
-					A2($elm$core$Platform$sendToSelf, router, interval)));
-			var spawnRest = function (id) {
-				return A3(
-					$elm$time$Time$spawnHelp,
-					router,
-					rest,
-					A3($elm$core$Dict$insert, interval, id, processes));
-			};
-			return A2($elm$core$Task$andThen, spawnRest, spawnTimer);
-		}
-	});
-var $elm$time$Time$onEffects = F3(
-	function (router, subs, _v0) {
-		var processes = _v0.processes;
-		var rightStep = F3(
-			function (_v6, id, _v7) {
-				var spawns = _v7.a;
-				var existing = _v7.b;
-				var kills = _v7.c;
-				return _Utils_Tuple3(
-					spawns,
-					existing,
-					A2(
-						$elm$core$Task$andThen,
-						function (_v5) {
-							return kills;
-						},
-						$elm$core$Process$kill(id)));
-			});
-		var newTaggers = A3($elm$core$List$foldl, $elm$time$Time$addMySub, $elm$core$Dict$empty, subs);
-		var leftStep = F3(
-			function (interval, taggers, _v4) {
-				var spawns = _v4.a;
-				var existing = _v4.b;
-				var kills = _v4.c;
-				return _Utils_Tuple3(
-					A2($elm$core$List$cons, interval, spawns),
-					existing,
-					kills);
-			});
-		var bothStep = F4(
-			function (interval, taggers, id, _v3) {
-				var spawns = _v3.a;
-				var existing = _v3.b;
-				var kills = _v3.c;
-				return _Utils_Tuple3(
-					spawns,
-					A3($elm$core$Dict$insert, interval, id, existing),
-					kills);
-			});
-		var _v1 = A6(
-			$elm$core$Dict$merge,
-			leftStep,
-			bothStep,
-			rightStep,
-			newTaggers,
-			processes,
-			_Utils_Tuple3(
-				_List_Nil,
-				$elm$core$Dict$empty,
-				$elm$core$Task$succeed(_Utils_Tuple0)));
-		var spawnList = _v1.a;
-		var existingDict = _v1.b;
-		var killTask = _v1.c;
-		return A2(
-			$elm$core$Task$andThen,
-			function (newProcesses) {
-				return $elm$core$Task$succeed(
-					A2($elm$time$Time$State, newTaggers, newProcesses));
-			},
-			A2(
-				$elm$core$Task$andThen,
-				function (_v2) {
-					return A3($elm$time$Time$spawnHelp, router, spawnList, existingDict);
-				},
-				killTask));
-	});
-var $elm$time$Time$onSelfMsg = F3(
-	function (router, interval, state) {
-		var _v0 = A2($elm$core$Dict$get, interval, state.taggers);
-		if (_v0.$ === 'Nothing') {
-			return $elm$core$Task$succeed(state);
-		} else {
-			var taggers = _v0.a;
-			var tellTaggers = function (time) {
-				return $elm$core$Task$sequence(
-					A2(
-						$elm$core$List$map,
-						function (tagger) {
-							return A2(
-								$elm$core$Platform$sendToApp,
-								router,
-								tagger(time));
-						},
-						taggers));
-			};
-			return A2(
-				$elm$core$Task$andThen,
-				function (_v1) {
-					return $elm$core$Task$succeed(state);
-				},
-				A2($elm$core$Task$andThen, tellTaggers, $elm$time$Time$now));
-		}
-	});
-var $elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
-	});
-var $elm$time$Time$subMap = F2(
-	function (f, _v0) {
-		var interval = _v0.a;
-		var tagger = _v0.b;
-		return A2(
-			$elm$time$Time$Every,
-			interval,
-			A2($elm$core$Basics$composeL, f, tagger));
-	});
-_Platform_effectManagers['Time'] = _Platform_createManager($elm$time$Time$init, $elm$time$Time$onEffects, $elm$time$Time$onSelfMsg, 0, $elm$time$Time$subMap);
-var $elm$time$Time$subscription = _Platform_leaf('Time');
-var $elm$time$Time$every = F2(
-	function (interval, tagger) {
-		return $elm$time$Time$subscription(
-			A2($elm$time$Time$Every, interval, tagger));
-	});
-var $author$project$Main$subscriptions = F2(
-	function (_v0, _v1) {
-		return A2($elm$time$Time$every, 1000, $author$project$Types$Tick);
-	});
-var $author$project$Main$Afrekenen = function (a) {
-	return {$: 'Afrekenen', a: a};
-};
-var $author$project$Main$InGame = function (a) {
-	return {$: 'InGame', a: a};
-};
-var $author$project$Main$Play = {$: 'Play'};
-var $author$project$Types$Submit = {$: 'Submit'};
-var $author$project$Afrekenen$Verlies = function (a) {
-	return {$: 'Verlies', a: a};
-};
-var $author$project$Afrekenen$Win = function (a) {
-	return {$: 'Win', a: a};
-};
-var $author$project$Letters$Wit = {$: 'Wit'};
-var $author$project$Main$Woordraden = function (a) {
-	return {$: 'Woordraden', a: a};
-};
-var $author$project$Types$UserAdded = function (a) {
-	return {$: 'UserAdded', a: a};
-};
-var $author$project$Database$adduserjson = function (name) {
-	return $elm$json$Json$Encode$object(
-		_List_fromArray(
-			[
-				_Utils_Tuple2(
-				'range',
-				$elm$json$Json$Encode$string('usernames!A1')),
-				_Utils_Tuple2(
-				'majorDimension',
-				$elm$json$Json$Encode$string('ROWS')),
-				_Utils_Tuple2(
-				'values',
-				A2(
-					$elm$json$Json$Encode$list,
-					function (x) {
-						return A2(
-							$elm$json$Json$Encode$list,
-							$elm$json$Json$Encode$string,
-							_List_fromArray(
-								[x]));
-					},
-					_List_fromArray(
-						[name])))
-			]));
+var $author$project$Types$DataReceived = function (a) {
+	return {$: 'DataReceived', a: a};
 };
 var $elm$http$Http$BadStatus_ = F2(
 	function (a, b) {
@@ -7673,6 +7384,7 @@ var $elm$core$Maybe$isJust = function (maybe) {
 		return false;
 	}
 };
+var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
 var $elm$core$Dict$update = F3(
 	function (targetKey, alter, dictionary) {
 		var _v0 = alter(
@@ -7684,13 +7396,26 @@ var $elm$core$Dict$update = F3(
 			return A2($elm$core$Dict$remove, targetKey, dictionary);
 		}
 	});
-var $elm$http$Http$expectBytesResponse = F2(
+var $elm$http$Http$emptyBody = _Http_emptyBody;
+var $elm$json$Json$Decode$decodeString = _Json_runOnString;
+var $elm$http$Http$expectStringResponse = F2(
 	function (toMsg, toResult) {
 		return A3(
 			_Http_expect,
-			'arraybuffer',
-			_Http_toDataView,
+			'',
+			$elm$core$Basics$identity,
 			A2($elm$core$Basics$composeR, toResult, toMsg));
+	});
+var $elm$core$Result$mapError = F2(
+	function (f, result) {
+		if (result.$ === 'Ok') {
+			var v = result.a;
+			return $elm$core$Result$Ok(v);
+		} else {
+			var e = result.a;
+			return $elm$core$Result$Err(
+				f(e));
+		}
 	});
 var $elm$http$Http$BadBody = function (a) {
 	return {$: 'BadBody', a: a};
@@ -7703,17 +7428,6 @@ var $elm$http$Http$BadUrl = function (a) {
 };
 var $elm$http$Http$NetworkError = {$: 'NetworkError'};
 var $elm$http$Http$Timeout = {$: 'Timeout'};
-var $elm$core$Result$mapError = F2(
-	function (f, result) {
-		if (result.$ === 'Ok') {
-			var v = result.a;
-			return $elm$core$Result$Ok(v);
-		} else {
-			var e = result.a;
-			return $elm$core$Result$Err(
-				f(e));
-		}
-	});
 var $elm$http$Http$resolve = F2(
 	function (toResult, response) {
 		switch (response.$) {
@@ -7737,26 +7451,182 @@ var $elm$http$Http$resolve = F2(
 					toResult(body));
 		}
 	});
-var $elm$http$Http$expectWhatever = function (toMsg) {
-	return A2(
-		$elm$http$Http$expectBytesResponse,
-		toMsg,
-		$elm$http$Http$resolve(
-			function (_v0) {
-				return $elm$core$Result$Ok(_Utils_Tuple0);
-			}));
-};
+var $elm$http$Http$expectJson = F2(
+	function (toMsg, decoder) {
+		return A2(
+			$elm$http$Http$expectStringResponse,
+			toMsg,
+			$elm$http$Http$resolve(
+				function (string) {
+					return A2(
+						$elm$core$Result$mapError,
+						$elm$json$Json$Decode$errorToString,
+						A2($elm$json$Json$Decode$decodeString, decoder, string));
+				}));
+	});
 var $elm$http$Http$Header = F2(
 	function (a, b) {
 		return {$: 'Header', a: a, b: b};
 	});
 var $elm$http$Http$header = $elm$http$Http$Header;
-var $elm$http$Http$jsonBody = function (value) {
-	return A2(
-		_Http_pair,
-		'application/json',
-		A2($elm$json$Json$Encode$encode, 0, value));
+var $elm$json$Json$Decode$list = _Json_decodeList;
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var $author$project$Utils$twelve = _List_fromArray(
+	[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+var $elm_community$list_extra$List$Extra$zip = $elm$core$List$map2($elm$core$Tuple$pair);
+var $author$project$Database$f = A2(
+	$elm$core$Basics$composeL,
+	$elm$core$Dict$fromList,
+	$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve));
+var $author$project$Utils$cmpmb = F2(
+	function (a, b) {
+		var _v0 = _Utils_Tuple2(a, b);
+		if (_v0.a.$ === 'Nothing') {
+			var _v1 = _v0.a;
+			return $elm$core$Basics$LT;
+		} else {
+			if (_v0.b.$ === 'Nothing') {
+				var _v2 = _v0.b;
+				return $elm$core$Basics$GT;
+			} else {
+				var x = _v0.a.a;
+				var y = _v0.b.a;
+				return A2($elm$core$Basics$compare, x, y);
+			}
+		}
+	});
+var $author$project$Utils$on = F4(
+	function (bf, uf, x, y) {
+		return A2(
+			bf,
+			uf(x),
+			uf(y));
+	});
+var $elm$core$List$sortWith = _List_sortWith;
+var $author$project$Database$maakvolgorde = A2(
+	$elm$core$Basics$composeL,
+	A2(
+		$elm$core$Basics$composeL,
+		A2(
+			$elm$core$Basics$composeL,
+			A2(
+				$elm$core$Basics$composeL,
+				$elm$core$Dict$fromList,
+				$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve)),
+			$elm$core$List$map($elm$core$Tuple$first)),
+		$elm$core$List$sortWith(
+			A2($author$project$Utils$on, $author$project$Utils$cmpmb, $elm$core$Tuple$second))),
+	$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve));
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm$core$Basics$negate = function (n) {
+	return -n;
 };
+var $elm$core$String$replace = F3(
+	function (before, after, string) {
+		return A2(
+			$elm$core$String$join,
+			after,
+			A2($elm$core$String$split, before, string));
+	});
+var $elm_community$list_extra$List$Extra$splitAt = F2(
+	function (n, xs) {
+		return _Utils_Tuple2(
+			A2($elm$core$List$take, n, xs),
+			A2($elm$core$List$drop, n, xs));
+	});
+var $elm$core$String$toFloat = _String_toFloat;
+var $elm_community$maybe_extra$Maybe$Extra$cons = F2(
+	function (item, list) {
+		if (item.$ === 'Just') {
+			var v = item.a;
+			return A2($elm$core$List$cons, v, list);
+		} else {
+			return list;
+		}
+	});
+var $elm_community$maybe_extra$Maybe$Extra$values = A2($elm$core$List$foldr, $elm_community$maybe_extra$Maybe$Extra$cons, _List_Nil);
+var $author$project$Database$tovraagsheet = A2(
+	$elm$core$Basics$composeR,
+	$elm$core$List$tail,
+	$elm$core$Maybe$map(
+		A2(
+			$elm$core$Basics$composeR,
+			$elm$core$List$map(
+				function (row) {
+					var _v0 = A2($elm_community$list_extra$List$Extra$splitAt, 27, row);
+					if (_v0.a.b && _v0.a.b.b) {
+						var _v1 = _v0.a;
+						var naam = _v1.a;
+						var _v2 = _v1.b;
+						var woord = _v2.a;
+						var vragenantwoordenvolgorde = _v0.b;
+						var _v3 = A2($elm_community$list_extra$List$Extra$splitAt, 12, vragenantwoordenvolgorde);
+						var vragen = _v3.a;
+						var antwoordenvolgorde = _v3.b;
+						var _v4 = A2($elm_community$list_extra$List$Extra$splitAt, 12, antwoordenvolgorde);
+						var antwoorden = _v4.a;
+						var volgorde = _v4.b;
+						return $elm$core$Maybe$Just(
+							_Utils_Tuple2(
+								naam,
+								{
+									antwoorden: $author$project$Database$f(antwoorden),
+									paardsprongrng: function () {
+										var _v5 = A2(
+											$elm$core$List$map,
+											A2(
+												$elm$core$Basics$composeL,
+												$elm$core$String$toFloat,
+												A2($elm$core$String$replace, ',', '.')),
+											volgorde);
+										if (((_v5.b && (_v5.a.$ === 'Just')) && _v5.b.b) && (_v5.b.a.$ === 'Just')) {
+											var n1 = _v5.a.a;
+											var _v6 = _v5.b;
+											var n2 = _v6.a.a;
+											return _Utils_Tuple2(
+												(n1 < 0.5) ? (-1) : 1,
+												$elm$core$Basics$ceiling(8 * n2));
+										} else {
+											return _Utils_Tuple2(1, 8);
+										}
+									}(),
+									volgorde: $author$project$Database$maakvolgorde(
+										A2(
+											$elm$core$List$map,
+											A2(
+												$elm$core$Basics$composeL,
+												$elm$core$String$toFloat,
+												A2($elm$core$String$replace, ',', '.')),
+											volgorde)),
+									vragen: $author$project$Database$f(vragen),
+									woord: woord
+								}));
+					} else {
+						return $elm$core$Maybe$Nothing;
+					}
+				}),
+			A2($elm$core$Basics$composeR, $elm_community$maybe_extra$Maybe$Extra$values, $elm$core$Dict$fromList))));
+var $author$project$Database$parse = A2(
+	$elm$json$Json$Decode$field,
+	'values',
+	A2(
+		$elm$json$Json$Decode$map,
+		$author$project$Database$tovraagsheet,
+		$elm$json$Json$Decode$list(
+			$elm$json$Json$Decode$list($elm$json$Json$Decode$string))));
 var $elm$http$Http$Request = function (a) {
 	return {$: 'Request', a: a};
 };
@@ -7766,6 +7636,8 @@ var $elm$http$Http$State = F2(
 	});
 var $elm$http$Http$init = $elm$core$Task$succeed(
 	A2($elm$http$Http$State, $elm$core$Dict$empty, _List_Nil));
+var $elm$core$Process$kill = _Scheduler_kill;
+var $elm$core$Process$spawn = _Scheduler_spawn;
 var $elm$http$Http$updateReqs = F3(
 	function (router, cmds, reqs) {
 		updateReqs:
@@ -7908,6 +7780,340 @@ var $elm$http$Http$request = function (r) {
 var $author$project$Database$url = function (sheet) {
 	return 'https://sheets.googleapis.com/v4/spreadsheets/1_CbSNxoK-esYMFhj2kq7c7QIF6sJxCs1caYO8NgZso0/values/' + sheet;
 };
+var $author$project$Database$readSpreadsheet = function (oauth) {
+	return $elm$http$Http$request(
+		{
+			body: $elm$http$Http$emptyBody,
+			expect: A2($elm$http$Http$expectJson, $author$project$Types$DataReceived, $author$project$Database$parse),
+			headers: _List_fromArray(
+				[
+					A2($elm$http$Http$header, 'Authorization', 'Bearer ' + oauth)
+				]),
+			method: 'GET',
+			timeout: $elm$core$Maybe$Nothing,
+			tracker: $elm$core$Maybe$Nothing,
+			url: $author$project$Database$url('mensen')
+		});
+};
+var $author$project$Main$staatdespreadsheetaan = true;
+var $author$project$Main$init = function (oauthtoken) {
+	return _Utils_Tuple3(
+		$author$project$Main$HomeScreen(
+			{
+				muziek: {faal: $elm$core$Maybe$Nothing, raden: $elm$core$Maybe$Nothing, tik: $elm$core$Maybe$Nothing, tune: $elm$core$Maybe$Nothing},
+				muziekstart: $elm$core$Maybe$Nothing,
+				now: $elm$time$Time$millisToPosix(0),
+				oauth: oauthtoken,
+				thesheet: $elm$core$Maybe$Nothing,
+				username: '',
+				waiting: false
+			}),
+		$elm$core$Platform$Cmd$batch(
+			_List_fromArray(
+				[
+					A2($elm$core$Task$perform, $author$project$Types$Tick, $elm$time$Time$now),
+					$author$project$Main$pushVideoEvent($author$project$Main$Setup),
+					$author$project$Main$staatdespreadsheetaan ? $author$project$Database$readSpreadsheet(oauthtoken) : $elm$core$Platform$Cmd$none
+				])),
+		$MartinSStewart$elm_audio$Audio$cmdNone);
+};
+var $elm$time$Time$Every = F2(
+	function (a, b) {
+		return {$: 'Every', a: a, b: b};
+	});
+var $elm$time$Time$State = F2(
+	function (taggers, processes) {
+		return {processes: processes, taggers: taggers};
+	});
+var $elm$time$Time$init = $elm$core$Task$succeed(
+	A2($elm$time$Time$State, $elm$core$Dict$empty, $elm$core$Dict$empty));
+var $elm$time$Time$addMySub = F2(
+	function (_v0, state) {
+		var interval = _v0.a;
+		var tagger = _v0.b;
+		var _v1 = A2($elm$core$Dict$get, interval, state);
+		if (_v1.$ === 'Nothing') {
+			return A3(
+				$elm$core$Dict$insert,
+				interval,
+				_List_fromArray(
+					[tagger]),
+				state);
+		} else {
+			var taggers = _v1.a;
+			return A3(
+				$elm$core$Dict$insert,
+				interval,
+				A2($elm$core$List$cons, tagger, taggers),
+				state);
+		}
+	});
+var $elm$core$Dict$merge = F6(
+	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
+		var stepState = F3(
+			function (rKey, rValue, _v0) {
+				stepState:
+				while (true) {
+					var list = _v0.a;
+					var result = _v0.b;
+					if (!list.b) {
+						return _Utils_Tuple2(
+							list,
+							A3(rightStep, rKey, rValue, result));
+					} else {
+						var _v2 = list.a;
+						var lKey = _v2.a;
+						var lValue = _v2.b;
+						var rest = list.b;
+						if (_Utils_cmp(lKey, rKey) < 0) {
+							var $temp$rKey = rKey,
+								$temp$rValue = rValue,
+								$temp$_v0 = _Utils_Tuple2(
+								rest,
+								A3(leftStep, lKey, lValue, result));
+							rKey = $temp$rKey;
+							rValue = $temp$rValue;
+							_v0 = $temp$_v0;
+							continue stepState;
+						} else {
+							if (_Utils_cmp(lKey, rKey) > 0) {
+								return _Utils_Tuple2(
+									list,
+									A3(rightStep, rKey, rValue, result));
+							} else {
+								return _Utils_Tuple2(
+									rest,
+									A4(bothStep, lKey, lValue, rValue, result));
+							}
+						}
+					}
+				}
+			});
+		var _v3 = A3(
+			$elm$core$Dict$foldl,
+			stepState,
+			_Utils_Tuple2(
+				$elm$core$Dict$toList(leftDict),
+				initialResult),
+			rightDict);
+		var leftovers = _v3.a;
+		var intermediateResult = _v3.b;
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v4, result) {
+					var k = _v4.a;
+					var v = _v4.b;
+					return A3(leftStep, k, v, result);
+				}),
+			intermediateResult,
+			leftovers);
+	});
+var $elm$time$Time$setInterval = _Time_setInterval;
+var $elm$time$Time$spawnHelp = F3(
+	function (router, intervals, processes) {
+		if (!intervals.b) {
+			return $elm$core$Task$succeed(processes);
+		} else {
+			var interval = intervals.a;
+			var rest = intervals.b;
+			var spawnTimer = $elm$core$Process$spawn(
+				A2(
+					$elm$time$Time$setInterval,
+					interval,
+					A2($elm$core$Platform$sendToSelf, router, interval)));
+			var spawnRest = function (id) {
+				return A3(
+					$elm$time$Time$spawnHelp,
+					router,
+					rest,
+					A3($elm$core$Dict$insert, interval, id, processes));
+			};
+			return A2($elm$core$Task$andThen, spawnRest, spawnTimer);
+		}
+	});
+var $elm$time$Time$onEffects = F3(
+	function (router, subs, _v0) {
+		var processes = _v0.processes;
+		var rightStep = F3(
+			function (_v6, id, _v7) {
+				var spawns = _v7.a;
+				var existing = _v7.b;
+				var kills = _v7.c;
+				return _Utils_Tuple3(
+					spawns,
+					existing,
+					A2(
+						$elm$core$Task$andThen,
+						function (_v5) {
+							return kills;
+						},
+						$elm$core$Process$kill(id)));
+			});
+		var newTaggers = A3($elm$core$List$foldl, $elm$time$Time$addMySub, $elm$core$Dict$empty, subs);
+		var leftStep = F3(
+			function (interval, taggers, _v4) {
+				var spawns = _v4.a;
+				var existing = _v4.b;
+				var kills = _v4.c;
+				return _Utils_Tuple3(
+					A2($elm$core$List$cons, interval, spawns),
+					existing,
+					kills);
+			});
+		var bothStep = F4(
+			function (interval, taggers, id, _v3) {
+				var spawns = _v3.a;
+				var existing = _v3.b;
+				var kills = _v3.c;
+				return _Utils_Tuple3(
+					spawns,
+					A3($elm$core$Dict$insert, interval, id, existing),
+					kills);
+			});
+		var _v1 = A6(
+			$elm$core$Dict$merge,
+			leftStep,
+			bothStep,
+			rightStep,
+			newTaggers,
+			processes,
+			_Utils_Tuple3(
+				_List_Nil,
+				$elm$core$Dict$empty,
+				$elm$core$Task$succeed(_Utils_Tuple0)));
+		var spawnList = _v1.a;
+		var existingDict = _v1.b;
+		var killTask = _v1.c;
+		return A2(
+			$elm$core$Task$andThen,
+			function (newProcesses) {
+				return $elm$core$Task$succeed(
+					A2($elm$time$Time$State, newTaggers, newProcesses));
+			},
+			A2(
+				$elm$core$Task$andThen,
+				function (_v2) {
+					return A3($elm$time$Time$spawnHelp, router, spawnList, existingDict);
+				},
+				killTask));
+	});
+var $elm$time$Time$onSelfMsg = F3(
+	function (router, interval, state) {
+		var _v0 = A2($elm$core$Dict$get, interval, state.taggers);
+		if (_v0.$ === 'Nothing') {
+			return $elm$core$Task$succeed(state);
+		} else {
+			var taggers = _v0.a;
+			var tellTaggers = function (time) {
+				return $elm$core$Task$sequence(
+					A2(
+						$elm$core$List$map,
+						function (tagger) {
+							return A2(
+								$elm$core$Platform$sendToApp,
+								router,
+								tagger(time));
+						},
+						taggers));
+			};
+			return A2(
+				$elm$core$Task$andThen,
+				function (_v1) {
+					return $elm$core$Task$succeed(state);
+				},
+				A2($elm$core$Task$andThen, tellTaggers, $elm$time$Time$now));
+		}
+	});
+var $elm$time$Time$subMap = F2(
+	function (f, _v0) {
+		var interval = _v0.a;
+		var tagger = _v0.b;
+		return A2(
+			$elm$time$Time$Every,
+			interval,
+			A2($elm$core$Basics$composeL, f, tagger));
+	});
+_Platform_effectManagers['Time'] = _Platform_createManager($elm$time$Time$init, $elm$time$Time$onEffects, $elm$time$Time$onSelfMsg, 0, $elm$time$Time$subMap);
+var $elm$time$Time$subscription = _Platform_leaf('Time');
+var $elm$time$Time$every = F2(
+	function (interval, tagger) {
+		return $elm$time$Time$subscription(
+			A2($elm$time$Time$Every, interval, tagger));
+	});
+var $author$project$Main$subscriptions = F2(
+	function (_v0, _v1) {
+		return A2($elm$time$Time$every, 50, $author$project$Types$Tick);
+	});
+var $author$project$Main$Afrekenen = function (a) {
+	return {$: 'Afrekenen', a: a};
+};
+var $author$project$Main$InGame = function (a) {
+	return {$: 'InGame', a: a};
+};
+var $author$project$Main$Play = {$: 'Play'};
+var $author$project$Types$Submit = {$: 'Submit'};
+var $author$project$Afrekenen$Verlies = function (a) {
+	return {$: 'Verlies', a: a};
+};
+var $author$project$Afrekenen$Win = function (a) {
+	return {$: 'Win', a: a};
+};
+var $author$project$Letters$Wit = {$: 'Wit'};
+var $author$project$Main$Woordraden = function (a) {
+	return {$: 'Woordraden', a: a};
+};
+var $author$project$Types$UserAdded = function (a) {
+	return {$: 'UserAdded', a: a};
+};
+var $author$project$Database$adduserjson = function (name) {
+	return $elm$json$Json$Encode$object(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				'range',
+				$elm$json$Json$Encode$string('usernames!A1')),
+				_Utils_Tuple2(
+				'majorDimension',
+				$elm$json$Json$Encode$string('ROWS')),
+				_Utils_Tuple2(
+				'values',
+				A2(
+					$elm$json$Json$Encode$list,
+					function (x) {
+						return A2(
+							$elm$json$Json$Encode$list,
+							$elm$json$Json$Encode$string,
+							_List_fromArray(
+								[x]));
+					},
+					_List_fromArray(
+						[name])))
+			]));
+};
+var $elm$http$Http$expectBytesResponse = F2(
+	function (toMsg, toResult) {
+		return A3(
+			_Http_expect,
+			'arraybuffer',
+			_Http_toDataView,
+			A2($elm$core$Basics$composeR, toResult, toMsg));
+	});
+var $elm$http$Http$expectWhatever = function (toMsg) {
+	return A2(
+		$elm$http$Http$expectBytesResponse,
+		toMsg,
+		$elm$http$Http$resolve(
+			function (_v0) {
+				return $elm$core$Result$Ok(_Utils_Tuple0);
+			}));
+};
+var $elm$http$Http$jsonBody = function (value) {
+	return A2(
+		_Http_pair,
+		'application/json',
+		A2($elm$json$Json$Encode$encode, 0, value));
+};
 var $author$project$Database$adduser = F2(
 	function (name, oauth) {
 		return $elm$http$Http$request(
@@ -7930,6 +8136,7 @@ var $MartinSStewart$elm_audio$Audio$cmdBatch = function (audioCmds) {
 };
 var $author$project$Main$confetti = _Platform_outgoingPort('confetti', $elm$core$Basics$identity);
 var $author$project$Types$NaarWoordraden = {$: 'NaarWoordraden'};
+var $elm$core$Basics$ge = _Utils_ge;
 var $elm$core$Set$Set_elm_builtin = function (a) {
 	return {$: 'Set_elm_builtin', a: a};
 };
@@ -7945,12 +8152,14 @@ var $author$project$Hoofdspel$hoofdupdate = F2(
 		switch (msg.$) {
 			case 'Tick':
 				var newtime = msg.a;
+				var nieuwetik = ($elm$time$Time$posixToMillis(status.currentTime) - $elm$time$Time$posixToMillis(status.recentstetik)) >= 2000;
 				return _Utils_Tuple2(
 					_Utils_update(
 						status,
 						{
 							currentTime: newtime,
-							punten: (status.searching && $author$project$Utils$evensec(newtime)) ? (status.punten - 1) : status.punten
+							punten: (status.searching && nieuwetik) ? (status.punten - 1) : status.punten,
+							recentstetik: (status.searching && nieuwetik) ? status.currentTime : status.recentstetik
 						}),
 					(_Utils_cmp(
 						$elm$time$Time$posixToMillis(status.timeTheGameEnds) - $elm$time$Time$posixToMillis(status.currentTime),
@@ -8112,10 +8321,6 @@ var $elm$time$Time$toAdjustedMinutes = F2(
 				60000),
 			eras);
 	});
-var $elm$core$Basics$ge = _Utils_ge;
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
 var $elm$time$Time$toCivil = function (minutes) {
 	var rawDay = A2($elm$time$Time$flooredDiv, minutes, 60 * 24) + 719468;
 	var era = (((rawDay >= 0) ? rawDay : (rawDay - 146096)) / 146097) | 0;
@@ -8136,6 +8341,7 @@ var $elm$time$Time$toDay = F2(
 		return $elm$time$Time$toCivil(
 			A2($elm$time$Time$toAdjustedMinutes, zone, time)).day;
 	});
+var $elm$core$Basics$modBy = _Basics_modBy;
 var $elm$time$Time$toHour = F2(
 	function (zone, time) {
 		return A2(
@@ -8317,7 +8523,16 @@ var $author$project$Database$logstartgamejson = F3(
 										'',
 										va.woord
 									]),
-								$elm$core$Dict$values(va.vragen))
+								$elm$core$Dict$values(
+									function () {
+										var _v0 = A2($elm$core$Dict$get, 8, va.antwoorden);
+										if (_v0.$ === 'Nothing') {
+											return va.vragen;
+										} else {
+											var p = _v0.a;
+											return A3($elm$core$Dict$insert, 8, p, va.vragen);
+										}
+									}()))
 							])))
 				]));
 	});
@@ -8337,16 +8552,6 @@ var $author$project$Database$logstartgame = F4(
 				tracker: $elm$core$Maybe$Nothing,
 				url: $author$project$Database$url('log!A1:P1:append?valueInputOption=RAW')
 			});
-	});
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
 	});
 var $author$project$Letters$Opgezocht = function (a) {
 	return {$: 'Opgezocht', a: a};
@@ -8371,13 +8576,6 @@ var $elm$core$Set$member = F2(
 		return A2($elm$core$Dict$member, key, dict);
 	});
 var $elm$core$String$filter = _String_filter;
-var $author$project$Utils$on = F4(
-	function (bf, uf, x, y) {
-		return A2(
-			bf,
-			uf(x),
-			uf(y));
-	});
 var $elm$core$String$toLower = _String_toLower;
 var $author$project$Utils$testcorrect = function () {
 	var sanitize = A2(
@@ -8395,7 +8593,6 @@ var $elm$core$Maybe$withDefault = F2(
 			return _default;
 		}
 	});
-var $elm_community$list_extra$List$Extra$zip = $elm$core$List$map2($elm$core$Tuple$pair);
 var $author$project$Hoofdspel$naarWoordRaden = F2(
 	function (status, i) {
 		var _v0 = A2($elm$core$Dict$get, i, status.gegevenantwoorden);
@@ -8442,179 +8639,6 @@ var $author$project$Hoofdspel$naarWoordRaden = F2(
 			}
 		}
 	});
-var $author$project$Types$DataReceived = function (a) {
-	return {$: 'DataReceived', a: a};
-};
-var $elm$http$Http$emptyBody = _Http_emptyBody;
-var $elm$json$Json$Decode$decodeString = _Json_runOnString;
-var $elm$http$Http$expectStringResponse = F2(
-	function (toMsg, toResult) {
-		return A3(
-			_Http_expect,
-			'',
-			$elm$core$Basics$identity,
-			A2($elm$core$Basics$composeR, toResult, toMsg));
-	});
-var $elm$http$Http$expectJson = F2(
-	function (toMsg, decoder) {
-		return A2(
-			$elm$http$Http$expectStringResponse,
-			toMsg,
-			$elm$http$Http$resolve(
-				function (string) {
-					return A2(
-						$elm$core$Result$mapError,
-						$elm$json$Json$Decode$errorToString,
-						A2($elm$json$Json$Decode$decodeString, decoder, string));
-				}));
-	});
-var $elm$json$Json$Decode$list = _Json_decodeList;
-var $author$project$Utils$twelve = _List_fromArray(
-	[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-var $author$project$Database$f = A2(
-	$elm$core$Basics$composeL,
-	$elm$core$Dict$fromList,
-	$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve));
-var $author$project$Utils$cmpmb = F2(
-	function (a, b) {
-		var _v0 = _Utils_Tuple2(a, b);
-		if (_v0.a.$ === 'Nothing') {
-			var _v1 = _v0.a;
-			return $elm$core$Basics$LT;
-		} else {
-			if (_v0.b.$ === 'Nothing') {
-				var _v2 = _v0.b;
-				return $elm$core$Basics$GT;
-			} else {
-				var x = _v0.a.a;
-				var y = _v0.b.a;
-				return A2($elm$core$Basics$compare, x, y);
-			}
-		}
-	});
-var $elm$core$List$sortWith = _List_sortWith;
-var $author$project$Database$maakvolgorde = A2(
-	$elm$core$Basics$composeL,
-	A2(
-		$elm$core$Basics$composeL,
-		A2(
-			$elm$core$Basics$composeL,
-			A2(
-				$elm$core$Basics$composeL,
-				$elm$core$Dict$fromList,
-				$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve)),
-			$elm$core$List$map($elm$core$Tuple$first)),
-		$elm$core$List$sortWith(
-			A2($author$project$Utils$on, $author$project$Utils$cmpmb, $elm$core$Tuple$second))),
-	$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve));
-var $elm$core$String$replace = F3(
-	function (before, after, string) {
-		return A2(
-			$elm$core$String$join,
-			after,
-			A2($elm$core$String$split, before, string));
-	});
-var $elm_community$list_extra$List$Extra$splitAt = F2(
-	function (n, xs) {
-		return _Utils_Tuple2(
-			A2($elm$core$List$take, n, xs),
-			A2($elm$core$List$drop, n, xs));
-	});
-var $elm$core$String$toFloat = _String_toFloat;
-var $elm_community$maybe_extra$Maybe$Extra$cons = F2(
-	function (item, list) {
-		if (item.$ === 'Just') {
-			var v = item.a;
-			return A2($elm$core$List$cons, v, list);
-		} else {
-			return list;
-		}
-	});
-var $elm_community$maybe_extra$Maybe$Extra$values = A2($elm$core$List$foldr, $elm_community$maybe_extra$Maybe$Extra$cons, _List_Nil);
-var $author$project$Database$tovraagsheet = A2(
-	$elm$core$Basics$composeR,
-	$elm$core$List$tail,
-	$elm$core$Maybe$map(
-		A2(
-			$elm$core$Basics$composeR,
-			$elm$core$List$map(
-				function (row) {
-					var _v0 = A2($elm_community$list_extra$List$Extra$splitAt, 27, row);
-					if (_v0.a.b && _v0.a.b.b) {
-						var _v1 = _v0.a;
-						var naam = _v1.a;
-						var _v2 = _v1.b;
-						var woord = _v2.a;
-						var vragenantwoordenvolgorde = _v0.b;
-						var _v3 = A2($elm_community$list_extra$List$Extra$splitAt, 12, vragenantwoordenvolgorde);
-						var vragen = _v3.a;
-						var antwoordenvolgorde = _v3.b;
-						var _v4 = A2($elm_community$list_extra$List$Extra$splitAt, 12, antwoordenvolgorde);
-						var antwoorden = _v4.a;
-						var volgorde = _v4.b;
-						return $elm$core$Maybe$Just(
-							_Utils_Tuple2(
-								naam,
-								{
-									antwoorden: $author$project$Database$f(antwoorden),
-									paardsprongrng: function () {
-										var _v5 = A2(
-											$elm$core$List$map,
-											A2(
-												$elm$core$Basics$composeL,
-												$elm$core$String$toFloat,
-												A2($elm$core$String$replace, ',', '.')),
-											volgorde);
-										if (((_v5.b && (_v5.a.$ === 'Just')) && _v5.b.b) && (_v5.b.a.$ === 'Just')) {
-											var n1 = _v5.a.a;
-											var _v6 = _v5.b;
-											var n2 = _v6.a.a;
-											return _Utils_Tuple2(
-												(n1 < 0.5) ? (-1) : 1,
-												$elm$core$Basics$ceiling(8 * n2));
-										} else {
-											return _Utils_Tuple2(1, 8);
-										}
-									}(),
-									volgorde: $author$project$Database$maakvolgorde(
-										A2(
-											$elm$core$List$map,
-											A2(
-												$elm$core$Basics$composeL,
-												$elm$core$String$toFloat,
-												A2($elm$core$String$replace, ',', '.')),
-											volgorde)),
-									vragen: $author$project$Database$f(vragen),
-									woord: woord
-								}));
-					} else {
-						return $elm$core$Maybe$Nothing;
-					}
-				}),
-			A2($elm$core$Basics$composeR, $elm_community$maybe_extra$Maybe$Extra$values, $elm$core$Dict$fromList))));
-var $author$project$Database$parse = A2(
-	$elm$json$Json$Decode$field,
-	'values',
-	A2(
-		$elm$json$Json$Decode$map,
-		$author$project$Database$tovraagsheet,
-		$elm$json$Json$Decode$list(
-			$elm$json$Json$Decode$list($elm$json$Json$Decode$string))));
-var $author$project$Database$readSpreadsheet = function (oauth) {
-	return $elm$http$Http$request(
-		{
-			body: $elm$http$Http$emptyBody,
-			expect: A2($elm$http$Http$expectJson, $author$project$Types$DataReceived, $author$project$Database$parse),
-			headers: _List_fromArray(
-				[
-					A2($elm$http$Http$header, 'Authorization', 'Bearer ' + oauth)
-				]),
-			method: 'GET',
-			timeout: $elm$core$Maybe$Nothing,
-			tracker: $elm$core$Maybe$Nothing,
-			url: $author$project$Database$url('mensen')
-		});
-};
 var $elm$core$List$repeatHelp = F3(
 	function (result, n, value) {
 		repeatHelp:
@@ -8674,10 +8698,11 @@ var $author$project$Hoofdspel$startgame = F4(
 			paardensprongbegintijd: $elm$core$Maybe$Nothing,
 			punten: 500,
 			questionNumber: 1,
+			recentstetik: $elm$time$Time$millisToPosix(0),
 			searched: $elm$core$Set$empty,
 			searching: false,
 			timeTheGameEnds: $elm$time$Time$millisToPosix(
-				($elm$time$Time$posixToMillis(now) + ((12 * 60) * 1000)) + 1000)
+				($elm$time$Time$posixToMillis(now) + ((15 * 60) * 1000)) + 1000)
 		};
 	});
 var $elm$core$List$sum = function (numbers) {
@@ -8704,6 +8729,7 @@ var $author$project$Utils$index = F2(
 			}
 		}
 	});
+var $author$project$Letters$Paars = {$: 'Paars'};
 var $author$project$Letters$Zwart = {$: 'Zwart'};
 var $elm_community$list_extra$List$Extra$updateAt = F3(
 	function (index, fn, list) {
@@ -8732,7 +8758,7 @@ var $author$project$Woordraden$woordupdate2 = F5(
 			{
 				gekocht: A3(
 					$elm_community$list_extra$List$Extra$updateAt,
-					target,
+					target - 1,
 					function (old) {
 						if (old.$ === 'Wit') {
 							if (correct) {
@@ -8760,19 +8786,30 @@ var $author$project$Woordraden$woordupdate2 = F5(
 					function (_v2) {
 						return _Utils_Tuple3(
 							function () {
-								switch (letter.$) {
-									case 'Opgezocht':
-										return $author$project$Letters$Zwart;
-									case 'UitHetHoofd':
-										return $author$project$Letters$Zwart;
-									default:
-										return $author$project$Letters$Vraagteken;
+								if (correct) {
+									switch (letter.$) {
+										case 'Opgezocht':
+											return $author$project$Letters$Wit;
+										case 'UitHetHoofd':
+											return $author$project$Letters$Paars;
+										default:
+											return $author$project$Letters$Vraagteken;
+									}
+								} else {
+									return $author$project$Letters$Zwart;
 								}
 							}(),
 							0,
 							false);
 					},
 					status.koopbaar),
+				kooptik: A2(
+					$elm$core$Maybe$map,
+					function (_v4) {
+						var m = _v4.a;
+						return _Utils_Tuple2(m, status.currentTime);
+					},
+					status.kooptik),
 				punten: status.punten - 10
 			});
 	});
@@ -9492,7 +9529,6 @@ var $author$project$Letters$klok = function (millisdiff) {
 				_List_Nil),
 			A2($author$project$Letters$klokje, '100% - 7.5cqh', millisdiff)));
 };
-var $author$project$Letters$Paars = {$: 'Paars'};
 var $author$project$Hoofdspel$getBeginLetter = F2(
 	function (status, i) {
 		var _v0 = A2($elm$core$Dict$get, i, status.gegevenantwoorden);
@@ -10011,15 +10047,16 @@ var $author$project$Types$StartStopWiki = {$: 'StartStopWiki'};
 var $elm$html$Html$embed = _VirtualDom_node('embed');
 var $author$project$Hoofdspel$paardensprong = function (status) {
 	var startplek = status.data.paardsprongrng.b;
-	var sprongwoord = function () {
-		var _v1 = A2($elm$core$Dict$get, 8, status.data.antwoorden);
-		if (_v1.$ === 'Nothing') {
-			return 'Error';
-		} else {
-			var str = _v1.a;
-			return str;
-		}
-	}();
+	var sprongwoord = $elm$core$String$toUpper(
+		function () {
+			var _v1 = A2($elm$core$Dict$get, 8, status.data.antwoorden);
+			if (_v1.$ === 'Nothing') {
+				return 'Error';
+			} else {
+				var str = _v1.a;
+				return str;
+			}
+		}());
 	var klokmee = status.data.paardsprongrng.a;
 	var f = function (i) {
 		var ix = ((8 + startplek) + (i * klokmee)) - 1;
@@ -10338,16 +10375,32 @@ var $author$project$Hoofdspel$wiki = function (status) {
 												A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
 											]),
 										$author$project$Utils$centeringstuff),
-									status.searching ? _List_fromArray(
-										[
-											$elm$html$Html$text('\u00A0\uD83D\uDD14\u00A0Bellen!\u00A0\uD83D\uDD14\u00A0')
-										]) : ((status.questionNumber === 8) ? _List_fromArray(
-										[
-											$elm$html$Html$text('\u00A0Paardensprong bekijken\u00A0')
-										]) : _List_fromArray(
-										[
-											$elm$html$Html$text('\u00A0Dat zoeken we op!\u00A0')
-										])))
+									function () {
+										if (status.searching) {
+											return _List_fromArray(
+												[
+													$elm$html$Html$text('\u00A0\uD83D\uDD14\u00A0Bellen!\u00A0\uD83D\uDD14\u00A0')
+												]);
+										} else {
+											if (status.questionNumber === 8) {
+												var _v0 = A2($elm$core$Dict$get, 8, status.data.antwoorden);
+												if (_v0.$ === 'Nothing') {
+													return _List_Nil;
+												} else {
+													var str = _v0.a;
+													return _List_fromArray(
+														[
+															$elm$html$Html$text(str)
+														]);
+												}
+											} else {
+												return _List_fromArray(
+													[
+														$elm$html$Html$text('\u00A0Dat zoeken we op!\u00A0')
+													]);
+											}
+										}
+									}())
 								])),
 							_Utils_Tuple3(
 							30,
@@ -10390,15 +10443,15 @@ var $author$project$Hoofdspel$wiki = function (status) {
 							90,
 							function () {
 								if (status.questionNumber === 8) {
-									var _v0 = _Utils_Tuple2(status.searching, status.paardensprongbegintijd);
-									if (_v0.a) {
+									var _v1 = _Utils_Tuple2(status.searching, status.paardensprongbegintijd);
+									if (_v1.a) {
 										return $author$project$Hoofdspel$paardensprong(status);
 									} else {
-										if (_v0.b.$ === 'Nothing') {
-											var _v1 = _v0.b;
+										if (_v1.b.$ === 'Nothing') {
+											var _v2 = _v1.b;
 											return _List_Nil;
 										} else {
-											var psbt = _v0.b.a;
+											var psbt = _v1.b.a;
 											return (($elm$time$Time$posixToMillis(status.currentTime) - $elm$time$Time$posixToMillis(psbt)) <= 30000) ? $author$project$Hoofdspel$paardensprong(status) : _List_Nil;
 										}
 									}
@@ -10654,44 +10707,75 @@ var $author$project$Main$view = F2(
 				var _v2 = status.muziekstart;
 				if (_v2.$ === 'Nothing') {
 					return A2(
-						$elm$html$Html$video,
+						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$id('media-video'),
-								A2($elm$html$Html$Attributes$style, 'width', '100%'),
-								$elm$html$Html$Events$onClick($author$project$Types$PlayAudio)
+								A2($elm$html$Html$Attributes$style, 'background-image', 'url(\'images/leeg.jpeg\')'),
+								A2($elm$html$Html$Attributes$style, 'background-size', '100%'),
+								A2($elm$html$Html$Attributes$style, 'height', '100%')
 							]),
 						_List_fromArray(
 							[
 								A2(
-								$elm$html$Html$source,
+								$elm$html$Html$video,
 								_List_fromArray(
 									[
-										$elm$html$Html$Attributes$src('video/intro.mp4'),
-										$elm$html$Html$Attributes$type_('video/mp4')
+										$elm$html$Html$Attributes$id('media-video'),
+										A2($elm$html$Html$Attributes$style, 'width', '100%'),
+										$elm$html$Html$Events$onClick($author$project$Types$PlayAudio)
 									]),
-								_List_Nil)
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$source,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$src('video/intro.mp4'),
+												$elm$html$Html$Attributes$type_('video/mp4')
+											]),
+										_List_Nil)
+									]))
 							]));
 				} else {
 					var ms = _v2.a;
-					return (($elm$time$Time$posixToMillis(status.now) - $elm$time$Time$posixToMillis(ms)) <= 1000) ? A2(
-						$elm$html$Html$video,
+					var millisdiff = $elm$time$Time$posixToMillis(status.now) - $elm$time$Time$posixToMillis(ms);
+					return (millisdiff <= 10) ? A2(
+						$elm$html$Html$div,
 						_List_fromArray(
 							[
-								$elm$html$Html$Attributes$id('media-video'),
-								A2($elm$html$Html$Attributes$style, 'width', '100%'),
-								$elm$html$Html$Events$onClick($author$project$Types$PlayAudio)
+								A2($elm$html$Html$Attributes$style, 'background-image', 'url(\'images/leeg.jpeg\')'),
+								A2($elm$html$Html$Attributes$style, 'background-size', '100%'),
+								A2($elm$html$Html$Attributes$style, 'height', '100%')
 							]),
 						_List_fromArray(
 							[
 								A2(
-								$elm$html$Html$source,
+								$elm$html$Html$video,
 								_List_fromArray(
 									[
-										$elm$html$Html$Attributes$src('video/intro.mp4'),
-										$elm$html$Html$Attributes$type_('video/mp4')
+										$elm$html$Html$Attributes$id('media-video'),
+										$elm$html$Html$Events$onClick($author$project$Types$PlayAudio),
+										A2($elm$html$Html$Attributes$style, 'width', '100%'),
+										A2(
+										$elm$html$Html$Attributes$style,
+										'opacity',
+										$elm$core$String$fromInt(
+											A2(
+												$elm$core$Basics$max,
+												((16000 - A2($elm$core$Basics$max, 15000, millisdiff)) / 10) | 0,
+												0)) + '%')
 									]),
-								_List_Nil)
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$source,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$src('video/intro.mp4'),
+												$elm$html$Html$Attributes$type_('video/mp4')
+											]),
+										_List_Nil)
+									]))
 							])) : A2(
 						$elm$html$Html$div,
 						_List_fromArray(

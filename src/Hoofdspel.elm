@@ -28,6 +28,7 @@ type alias HoofdStatus =
   , data : VragenAntwoorden
   , oauth : String
   , muziek : Adios
+  , recentstetik : Time.Posix
   , paardensprongbegintijd : Maybe Time.Posix
   }
 
@@ -36,7 +37,7 @@ type alias HoofdStatus =
 startgame : Time.Posix -> VragenAntwoorden -> String -> Adios -> HoofdStatus
 startgame now info oauth adios = 
   { currentTime= Time.millisToPosix ((Time.posixToMillis now) + 1000) 
-  , timeTheGameEnds=Time.millisToPosix (Time.posixToMillis now + 12*60*1000+1000)
+  , timeTheGameEnds=Time.millisToPosix (Time.posixToMillis now + 15*60*1000+1000)
   , gegevenantwoorden = Dict.empty
   , questionNumber = 1
   , lastQuestion = 1
@@ -47,14 +48,16 @@ startgame now info oauth adios =
   , oauth = oauth
   , muziek = adios
   , paardensprongbegintijd = Nothing
+  , recentstetik = Time.millisToPosix 0
   }
 
 hoofdupdate : Msg -> HoofdStatus -> (HoofdStatus, Cmd Msg)
 hoofdupdate msg status =
   case msg of
-        Tick newtime -> 
+        Tick newtime -> let nieuwetik = Time.posixToMillis status.currentTime - Time.posixToMillis status.recentstetik >= 2000 in
           ( { status | currentTime = newtime
-            , punten = if status.searching && evensec newtime then status.punten - 1 else status.punten -- TODO misschien netter om bij te houden hoe lang de huidige zoek is, zodat je geen nadeel of voordeel hebt als je net op een even aantal begint
+            , punten = if status.searching && nieuwetik then status.punten - 1 else status.punten -- TODO misschien netter om bij te houden hoe lang de huidige zoek is, zodat je geen nadeel of voordeel hebt als je net op een even aantal begint
+            , recentstetik = if status.searching && nieuwetik then status.currentTime else status.recentstetik
             }
           , if Time.posixToMillis status.timeTheGameEnds - Time.posixToMillis status.currentTime <= 2*60*1000 
             then Task.perform (\_ -> NaarWoordraden) (Task.succeed ()) 
@@ -110,7 +113,9 @@ wiki status = rows
       [ (30, [style "height" "100%"], [button ([onClick StartStopWiki,  style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) 
             (if status.searching then [text "\u{00A0}\u{1F514}\u{00A0}Bellen!\u{00A0}\u{1F514}\u{00A0}"]
                                  else if status.questionNumber == 8
-                                      then [text "\u{00A0}Paardensprong bekijken\u{00A0}"]
+                                      then case Dict.get 8 status.data.antwoorden of
+                                        Nothing -> []
+                                        Just str -> [text str]  --[text "\u{00A0}Paardensprong bekijken\u{00A0}"]
                                       else [text "\u{00A0}Dat zoeken we op!\u{00A0}"])])
       , (30, [style "height" "100%"], [button ([onClick NaarWoordraden, style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) [text "\u{00A0}Beginnen met het woord\u{00A0}"]])
       ])
@@ -138,10 +143,10 @@ paardensprong status =
   let -- todo: random
       klokmee = Tuple.first status.data.paardsprongrng -- 1 of -1
       startplek = Tuple.second status.data.paardsprongrng -- int tussen 1 en 8 (inclusief)
-      sprongwoord =
+      sprongwoord = String.toUpper (
         case Dict.get 8 status.data.antwoorden of
           Nothing -> "Error"
-          Just str -> str
+          Just str -> str)
       f i = let ix = 8 + startplek + i * klokmee - 1 in String.slice ix (ix+1) (sprongwoord ++ sprongwoord ++ sprongwoord)
   in
   [ Svg.svg ([Svg.width "62cqh", Svg.height "62cqh", Svg.viewBox "0 0 62cqh 62cqh"] ++ centeringstuff)

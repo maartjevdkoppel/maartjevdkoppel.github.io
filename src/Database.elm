@@ -69,7 +69,9 @@ logstartgamejson :  VragenAntwoorden -> String -> Time.Posix -> Json.Value
 logstartgamejson va naam now = Json.object
   [ ("range", Json.string "log!A1:P1")
   , ("majorDimension", Json.string "ROWS")
-  , ("values", Json.list (\x -> Json.list Json.string x) ([[naam, Iso8601.fromTime now, "", va.woord] ++ Dict.values va.vragen]))
+  , ("values", Json.list (\x -> Json.list Json.string x) ([[naam, Iso8601.fromTime now, "", va.woord] ++ Dict.values (case Dict.get 8 va.antwoorden of
+                                                                                                                        Nothing -> va.vragen
+                                                                                                                        Just p -> Dict.insert 8 p va.vragen)]))
   ]
 
 

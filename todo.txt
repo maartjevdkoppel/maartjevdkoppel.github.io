@@ -3,8 +3,6 @@ highscores
 score schrijven
 spreadsheet:
   logica voor geen herhaling 8 en 12 letter woorden
+  8 letter woord beginletter
 ruimte voor vraag
 klokanimatie
-geluid:
-  letter kopen (kloktik)
-elm-animator: fade video weg
