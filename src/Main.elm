@@ -8,12 +8,14 @@ import Html.Events exposing (onClick, onInput)
 import Http exposing (Error(..))
 import Json.Decode
 import Json.Encode
+import Maybe.Extra
 import Process
 import Task
 import Time
 
 import Afrekenen exposing (..)
 import Database exposing (..)
+import Highscores exposing (..)
 import Hoofdspel exposing (..)
 import Letters exposing (Letter(..))
 import Types exposing (..)
@@ -29,7 +31,7 @@ port confetti : Json.Encode.Value -> Cmd msg
 
 
 staatdespreadsheetaan : Bool
-staatdespreadsheetaan = False
+staatdespreadsheetaan = True
 intro : Bool
 intro = False
 
@@ -50,16 +52,17 @@ main =
 -- MODEL
 
 
-type Model = HomeScreen {now : Time.Posix, thesheet : Maybe Vraagsheet, username : String, oauth : String, waiting : Bool, muziek : Adios, muziekstart : Maybe Time.Posix } --, spreadsheettext : String }
+type Model = HomeScreen {now : Time.Posix, thesheet : Maybe Vraagsheet, username : String, oauth : String, waiting : Bool, muziek : Adios, introstart : Maybe Time.Posix } --, spreadsheettext : String }
            | InGame HoofdStatus
            | Woordraden WoordraadStatus
            | Afrekenen Afrekenen
+           | Highscore HighscoreStatus
 
 
 
 init : String -> (Model, Cmd Msg, Audio.AudioCmd Msg)
 init oauthtoken =
-  ( HomeScreen { now = Time.millisToPosix 0, thesheet = Nothing, username = "", oauth = oauthtoken, waiting = False, muziekstart = Nothing
+  ( HomeScreen { now = Time.millisToPosix 0, thesheet = Nothing, username = "", oauth = oauthtoken, waiting = False, introstart = Nothing
                , muziek = { tune=Nothing
                           , tik=Nothing
                           , raden=Nothing
@@ -88,7 +91,7 @@ update _ msg model =
       StartGame -> case status.username of
         "" -> (model, Cmd.none, Audio.cmdNone)
         naam -> case status.thesheet of
-          Nothing -> (InGame (startgame status.now {woord="", vragen=Dict.empty, antwoorden=Dict.empty, volgorde=Dict.empty, paardsprongrng=(1,1)} status.oauth status.muziek), Cmd.none, Audio.cmdNone) --(model, Cmd.none)
+          Nothing -> if staatdespreadsheetaan then (model, readSpreadsheet status.oauth, Audio.cmdNone) else (InGame (startgame status.now {woord="", vragen=Dict.empty, antwoorden=Dict.empty, volgorde=Dict.empty, paardsprongrng=(1,1)} status.oauth status.muziek), Cmd.none, Audio.cmdNone) --(model, Cmd.none)
           Just sheet -> case Dict.get naam sheet of
             Nothing -> (HomeScreen {status | waiting = True}, adduser naam status.oauth, Audio.cmdNone)
             Just info -> (InGame (startgame status.now info status.oauth status.muziek), logstartgame info naam status.now status.oauth, Audio.cmdNone)
@@ -103,10 +106,10 @@ update _ msg model =
         Ok () -> ( HomeScreen status, Process.sleep 1000 |> \_ -> readSpreadsheet status.oauth, Audio.cmdNone)
         Err e -> (HomeScreen {status | username = "Error adding user" }, Cmd.none, Audio.cmdNone)
       Answer naam -> (HomeScreen {status | username = naam}, Cmd.none, Audio.cmdNone)
-      PlayAudio -> (HomeScreen {status | muziekstart = Just status.now}
+      PlayAudio -> (HomeScreen {status | introstart = Just status.now}
                    , Cmd.batch 
                       [ pushVideoEvent Play
-                      , Process.sleep 16000 |> Task.perform (\() -> StartStopWiki)
+                      , Process.sleep (if intro then 16000 else 0) |> Task.perform (\() -> StartStopWiki)
                       ]
                    , Audio.cmdBatch 
                       [ Audio.loadAudio (soundloaded "tune")  "https://maartjevdkoppel.github.io/audio/tune.mp3"
@@ -135,6 +138,10 @@ update _ msg model =
         _ -> (model, Cmd.none, Audio.cmdNone)
       StartStopWiki -> -- dit is natuurlijk onzin hier, wordt gebruikt als proxy voor volume down
         (model, Cmd.batch [pushVideoEvent VolumeDown, pushVideoEvent VolumeDown, pushVideoEvent VolumeDown, pushVideoEvent VolumeDown, pushVideoEvent VolumeDown], Audio.cmdNone)
+      GetHighscores -> (model, readHighscores status.oauth, Audio.cmdNone)
+      HighscoreReceived result -> case result of 
+        Ok alle -> (Highscore {huidig = Vijftien, jouw = Nothing, alle=alle}, Cmd.none, Audio.cmdNone)
+        _ -> (model, Cmd.none, Audio.cmdNone)
       _ -> (model, Cmd.none, Audio.cmdNone)
 
     InGame status -> case msg of
@@ -150,6 +157,7 @@ update _ msg model =
         , muziek  = Maybe.map (\x -> (x,status.currentTime)) status.muziek.raden
         , kooptik = Maybe.map (\x -> (x,Time.millisToPosix 0)) status.muziek.tik
         , faal = status.muziek.faal
+        , logindex = status.logindex
         }, Cmd.none, Audio.cmdNone)
       SoundLoaded result -> case result of
         Ok (sound, id) -> let x = status.muziek in (InGame {status | muziek = case id of
@@ -167,18 +175,26 @@ update _ msg model =
         (status2, cmd2) -> (InGame status2, cmd2, Audio.cmdNone)
     Woordraden status -> case msg of
       Tick newtime -> (Woordraden { status | currentTime = newtime}, if Time.posixToMillis newtime > Time.posixToMillis status.timeTheGameEnds then Task.perform (\_ -> Submit) (Task.succeed ()) else Cmd.none, Audio.cmdNone)
-      Submit -> if testcorrect status.woord status.correctwoord 
-                then (Afrekenen (Win { basis = status.punten
-                                , uithethoofd = List.sum (List.map (\(l1,_,b) -> case l1 of
-                                      UitHetHoofd _ -> if b then 1 else 0
-                                      Paars -> 1
-                                      _ -> 0
-                                    ) status.koopbaar)
-                                , fout = List.length (List.filter (\(_,_,b) -> not b) status.koopbaar)
-                                }), confetti Json.Encode.null, Audio.cmdNone) 
-                else (Afrekenen (Verlies {gegeven = Dict.empty, juist = Dict.empty, woord = status.woord, faalstart = Maybe.map (\f -> (f, status.currentTime)) status.faal}), Cmd.none, Audio.cmdNone) -- TODO
+      Submit -> 
+        let uithethoofd = List.sum (List.map (\(l1,_,b) -> case l1 of
+                              UitHetHoofd _ -> if b then 1 else 0
+                              Paars -> 1
+                              _ -> 0
+                            ) status.koopbaar)
+            fout = List.length (List.filter (\(_,_,b) -> not b) status.koopbaar)
+            punten = if testcorrect status.woord status.correctwoord 
+                      then status.punten + 10*uithethoofd + 100 - 25 * (Basics.min 4 fout) 
+                      else 0
+        in
+        if testcorrect status.woord status.correctwoord 
+        then (Afrekenen (Win { basis = status.punten
+                        , uithethoofd = uithethoofd
+                        , fout = fout
+                        }), Cmd.batch [confetti Json.Encode.null, schrijfscore punten status.logindex status.oauth], Audio.cmdNone) 
+        else (Afrekenen (Verlies {gegeven = Dict.empty, juist = Dict.empty, woord = status.woord, faalstart = Maybe.map (\f -> (f, status.currentTime)) status.faal}), schrijfscore 0 status.logindex status.oauth, Audio.cmdNone) -- TODO
       _ -> (Woordraden (woordupdate msg status), Cmd.none, Audio.cmdNone)
     Afrekenen status -> (model, Cmd.none, Audio.cmdNone)
+    Highscore status -> (Highscore (updatehs status msg), Cmd.none, Audio.cmdNone)
       
 
 -- SUBSCRIPTIONS
@@ -196,31 +212,55 @@ subscriptions _ _ =
 view : Audio.AudioData -> Model -> Html Msg
 view _ model =
   case model of
-    HomeScreen status -> case status.muziekstart of
-      Nothing ->
-        div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] [video [ id "media-video", style "width" "100%", onClick PlayAudio ] [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]]
-      Just ms -> let millisdiff = Time.posixToMillis status.now - Time.posixToMillis ms in
-        if millisdiff <= if intro then 18000 else 10 
-        then
-          div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] [video [ id "media-video", onClick PlayAudio, style "width" "100%", style "opacity" (String.fromInt (Basics.max ((16000-(Basics.max 15000 millisdiff)) // 10) 0) ++ "%")] [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]]
-        else
-          div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] (Utils.rows -- TODO: highscores
-          [ (30, [], [])
-          , (30, [style "color" "white", style "font-weight" "bolder", style "font-size" "5cqh", style "text-align" "center", style "width" "100%"], 
-                 [text "Goeienavond, hartelijk welkom bij 2 voor 12.", br [] [], text "Vandaag spelen we met een nieuwe kandidaat.", br [] [], text "Wil je je voorstellen?"])
-          , (10, [style "left" "50%", style "font-size" "4cqh"], [input [placeholder "naam", value status.username, onInput Answer] []])
-          , (30, [], case (status.username, Maybe.andThen (Dict.get status.username) status.thesheet) of
-                      ("", _) -> [text ""]
-                      (_, Nothing) -> if status.waiting 
-                                      then [text "Je staat op de wachtrij, er zijn nog 3586 kandidaten voor je. (Dit kan 10-20 seconden duren)"]
-                                      else [button [onClick StartGame] [text "Schrijf je in"]]
-                      _ -> [button [onClick StartGame] [text "Begin het spel!"]]
-          )
-          -- , (60, [], [text status.spreadsheettext])
-          ])
     InGame status -> viewGame status
     Woordraden status -> viewWoord status
     Afrekenen status -> viewAfrekenen status
+    HomeScreen status -> case status.introstart of
+      Nothing ->
+        div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] 
+            [video [ id "media-video", style "width" "100%", onClick PlayAudio ] [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]
+            , div [style "left" "50%", style "position" "absolute", style "transform" "translate(-50%, -70cqh)", style "font-size" "5cqh", onClick PlayAudio] [text "Klik om te beginnen"]]
+      Just ms -> let millisdiff = Time.posixToMillis status.now - Time.posixToMillis ms in
+        if millisdiff <= (if intro then 18000 else 10) 
+        then
+          div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] 
+              [video [ id "media-video", onClick PlayAudio, style "width" "100%", style "opacity" (String.fromInt (Basics.max ((16000-(Basics.max 15000 millisdiff)) // 10) 0) ++ "%")] 
+                     [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]]
+        else
+          div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] 
+              (Utils.rows -- TODO: highscores
+                [ (15, [], [])
+                , (5, [], Utils.cols
+                  [(38,[])
+                  ,(10,[button [onClick GetHighscores, style "height" "100%", style "width" "100%", style "background-color" "rgba(88, 88, 88, 1)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] 
+                               [text "Highscores"]])
+                  ,(45,[])])
+                , (20, [], [])
+                , (20, [ style "color" "white", style "font-weight" "bolder", style "font-size" "3.5cqh", style "text-align" "center", style "width" "100%"
+                      , style "text-shadow" "2px 2px 4px #000000" 
+                      ], Utils.cols
+                          [ (10, [])
+                          , (80, [text "Goeienavond, hartelijk welkom bij 2 voor 12.", br [] [], text "Wil je je voorstellen?"])
+                          , (10, [])
+                          ]
+                      )
+                , (10, [] --[style "left" "50%", style "font-size" "4cqh", style "align" "center"]
+                    , Utils.cols
+                        [ (38, [])
+                        , (7, [input [placeholder "naam", value status.username, onInput Answer, style "height" "100%", style "padding" "0cqh 2cqh", style "font-size" "3cqh"] []])
+                        , (3, [])
+                        , (14, let styles = ([onClick StartGame, style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) 
+                               in case (status.username, Maybe.andThen (Dict.get status.username) status.thesheet) of
+                                    ("", _) -> [text ""]
+                                    (_, Nothing) -> if status.waiting 
+                                                    then [text "Je staat op de wachtrij, er zijn nog 3586 kandidaten voor je. (Dit kan 10-20 seconden duren)"]
+                                                    else [button styles [text "\u{00A0}Schrijf je in!\u{00A0}"]]
+                                    _ -> [button styles [text "\u{00A0}Begin het spel!\u{00A0}"]])
+                        , (38, [])
+                        ])
+                ]
+              )
+    Highscore status -> viewHighscore status
 
 -- AUDIO
 audio _ model = 
@@ -232,7 +272,7 @@ audio _ model =
   --   Nothing -> Audio.silence
   --   Just muziek -> Audio.audio muziek status.muziekstart 
   InGame status -> Audio.group
-    [ maybeplay (Maybe.map (\x -> (x,status.recentstetik)) status.muziek.tik)
+    [ maybeplay (Maybe.map2 (\x y -> (x,y)) status.muziek.tik status.recentstetik)
     , maybeplay (status.muziek.psbel |> Maybe.andThen
         (\bel -> status.paardensprongbegintijd |> Maybe.andThen (\psbt -> 
           if status.questionNumber == 8 
@@ -240,6 +280,12 @@ audio _ model =
           && Time.posixToMillis status.currentTime < 31000 + Time.posixToMillis psbt
           then Just (bel, Time.millisToPosix (30000+Time.posixToMillis psbt)) 
           else Nothing)))
+    , Audio.scaleVolume 0.2 (maybeplay (Maybe.Extra.join (Maybe.map2 (\muziek psbt -> 
+          if status.questionNumber == 8
+          && (status.searching || Time.posixToMillis status.currentTime < 30000+Time.posixToMillis psbt) 
+          then Just (muziek, psbt)
+          else Nothing) status.muziek.psmuziek status.paardensprongbegintijd)))
+    , maybeplay (Maybe.map2 Tuple.pair status.muziek.wikibel status.recentstebel)
     ]
   Woordraden status -> Audio.group 
     [ Audio.scaleVolume 0.2 (maybeplay status.muziek)

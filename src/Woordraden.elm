@@ -27,6 +27,7 @@ type alias WoordraadStatus =
   , muziek : Maybe (Audio.Source, Time.Posix)
   , kooptik : Maybe (Audio.Source, Time.Posix)
   , faal : Maybe Audio.Source -- voor afrekenen
+  , logindex : Maybe Int
   }
 
 -- update

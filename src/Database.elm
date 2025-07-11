@@ -33,6 +33,18 @@ readSpreadsheet oauth =
     , tracker = Nothing
     }
 
+readHighscores : String -> Cmd Msg
+readHighscores oauth =
+  Http.request
+    { method = "GET"
+    , headers = [Http.header "Authorization" ("Bearer " ++ oauth)] 
+    , url = url "highscores!A1:G7"
+    , body = Http.emptyBody
+    , expect = Http.expectJson HighscoreReceived parsehighscores
+    , timeout = Nothing
+    , tracker = Nothing
+    }
+
 
 adduser : String -> String -> Cmd Msg
 adduser name oauth =
@@ -58,12 +70,32 @@ logstartgame va naam now oauth =
   Http.request
     { method = "POST"
     , headers = [Http.header "Authorization" ("Bearer " ++ oauth)] 
-    , url = url ("log!A1:P1:append?valueInputOption=RAW")
+    , url = url ("log!A1:P1:append?valueInputOption=USER_ENTERED")
     , body = Http.jsonBody (logstartgamejson va naam now)
+    , expect = Http.expectJson Logged parselogfeedback
+    , timeout = Nothing
+    , tracker = Nothing
+    }
+
+schrijfscore : Int -> Maybe Int -> String -> Cmd Msg
+schrijfscore punten idx oauth = case idx of
+  Nothing -> Cmd.none
+  Just ix -> Http.request
+    { method = "PUT"
+    , headers = [Http.header "Authorization" ("Bearer "++oauth)]
+    , url = url ("log!C"++String.fromInt ix++"?valueInputOption=USER_ENTERED") -- mebe C3:C3
+    , body = Http.jsonBody (schrijfscorejson punten ix)
     , expect = Http.expectWhatever UserAdded
     , timeout = Nothing
     , tracker = Nothing
     }
+
+schrijfscorejson : Int -> Int -> Json.Value
+schrijfscorejson punten ix = Json.object
+  [ ("range", Json.string ("log!C" ++ String.fromInt ix))
+  , ("majorDimension", Json.string "ROWS")
+  , ("values", Json.list (Json.list Json.string) [[String.fromInt punten]])
+  ]
 
 logstartgamejson :  VragenAntwoorden -> String -> Time.Posix -> Json.Value
 logstartgamejson va naam now = Json.object
@@ -80,11 +112,58 @@ logstartgamejson va naam now = Json.object
       ]))
   ]
 
+parselogfeedback : Nosj.Decoder (Maybe Int)
+parselogfeedback = 
+  (Nosj.field "updates" (
+    Nosj.field "updatedRange" (
+      Nosj.map (
+        String.split ":"
+        >> List.tail 
+        >> Maybe.andThen List.head 
+        >> Maybe.map (\x -> String.slice 1 (String.length x) x) 
+        >> Maybe.andThen String.toInt
+        ) Nosj.string
+    )
+  ))
+
+parsehighscores : Nosj.Decoder (Dict.Dict Int (List (String, Int)))
+parsehighscores =
+  Nosj.field "values" (
+    Nosj.map 
+      (List.tail -- spelduur
+      >> Maybe.andThen (
+        List.tail -- naam score naam score naam score
+        >> Maybe.andThen (
+          List.take 5
+          >> List.Extra.transpose 
+          >> List.tail -- 12345
+          >> Maybe.andThen(
+            \x -> case x of
+            (n16 :: s16 :: n15 :: s15 :: n14 :: s14 :: empty) -> 
+              Just (Dict.fromList 
+                [ (16, List.Extra.zip n16 (List.map (Maybe.withDefault 0 << String.toInt) s16))
+                , (15, List.Extra.zip n15 (List.map (Maybe.withDefault 0 << String.toInt) s15))
+                , (14, List.Extra.zip n14 (List.map (Maybe.withDefault 0 << String.toInt) s14))
+                ])
+            _ -> Nothing
+        ))) >> Maybe.withDefault Dict.empty)
+      (Nosj.list 
+        (Nosj.list 
+          Nosj.string))
+  )
+
+
+-- [[14,15,16],[name,score],[1,n1,s1],[2,n2,s2]]
+-- [[name,score],[1,n1,s1],[2,n2,s2]]
+-- [[1,n1,s1],[2,n2,s2]]
+-- [[1,n1,s1],[2,n2,s2]]
+-- [[1,2,3,4,5],[n1,n2,n3],[s1,s2]]
+-- [[n1,n2,n3],[s1,s2]]
 
 parse : Nosj.Decoder (Maybe Vraagsheet)
 parse = Nosj.field "values" (
   Nosj.map tovraagsheet
-  (Nosj.list (Nosj.list (Nosj.string)))
+  (Nosj.list (Nosj.list Nosj.string))
   )
 
 tovraagsheet : List (List String) -> Maybe Vraagsheet

@@ -4,7 +4,6 @@ import Http exposing (..)
 import Time exposing (..)
 import Dict
 
-import Json.Decode
 import Audio
 
 type Msg
@@ -18,9 +17,19 @@ type Msg
   | LetterKopen Int
   | Submit
   | DataReceived (Result Http.Error (Maybe Vraagsheet)) 
+  | Logged ( Result Http.Error (Maybe Int))
   | UserAdded ( Result Http.Error ())
   | SoundLoaded (Result Audio.LoadError (Audio.Source, String))
   | PlayAudio
+  | HighscoreReceived (Result Http.Error (Dict.Dict Int (List (String, Int))))
+  | GetHighscores
+
+type Spelduur = Zestien | Vijftien | Veertien
+fromSpelduur : Spelduur -> Int
+fromSpelduur x = case x of
+  Zestien -> 16
+  Vijftien -> 15
+  Veertien -> 14
 
 soundloaded str = SoundLoaded << Result.map (\x->(x,str))
 type alias Adios =  { tune : Maybe Audio.Source

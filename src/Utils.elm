@@ -4,6 +4,9 @@ import Html.Attributes exposing (..)
 import Svg
 import Svg.Attributes as Svg
 import Time exposing (..)
+import List.Extra
+import Maybe.Extra
+import String.Normalize
 
 rows : List (Int, List (Attribute a), List (Html a)) -> List (Html a)
 rows xs = List.intersperse (div [style "clear" "both", style "display" "table"] []) 
@@ -44,5 +47,12 @@ on bf uf x y =
     bf (uf x) (uf y)
 
 testcorrect : String -> String -> Bool
-testcorrect = let sanitize = String.toLower >> String.filter Char.isAlpha 
+testcorrect = let sanitize = String.toLower >> String.Normalize.removeDiacritics >> removestopwords >> String.filter Char.isAlpha 
               in on (==) sanitize
+
+removestopwords : String -> String
+removestopwords str = case String.split " " str of
+  (start :: rest) ->  if Maybe.Extra.isJust (List.Extra.elemIndex start ["de", "het", "van", "een", "der", "den", "a", "the", "le", "la", "du", "der", "die", "das", "von"])
+                      then removestopwords (String.join " " rest)
+                      else str
+  [] -> ""

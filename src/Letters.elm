@@ -8,6 +8,7 @@ import Html.Events exposing (onClick)
 import List.Extra
 import Svg
 import Svg.Attributes as Svg
+import String.Normalize
 
 type Letter = UitHetHoofd String 
             | Opgezocht String
@@ -32,10 +33,10 @@ letters lastQuestion ls onclick =
                                   Nothing -> []
                                   Just f -> [onClick (f i)] 
                   in case l of
-                      Opgezocht letter   -> th (style "background-color" "white" :: styles) [div event [text ((String.toUpper << String.slice 0 1) letter)]]
+                      Opgezocht letter   -> th (style "background-color" "white" :: styles) [div event [text ((String.toUpper << String.slice 0 1 << removestopwords << String.Normalize.removeDiacritics << String.toLower) letter)]]
                       UitHetHoofd letter -> th 
                                               (style "background-image" "url('images/uithethoofd.jpg')" :: styles) 
-                                              [div event [text ((String.toUpper << String.slice 0 1) letter)]]
+                                              [div event [text ((String.toUpper << String.slice 0 1 << removestopwords << String.Normalize.removeDiacritics << String.toLower) letter)]]
                       Paars              -> th (style "background-image" "url('images/uithethoofd.jpg')" :: styles) []
                       Wit                -> th (style "background-color" "white" :: styles) []
                       Vraagteken         -> th (style "background-color" "white" :: styles) [text "?"]

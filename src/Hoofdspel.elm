@@ -14,6 +14,7 @@ import Time
 import List.Extra
 import Task
 import Audio
+import Maybe.Extra
 
 -- model
 type alias HoofdStatus = 
@@ -28,8 +29,10 @@ type alias HoofdStatus =
   , data : VragenAntwoorden
   , oauth : String
   , muziek : Adios
-  , recentstetik : Time.Posix
+  , recentstetik : Maybe Time.Posix
+  , recentstebel : Maybe Time.Posix
   , paardensprongbegintijd : Maybe Time.Posix
+  , logindex : Maybe Int
   }
 
 -- update
@@ -48,31 +51,39 @@ startgame now info oauth adios =
   , oauth = oauth
   , muziek = adios
   , paardensprongbegintijd = Nothing
-  , recentstetik = Time.millisToPosix 0
+  , recentstetik = Nothing
+  , recentstebel = Nothing
+  , logindex = Nothing
   }
 
 hoofdupdate : Msg -> HoofdStatus -> (HoofdStatus, Cmd Msg)
-hoofdupdate msg status =
-  case msg of
-        Tick newtime -> let nieuwetik = Time.posixToMillis status.currentTime - Time.posixToMillis status.recentstetik >= 2000 in
-          ( { status | currentTime = newtime
-            , punten = if status.searching && nieuwetik then status.punten - 1 else status.punten -- TODO misschien netter om bij te houden hoe lang de huidige zoek is, zodat je geen nadeel of voordeel hebt als je net op een even aantal begint
-            , recentstetik = if status.searching && nieuwetik then status.currentTime else status.recentstetik
-            }
-          , if Time.posixToMillis status.timeTheGameEnds - Time.posixToMillis status.currentTime <= 2*60*1000 
-            then Task.perform (\_ -> NaarWoordraden) (Task.succeed ()) 
-            else Cmd.none
-          )
-        StartStopWiki -> ({ status | searching = not status.searching, searched = Set.insert status.questionNumber status.searched}, Cmd.none)
-        Answer answer -> ({ status | gegevenantwoorden = Dict.insert status.questionNumber answer status.gegevenantwoorden}, Cmd.none)
-        PreviousQ -> ({status | questionNumber = status.questionNumber - 1}, Cmd.none)
-        NextQ     -> if status.questionNumber == 7 -- naar paardensprong
-                     then ({status | questionNumber = 8
-                                   , paardensprongbegintijd = Just status.currentTime
-                                   , lastQuestion = max status.lastQuestion (status.questionNumber + 1)}, Cmd.none)
-                     else ({status | questionNumber = status.questionNumber + 1
-                                   , lastQuestion = max status.lastQuestion (status.questionNumber + 1)}, Cmd.none)
-        _ -> (status, Cmd.none)
+hoofdupdate msg status = case msg of
+  Tick newtime -> let nieuwetik = case status.recentstetik of
+                                    Nothing -> True
+                                    Just rt -> Time.posixToMillis status.currentTime - Time.posixToMillis rt >= 2000 in
+    ( { status | currentTime = newtime
+      , punten = if status.searching && nieuwetik then status.punten - 1 else status.punten
+      , recentstetik = if status.searching && nieuwetik then Just status.currentTime else status.recentstetik
+      }
+    , if Time.posixToMillis status.timeTheGameEnds - Time.posixToMillis status.currentTime <= 2*60*1000 
+      then Task.perform (\_ -> NaarWoordraden) (Task.succeed ()) 
+      else Cmd.none
+    )
+  StartStopWiki -> ({ status | searching = not status.searching
+                              , searched = Set.insert status.questionNumber status.searched
+                              , recentstebel = if status.searching then Just status.currentTime else Nothing}, Cmd.none)
+  Answer answer -> ({ status | gegevenantwoorden = Dict.insert status.questionNumber answer status.gegevenantwoorden}, Cmd.none)
+  PreviousQ -> ({status | questionNumber = status.questionNumber - 1}, Cmd.none)
+  NextQ     -> if status.questionNumber == 7 -- naar paardensprong
+                then ({status | questionNumber = 8
+                              , paardensprongbegintijd = Just status.currentTime
+                              , lastQuestion = max status.lastQuestion (status.questionNumber + 1)}, Cmd.none)
+                else ({status | questionNumber = status.questionNumber + 1
+                              , lastQuestion = max status.lastQuestion (status.questionNumber + 1)}, Cmd.none)
+  Logged i -> case i of
+    Ok ix -> ({status | logindex = ix}, Cmd.none)
+    _ -> (status, Cmd.none)
+  _ -> (status, Cmd.none)
 
 
 -- view
@@ -110,7 +121,11 @@ naarWoordRaden status i = case Dict.get i status.gegevenantwoorden of
 wiki : HoofdStatus -> List (Html Msg)
 wiki status = rows 
   [ (10, [], rows
-      [ (30, [style "height" "100%"], [button ([onClick StartStopWiki,  style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) 
+      [ (30, [style "height" "100%"], [button ([onClick StartStopWiki,  style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff
+                                              ++ if status.questionNumber == 8 && Maybe.Extra.unwrap False (\psbt -> Time.posixToMillis status.currentTime - Time.posixToMillis psbt <=30000) status.paardensprongbegintijd
+                                                 then [style "opacity" "0%"]
+                                                 else []
+                                              ) 
             (if status.searching then [text "\u{00A0}\u{1F514}\u{00A0}Bellen!\u{00A0}\u{1F514}\u{00A0}"]
                                  else if status.questionNumber == 8
                                       then [text "\u{00A0}Paardensprong bekijken\u{00A0}"]
@@ -163,7 +178,7 @@ paardensprong status =
     ] ++ -- Svg.rect [Svg.fill "#555555", Svg.opacity "40%", Svg.x "38%",   Svg.y "37%", Svg.width "23.5%", Svg.height "23.5%"] (
         case status.paardensprongbegintijd of
           Nothing -> []
-          Just psbt -> if Time.posixToMillis status.currentTime - Time.posixToMillis psbt >= 30000 then [] else (klokje "50%" (Time.posixToMillis psbt - Time.posixToMillis status.currentTime))
+          Just psbt -> if Time.posixToMillis status.currentTime - Time.posixToMillis psbt >= 30000 then [] else (klokje "50%" (Time.posixToMillis psbt + 30000 - Time.posixToMillis status.currentTime))
     )
   ]
 

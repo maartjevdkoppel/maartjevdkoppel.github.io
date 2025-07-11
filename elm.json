@@ -16,6 +16,7 @@
             "elm/time": "1.0.0",
             "elm-community/list-extra": "8.7.0",
             "elm-community/maybe-extra": "5.3.0",
+            "kuon/elm-string-normalize": "1.0.6",
             "mgold/elm-animation": "2.0.0",
             "truqu/elm-oauth2": "8.0.1",
             "waratuman/elm-iso8601-date-strings": "1.0.0"

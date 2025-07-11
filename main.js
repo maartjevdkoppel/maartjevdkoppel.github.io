@@ -4755,21 +4755,39 @@ var $MartinSStewart$elm_audio$Audio$group = function (audios) {
 	return $MartinSStewart$elm_audio$Audio$Group(audios);
 };
 var $elm$core$Basics$gt = _Utils_gt;
+var $elm_community$maybe_extra$Maybe$Extra$join = function (mx) {
+	if (mx.$ === 'Just') {
+		var x = mx.a;
+		return x;
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
 var $elm$core$Basics$lt = _Utils_lt;
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
+var $elm$core$Maybe$map2 = F3(
+	function (func, ma, mb) {
+		if (ma.$ === 'Nothing') {
 			return $elm$core$Maybe$Nothing;
+		} else {
+			var a = ma.a;
+			if (mb.$ === 'Nothing') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var b = mb.a;
+				return $elm$core$Maybe$Just(
+					A2(func, a, b));
+			}
 		}
 	});
 var $elm$time$Time$Posix = function (a) {
 	return {$: 'Posix', a: a};
 };
 var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
+var $elm$core$Basics$or = _Basics_or;
+var $elm$core$Tuple$pair = F2(
+	function (a, b) {
+		return _Utils_Tuple2(a, b);
+	});
 var $elm$time$Time$posixToMillis = function (_v0) {
 	var millis = _v0.a;
 	return millis;
@@ -4817,12 +4835,14 @@ var $author$project$Main$audio = F2(
 						_List_fromArray(
 							[
 								maybeplay(
-								A2(
-									$elm$core$Maybe$map,
-									function (x) {
-										return _Utils_Tuple2(x, status.recentstetik);
-									},
-									status.muziek.tik)),
+								A3(
+									$elm$core$Maybe$map2,
+									F2(
+										function (x, y) {
+											return _Utils_Tuple2(x, y);
+										}),
+									status.muziek.tik,
+									status.recentstetik)),
 								maybeplay(
 								A2(
 									$elm$core$Maybe$andThen,
@@ -4842,7 +4862,25 @@ var $author$project$Main$audio = F2(
 											},
 											status.paardensprongbegintijd);
 									},
-									status.muziek.psbel))
+									status.muziek.psbel)),
+								A2(
+								$MartinSStewart$elm_audio$Audio$scaleVolume,
+								0.2,
+								maybeplay(
+									$elm_community$maybe_extra$Maybe$Extra$join(
+										A3(
+											$elm$core$Maybe$map2,
+											F2(
+												function (muziek, psbt) {
+													return ((status.questionNumber === 8) && (status.searching || (_Utils_cmp(
+														$elm$time$Time$posixToMillis(status.currentTime),
+														30000 + $elm$time$Time$posixToMillis(psbt)) < 0))) ? $elm$core$Maybe$Just(
+														_Utils_Tuple2(muziek, psbt)) : $elm$core$Maybe$Nothing;
+												}),
+											status.muziek.psmuziek,
+											status.paardensprongbegintijd)))),
+								maybeplay(
+								A3($elm$core$Maybe$map2, $elm$core$Tuple$pair, status.muziek.wikibel, status.recentstebel))
 							]));
 				case 'Woordraden':
 					var status = model.a;
@@ -4985,7 +5023,6 @@ var $elm$core$Char$isUpper = function (_char) {
 	var code = $elm$core$Char$toCode(_char);
 	return (code <= 90) && (65 <= code);
 };
-var $elm$core$Basics$or = _Basics_or;
 var $elm$core$Char$isAlpha = function (_char) {
 	return $elm$core$Char$isLower(_char) || $elm$core$Char$isUpper(_char);
 };
@@ -6055,10 +6092,6 @@ var $MartinSStewart$elm_audio$Audio$find = F2(
 				}
 			}
 		}
-	});
-var $elm$core$Tuple$pair = F2(
-	function (a, b) {
-		return _Utils_Tuple2(a, b);
 	});
 var $elm$core$Dict$getMin = function (dict) {
 	getMin:
@@ -7547,6 +7580,16 @@ var $author$project$Database$maakvolgorde = A2(
 		$elm$core$List$sortWith(
 			A2($author$project$Utils$on, $author$project$Utils$cmpmb, $elm$core$Tuple$second))),
 	$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve));
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
 var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
@@ -7811,13 +7854,13 @@ var $author$project$Database$readSpreadsheet = function (oauth) {
 			url: $author$project$Database$url('mensen')
 		});
 };
-var $author$project$Main$staatdespreadsheetaan = false;
+var $author$project$Main$staatdespreadsheetaan = true;
 var $author$project$Main$init = function (oauthtoken) {
 	return _Utils_Tuple3(
 		$author$project$Main$HomeScreen(
 			{
+				introstart: $elm$core$Maybe$Nothing,
 				muziek: {faal: $elm$core$Maybe$Nothing, psbel: $elm$core$Maybe$Nothing, psmuziek: $elm$core$Maybe$Nothing, raden: $elm$core$Maybe$Nothing, tik: $elm$core$Maybe$Nothing, tune: $elm$core$Maybe$Nothing, wikibel: $elm$core$Maybe$Nothing},
-				muziekstart: $elm$core$Maybe$Nothing,
 				now: $elm$time$Time$millisToPosix(0),
 				oauth: oauthtoken,
 				thesheet: $elm$core$Maybe$Nothing,
@@ -8064,6 +8107,9 @@ var $author$project$Main$subscriptions = F2(
 var $author$project$Main$Afrekenen = function (a) {
 	return {$: 'Afrekenen', a: a};
 };
+var $author$project$Main$Highscore = function (a) {
+	return {$: 'Highscore', a: a};
+};
 var $author$project$Main$InGame = function (a) {
 	return {$: 'InGame', a: a};
 };
@@ -8073,6 +8119,7 @@ var $author$project$Types$Submit = {$: 'Submit'};
 var $author$project$Afrekenen$Verlies = function (a) {
 	return {$: 'Verlies', a: a};
 };
+var $author$project$Types$Vijftien = {$: 'Vijftien'};
 var $author$project$Main$VolumeDown = {$: 'VolumeDown'};
 var $author$project$Afrekenen$Win = function (a) {
 	return {$: 'Win', a: a};
@@ -8170,14 +8217,22 @@ var $author$project$Hoofdspel$hoofdupdate = F2(
 		switch (msg.$) {
 			case 'Tick':
 				var newtime = msg.a;
-				var nieuwetik = ($elm$time$Time$posixToMillis(status.currentTime) - $elm$time$Time$posixToMillis(status.recentstetik)) >= 2000;
+				var nieuwetik = function () {
+					var _v2 = status.recentstetik;
+					if (_v2.$ === 'Nothing') {
+						return true;
+					} else {
+						var rt = _v2.a;
+						return ($elm$time$Time$posixToMillis(status.currentTime) - $elm$time$Time$posixToMillis(rt)) >= 2000;
+					}
+				}();
 				return _Utils_Tuple2(
 					_Utils_update(
 						status,
 						{
 							currentTime: newtime,
 							punten: (status.searching && nieuwetik) ? (status.punten - 1) : status.punten,
-							recentstetik: (status.searching && nieuwetik) ? status.currentTime : status.recentstetik
+							recentstetik: (status.searching && nieuwetik) ? $elm$core$Maybe$Just(status.currentTime) : status.recentstetik
 						}),
 					(_Utils_cmp(
 						$elm$time$Time$posixToMillis(status.timeTheGameEnds) - $elm$time$Time$posixToMillis(status.currentTime),
@@ -8192,6 +8247,7 @@ var $author$project$Hoofdspel$hoofdupdate = F2(
 					_Utils_update(
 						status,
 						{
+							recentstebel: status.searching ? $elm$core$Maybe$Just(status.currentTime) : $elm$core$Maybe$Nothing,
 							searched: A2($elm$core$Set$insert, status.questionNumber, status.searched),
 							searching: !status.searching
 						}),
@@ -8228,10 +8284,23 @@ var $author$project$Hoofdspel$hoofdupdate = F2(
 							questionNumber: status.questionNumber + 1
 						}),
 					$elm$core$Platform$Cmd$none);
+			case 'Logged':
+				var i = msg.a;
+				if (i.$ === 'Ok') {
+					var ix = i.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							status,
+							{logindex: ix}),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					return _Utils_Tuple2(status, $elm$core$Platform$Cmd$none);
+				}
 			default:
 				return _Utils_Tuple2(status, $elm$core$Platform$Cmd$none);
 		}
 	});
+var $author$project$Main$intro = false;
 var $MartinSStewart$elm_audio$Audio$AudioLoadRequest = function (a) {
 	return {$: 'AudioLoadRequest', a: a};
 };
@@ -8271,6 +8340,9 @@ var $MartinSStewart$elm_audio$Audio$loadAudio = F2(
 					$MartinSStewart$elm_audio$Audio$enumeratedResults)
 			});
 	});
+var $author$project$Types$Logged = function (a) {
+	return {$: 'Logged', a: a};
+};
 var $waratuman$elm_iso8601_date_strings$Iso8601$fromMonth = function (month) {
 	switch (month.$) {
 		case 'Jan':
@@ -8554,13 +8626,51 @@ var $author$project$Database$logstartgamejson = F3(
 							])))
 				]));
 	});
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $author$project$Database$parselogfeedback = A2(
+	$elm$json$Json$Decode$field,
+	'updates',
+	A2(
+		$elm$json$Json$Decode$field,
+		'updatedRange',
+		A2(
+			$elm$json$Json$Decode$map,
+			A2(
+				$elm$core$Basics$composeR,
+				$elm$core$String$split(':'),
+				A2(
+					$elm$core$Basics$composeR,
+					$elm$core$List$tail,
+					A2(
+						$elm$core$Basics$composeR,
+						$elm$core$Maybe$andThen($elm$core$List$head),
+						A2(
+							$elm$core$Basics$composeR,
+							$elm$core$Maybe$map(
+								function (x) {
+									return A3(
+										$elm$core$String$slice,
+										1,
+										$elm$core$String$length(x),
+										x);
+								}),
+							$elm$core$Maybe$andThen($elm$core$String$toInt))))),
+			$elm$json$Json$Decode$string)));
 var $author$project$Database$logstartgame = F4(
 	function (va, naam, now, oauth) {
 		return $elm$http$Http$request(
 			{
 				body: $elm$http$Http$jsonBody(
 					A3($author$project$Database$logstartgamejson, va, naam, now)),
-				expect: $elm$http$Http$expectWhatever($author$project$Types$UserAdded),
+				expect: A2($elm$http$Http$expectJson, $author$project$Types$Logged, $author$project$Database$parselogfeedback),
 				headers: _List_fromArray(
 					[
 						A2($elm$http$Http$header, 'Authorization', 'Bearer ' + oauth)
@@ -8568,8 +8678,12 @@ var $author$project$Database$logstartgame = F4(
 				method: 'POST',
 				timeout: $elm$core$Maybe$Nothing,
 				tracker: $elm$core$Maybe$Nothing,
-				url: $author$project$Database$url('log!A1:P1:append?valueInputOption=RAW')
+				url: $author$project$Database$url('log!A1:P1:append?valueInputOption=USER_ENTERED')
 			});
+	});
+var $elm$core$Basics$min = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) < 0) ? x : y;
 	});
 var $author$project$Letters$Opgezocht = function (a) {
 	return {$: 'Opgezocht', a: a};
@@ -8594,14 +8708,2552 @@ var $elm$core$Set$member = F2(
 		return A2($elm$core$Dict$member, key, dict);
 	});
 var $elm$core$String$filter = _String_filter;
-var $elm$core$String$toLower = _String_toLower;
-var $author$project$Utils$testcorrect = function () {
-	var sanitize = A2(
-		$elm$core$Basics$composeR,
-		$elm$core$String$toLower,
-		$elm$core$String$filter($elm$core$Char$isAlpha));
-	return A2($author$project$Utils$on, $elm$core$Basics$eq, sanitize);
-}();
+var $elm$core$String$foldl = _String_foldl;
+var $elm$core$Bitwise$shiftRightZfBy = _Bitwise_shiftRightZfBy;
+var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
+var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
+var $elm$core$Array$getHelp = F3(
+	function (shift, index, tree) {
+		getHelp:
+		while (true) {
+			var pos = $elm$core$Array$bitMask & (index >>> shift);
+			var _v0 = A2($elm$core$Elm$JsArray$unsafeGet, pos, tree);
+			if (_v0.$ === 'SubTree') {
+				var subTree = _v0.a;
+				var $temp$shift = shift - $elm$core$Array$shiftStep,
+					$temp$index = index,
+					$temp$tree = subTree;
+				shift = $temp$shift;
+				index = $temp$index;
+				tree = $temp$tree;
+				continue getHelp;
+			} else {
+				var values = _v0.a;
+				return A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, values);
+			}
+		}
+	});
+var $elm$core$Bitwise$shiftLeftBy = _Bitwise_shiftLeftBy;
+var $elm$core$Array$tailIndex = function (len) {
+	return (len >>> 5) << 5;
+};
+var $elm$core$Array$get = F2(
+	function (index, _v0) {
+		var len = _v0.a;
+		var startShift = _v0.b;
+		var tree = _v0.c;
+		var tail = _v0.d;
+		return ((index < 0) || (_Utils_cmp(index, len) > -1)) ? $elm$core$Maybe$Nothing : ((_Utils_cmp(
+			index,
+			$elm$core$Array$tailIndex(len)) > -1) ? $elm$core$Maybe$Just(
+			A2($elm$core$Elm$JsArray$unsafeGet, $elm$core$Array$bitMask & index, tail)) : $elm$core$Maybe$Just(
+			A3($elm$core$Array$getHelp, startShift, index, tree)));
+	});
+var $elm$core$Char$fromCode = _Char_fromCode;
+var $elm$core$Array$fromListHelp = F3(
+	function (list, nodeList, nodeListSize) {
+		fromListHelp:
+		while (true) {
+			var _v0 = A2($elm$core$Elm$JsArray$initializeFromList, $elm$core$Array$branchFactor, list);
+			var jsArray = _v0.a;
+			var remainingItems = _v0.b;
+			if (_Utils_cmp(
+				$elm$core$Elm$JsArray$length(jsArray),
+				$elm$core$Array$branchFactor) < 0) {
+				return A2(
+					$elm$core$Array$builderToArray,
+					true,
+					{nodeList: nodeList, nodeListSize: nodeListSize, tail: jsArray});
+			} else {
+				var $temp$list = remainingItems,
+					$temp$nodeList = A2(
+					$elm$core$List$cons,
+					$elm$core$Array$Leaf(jsArray),
+					nodeList),
+					$temp$nodeListSize = nodeListSize + 1;
+				list = $temp$list;
+				nodeList = $temp$nodeList;
+				nodeListSize = $temp$nodeListSize;
+				continue fromListHelp;
+			}
+		}
+	});
+var $elm$core$Array$fromList = function (list) {
+	if (!list.b) {
+		return $elm$core$Array$empty;
+	} else {
+		return A3($elm$core$Array$fromListHelp, list, _List_Nil, 0);
+	}
+};
+var $kuon$elm_string_normalize$String$Normalize$Diacritics$lookupList = _List_fromArray(
+	[
+		_Utils_Tuple2(
+		_Utils_chr('Ⓐ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ａ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('À'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Á'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Â'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ầ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ấ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẫ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẩ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ã'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ā'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ă'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ằ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ắ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẵ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẳ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȧ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǡ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ä'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǟ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ả'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Å'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǻ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǎ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȁ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȃ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ạ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ậ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ặ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḁ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ą'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⱥ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɐ'),
+		'A'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꜳ'),
+		'AA'),
+		_Utils_Tuple2(
+		_Utils_chr('Æ'),
+		'AE'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǽ'),
+		'AE'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǣ'),
+		'AE'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꜵ'),
+		'AO'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꜷ'),
+		'AU'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꜹ'),
+		'AV'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꜻ'),
+		'AV'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꜽ'),
+		'AY'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓑ'),
+		'B'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｂ'),
+		'B'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḃ'),
+		'B'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḅ'),
+		'B'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḇ'),
+		'B'),
+		_Utils_Tuple2(
+		_Utils_chr('Ƀ'),
+		'B'),
+		_Utils_Tuple2(
+		_Utils_chr('Ƃ'),
+		'B'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɓ'),
+		'B'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓒ'),
+		'C'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｃ'),
+		'C'),
+		_Utils_Tuple2(
+		_Utils_chr('Ć'),
+		'C'),
+		_Utils_Tuple2(
+		_Utils_chr('Ĉ'),
+		'C'),
+		_Utils_Tuple2(
+		_Utils_chr('Ċ'),
+		'C'),
+		_Utils_Tuple2(
+		_Utils_chr('Č'),
+		'C'),
+		_Utils_Tuple2(
+		_Utils_chr('Ç'),
+		'C'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḉ'),
+		'C'),
+		_Utils_Tuple2(
+		_Utils_chr('Ƈ'),
+		'C'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȼ'),
+		'C'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꜿ'),
+		'C'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓓ'),
+		'D'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｄ'),
+		'D'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḋ'),
+		'D'),
+		_Utils_Tuple2(
+		_Utils_chr('Ď'),
+		'D'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḍ'),
+		'D'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḑ'),
+		'D'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḓ'),
+		'D'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḏ'),
+		'D'),
+		_Utils_Tuple2(
+		_Utils_chr('Đ'),
+		'D'),
+		_Utils_Tuple2(
+		_Utils_chr('Ƌ'),
+		'D'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɗ'),
+		'D'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɖ'),
+		'D'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝺ'),
+		'D'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǳ'),
+		'DZ'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǆ'),
+		'DZ'),
+		_Utils_Tuple2(
+		_Utils_chr('ǲ'),
+		'Dz'),
+		_Utils_Tuple2(
+		_Utils_chr('ǅ'),
+		'Dz'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓔ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｅ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('È'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('É'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ê'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ề'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ế'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ễ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ể'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẽ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ē'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḕ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḗ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ĕ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ė'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ë'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẻ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ě'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȅ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȇ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẹ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ệ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȩ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḝ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ę'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḙ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḛ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɛ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǝ'),
+		'E'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓕ'),
+		'F'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｆ'),
+		'F'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḟ'),
+		'F'),
+		_Utils_Tuple2(
+		_Utils_chr('Ƒ'),
+		'F'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝼ'),
+		'F'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓖ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｇ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǵ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ĝ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḡ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ğ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ġ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǧ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ģ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǥ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɠ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꞡ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ᵹ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝿ'),
+		'G'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓗ'),
+		'H'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｈ'),
+		'H'),
+		_Utils_Tuple2(
+		_Utils_chr('Ĥ'),
+		'H'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḣ'),
+		'H'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḧ'),
+		'H'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȟ'),
+		'H'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḥ'),
+		'H'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḩ'),
+		'H'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḫ'),
+		'H'),
+		_Utils_Tuple2(
+		_Utils_chr('Ħ'),
+		'H'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⱨ'),
+		'H'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⱶ'),
+		'H'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɥ'),
+		'H'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓘ'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｉ'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ì'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Í'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Î'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ĩ'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ī'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ĭ'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('İ'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ï'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḯ'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ỉ'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǐ'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȉ'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȋ'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ị'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Į'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḭ'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɨ'),
+		'I'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓙ'),
+		'J'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｊ'),
+		'J'),
+		_Utils_Tuple2(
+		_Utils_chr('Ĵ'),
+		'J'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɉ'),
+		'J'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓚ'),
+		'K'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｋ'),
+		'K'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḱ'),
+		'K'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǩ'),
+		'K'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḳ'),
+		'K'),
+		_Utils_Tuple2(
+		_Utils_chr('Ķ'),
+		'K'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḵ'),
+		'K'),
+		_Utils_Tuple2(
+		_Utils_chr('Ƙ'),
+		'K'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⱪ'),
+		'K'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝁ'),
+		'K'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝃ'),
+		'K'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝅ'),
+		'K'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꞣ'),
+		'K'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓛ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｌ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ŀ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ĺ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ľ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḷ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḹ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ļ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḽ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḻ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ł'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ƚ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɫ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⱡ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝉ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝇ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꞁ'),
+		'L'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǉ'),
+		'LJ'),
+		_Utils_Tuple2(
+		_Utils_chr('ǈ'),
+		'Lj'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓜ'),
+		'M'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｍ'),
+		'M'),
+		_Utils_Tuple2(
+		_Utils_chr('Ḿ'),
+		'M'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṁ'),
+		'M'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṃ'),
+		'M'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɱ'),
+		'M'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɯ'),
+		'M'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓝ'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｎ'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǹ'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ń'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ñ'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṅ'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ň'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṇ'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ņ'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṋ'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṉ'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ƞ'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɲ'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꞑ'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꞥ'),
+		'N'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǌ'),
+		'NJ'),
+		_Utils_Tuple2(
+		_Utils_chr('ǋ'),
+		'Nj'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓞ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｏ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ò'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ó'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ô'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ồ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ố'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ỗ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ổ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Õ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṍ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȭ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṏ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ō'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṑ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṓ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ŏ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȯ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȱ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ö'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȫ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ỏ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ő'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǒ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȍ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȏ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ơ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ờ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ớ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ỡ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ở'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ợ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ọ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ộ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǫ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǭ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ø'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǿ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɔ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɵ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝋ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝍ'),
+		'O'),
+		_Utils_Tuple2(
+		_Utils_chr('Ƣ'),
+		'OI'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝏ'),
+		'OO'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȣ'),
+		'OU'),
+		_Utils_Tuple2(
+		_Utils_chr('\u008C'),
+		'OE'),
+		_Utils_Tuple2(
+		_Utils_chr('Œ'),
+		'OE'),
+		_Utils_Tuple2(
+		_Utils_chr('\u009C'),
+		'oe'),
+		_Utils_Tuple2(
+		_Utils_chr('œ'),
+		'oe'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓟ'),
+		'P'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｐ'),
+		'P'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṕ'),
+		'P'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṗ'),
+		'P'),
+		_Utils_Tuple2(
+		_Utils_chr('Ƥ'),
+		'P'),
+		_Utils_Tuple2(
+		_Utils_chr('Ᵽ'),
+		'P'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝑ'),
+		'P'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝓ'),
+		'P'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝕ'),
+		'P'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓠ'),
+		'Q'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｑ'),
+		'Q'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝗ'),
+		'Q'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝙ'),
+		'Q'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɋ'),
+		'Q'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓡ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｒ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ŕ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṙ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ř'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȑ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȓ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṛ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṝ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ŗ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṟ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɍ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɽ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝛ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꞧ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꞃ'),
+		'R'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓢ'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｓ'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('ẞ'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ś'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṥ'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ŝ'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṡ'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Š'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṧ'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṣ'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṩ'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ș'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ş'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȿ'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꞩ'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꞅ'),
+		'S'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓣ'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｔ'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṫ'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ť'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṭ'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ț'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ţ'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṱ'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṯ'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ŧ'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ƭ'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ʈ'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⱦ'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꞇ'),
+		'T'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꜩ'),
+		'TZ'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓤ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｕ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ù'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ú'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Û'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ũ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṹ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ū'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṻ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ŭ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ü'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǜ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǘ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǖ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǚ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ủ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ů'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ű'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ǔ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȕ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȗ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ư'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ừ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ứ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ữ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ử'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ự'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ụ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṳ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ų'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṷ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṵ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ʉ'),
+		'U'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓥ'),
+		'V'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｖ'),
+		'V'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṽ'),
+		'V'),
+		_Utils_Tuple2(
+		_Utils_chr('Ṿ'),
+		'V'),
+		_Utils_Tuple2(
+		_Utils_chr('Ʋ'),
+		'V'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝟ'),
+		'V'),
+		_Utils_Tuple2(
+		_Utils_chr('Ʌ'),
+		'V'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝡ'),
+		'VY'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓦ'),
+		'W'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｗ'),
+		'W'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẁ'),
+		'W'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẃ'),
+		'W'),
+		_Utils_Tuple2(
+		_Utils_chr('Ŵ'),
+		'W'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẇ'),
+		'W'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẅ'),
+		'W'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẉ'),
+		'W'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⱳ'),
+		'W'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓧ'),
+		'X'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｘ'),
+		'X'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẋ'),
+		'X'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẍ'),
+		'X'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓨ'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｙ'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ỳ'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ý'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ŷ'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ỹ'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȳ'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẏ'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ÿ'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ỷ'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ỵ'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ƴ'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɏ'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ỿ'),
+		'Y'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⓩ'),
+		'Z'),
+		_Utils_Tuple2(
+		_Utils_chr('Ｚ'),
+		'Z'),
+		_Utils_Tuple2(
+		_Utils_chr('Ź'),
+		'Z'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẑ'),
+		'Z'),
+		_Utils_Tuple2(
+		_Utils_chr('Ż'),
+		'Z'),
+		_Utils_Tuple2(
+		_Utils_chr('Ž'),
+		'Z'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẓ'),
+		'Z'),
+		_Utils_Tuple2(
+		_Utils_chr('Ẕ'),
+		'Z'),
+		_Utils_Tuple2(
+		_Utils_chr('Ƶ'),
+		'Z'),
+		_Utils_Tuple2(
+		_Utils_chr('Ȥ'),
+		'Z'),
+		_Utils_Tuple2(
+		_Utils_chr('Ɀ'),
+		'Z'),
+		_Utils_Tuple2(
+		_Utils_chr('Ⱬ'),
+		'Z'),
+		_Utils_Tuple2(
+		_Utils_chr('Ꝣ'),
+		'Z'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓐ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ａ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ẚ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('à'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('á'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('â'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ầ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ấ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ẫ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ẩ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ã'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ā'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ă'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ằ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ắ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ẵ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ẳ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ȧ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ǡ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ä'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ǟ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ả'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('å'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ǻ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ǎ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ȁ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ȃ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ạ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ậ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ặ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ḁ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ą'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ⱥ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ɐ'),
+		'a'),
+		_Utils_Tuple2(
+		_Utils_chr('ꜳ'),
+		'aa'),
+		_Utils_Tuple2(
+		_Utils_chr('æ'),
+		'ae'),
+		_Utils_Tuple2(
+		_Utils_chr('ǽ'),
+		'ae'),
+		_Utils_Tuple2(
+		_Utils_chr('ǣ'),
+		'ae'),
+		_Utils_Tuple2(
+		_Utils_chr('ꜵ'),
+		'ao'),
+		_Utils_Tuple2(
+		_Utils_chr('ꜷ'),
+		'au'),
+		_Utils_Tuple2(
+		_Utils_chr('ꜹ'),
+		'av'),
+		_Utils_Tuple2(
+		_Utils_chr('ꜻ'),
+		'av'),
+		_Utils_Tuple2(
+		_Utils_chr('ꜽ'),
+		'ay'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓑ'),
+		'b'),
+		_Utils_Tuple2(
+		_Utils_chr('ｂ'),
+		'b'),
+		_Utils_Tuple2(
+		_Utils_chr('ḃ'),
+		'b'),
+		_Utils_Tuple2(
+		_Utils_chr('ḅ'),
+		'b'),
+		_Utils_Tuple2(
+		_Utils_chr('ḇ'),
+		'b'),
+		_Utils_Tuple2(
+		_Utils_chr('ƀ'),
+		'b'),
+		_Utils_Tuple2(
+		_Utils_chr('ƃ'),
+		'b'),
+		_Utils_Tuple2(
+		_Utils_chr('ɓ'),
+		'b'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓒ'),
+		'c'),
+		_Utils_Tuple2(
+		_Utils_chr('ｃ'),
+		'c'),
+		_Utils_Tuple2(
+		_Utils_chr('ć'),
+		'c'),
+		_Utils_Tuple2(
+		_Utils_chr('ĉ'),
+		'c'),
+		_Utils_Tuple2(
+		_Utils_chr('ċ'),
+		'c'),
+		_Utils_Tuple2(
+		_Utils_chr('č'),
+		'c'),
+		_Utils_Tuple2(
+		_Utils_chr('ç'),
+		'c'),
+		_Utils_Tuple2(
+		_Utils_chr('ḉ'),
+		'c'),
+		_Utils_Tuple2(
+		_Utils_chr('ƈ'),
+		'c'),
+		_Utils_Tuple2(
+		_Utils_chr('ȼ'),
+		'c'),
+		_Utils_Tuple2(
+		_Utils_chr('ꜿ'),
+		'c'),
+		_Utils_Tuple2(
+		_Utils_chr('ↄ'),
+		'c'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓓ'),
+		'd'),
+		_Utils_Tuple2(
+		_Utils_chr('ｄ'),
+		'd'),
+		_Utils_Tuple2(
+		_Utils_chr('ḋ'),
+		'd'),
+		_Utils_Tuple2(
+		_Utils_chr('ď'),
+		'd'),
+		_Utils_Tuple2(
+		_Utils_chr('ḍ'),
+		'd'),
+		_Utils_Tuple2(
+		_Utils_chr('ḑ'),
+		'd'),
+		_Utils_Tuple2(
+		_Utils_chr('ḓ'),
+		'd'),
+		_Utils_Tuple2(
+		_Utils_chr('ḏ'),
+		'd'),
+		_Utils_Tuple2(
+		_Utils_chr('đ'),
+		'd'),
+		_Utils_Tuple2(
+		_Utils_chr('ƌ'),
+		'd'),
+		_Utils_Tuple2(
+		_Utils_chr('ɖ'),
+		'd'),
+		_Utils_Tuple2(
+		_Utils_chr('ɗ'),
+		'd'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝺ'),
+		'd'),
+		_Utils_Tuple2(
+		_Utils_chr('ǳ'),
+		'dz'),
+		_Utils_Tuple2(
+		_Utils_chr('ǆ'),
+		'dz'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓔ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ｅ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('è'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('é'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ê'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ề'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ế'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ễ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ể'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ẽ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ē'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ḕ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ḗ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ĕ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ė'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ë'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ẻ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ě'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ȅ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ȇ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ẹ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ệ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ȩ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ḝ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ę'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ḙ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ḛ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ɇ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ɛ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ǝ'),
+		'e'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓕ'),
+		'f'),
+		_Utils_Tuple2(
+		_Utils_chr('ｆ'),
+		'f'),
+		_Utils_Tuple2(
+		_Utils_chr('ḟ'),
+		'f'),
+		_Utils_Tuple2(
+		_Utils_chr('ƒ'),
+		'f'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝼ'),
+		'f'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓖ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ｇ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ǵ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ĝ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ḡ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ğ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ġ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ǧ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ģ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ǥ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ɠ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ꞡ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ᵹ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝿ'),
+		'g'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓗ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ｈ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ĥ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ḣ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ḧ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ȟ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ḥ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ḩ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ḫ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ẖ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ħ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ⱨ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ⱶ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ɥ'),
+		'h'),
+		_Utils_Tuple2(
+		_Utils_chr('ƕ'),
+		'hv'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓘ'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ｉ'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ì'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('í'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('î'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ĩ'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ī'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ĭ'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ï'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ḯ'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ỉ'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ǐ'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ȉ'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ȋ'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ị'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('į'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ḭ'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ɨ'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ı'),
+		'i'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓙ'),
+		'j'),
+		_Utils_Tuple2(
+		_Utils_chr('ｊ'),
+		'j'),
+		_Utils_Tuple2(
+		_Utils_chr('ĵ'),
+		'j'),
+		_Utils_Tuple2(
+		_Utils_chr('ǰ'),
+		'j'),
+		_Utils_Tuple2(
+		_Utils_chr('ɉ'),
+		'j'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓚ'),
+		'k'),
+		_Utils_Tuple2(
+		_Utils_chr('ｋ'),
+		'k'),
+		_Utils_Tuple2(
+		_Utils_chr('ḱ'),
+		'k'),
+		_Utils_Tuple2(
+		_Utils_chr('ǩ'),
+		'k'),
+		_Utils_Tuple2(
+		_Utils_chr('ḳ'),
+		'k'),
+		_Utils_Tuple2(
+		_Utils_chr('ķ'),
+		'k'),
+		_Utils_Tuple2(
+		_Utils_chr('ḵ'),
+		'k'),
+		_Utils_Tuple2(
+		_Utils_chr('ƙ'),
+		'k'),
+		_Utils_Tuple2(
+		_Utils_chr('ⱪ'),
+		'k'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝁ'),
+		'k'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝃ'),
+		'k'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝅ'),
+		'k'),
+		_Utils_Tuple2(
+		_Utils_chr('ꞣ'),
+		'k'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓛ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ｌ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ŀ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ĺ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ľ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ḷ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ḹ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ļ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ḽ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ḻ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ſ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ł'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ƚ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ɫ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ⱡ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝉ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ꞁ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝇ'),
+		'l'),
+		_Utils_Tuple2(
+		_Utils_chr('ǉ'),
+		'lj'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓜ'),
+		'm'),
+		_Utils_Tuple2(
+		_Utils_chr('ｍ'),
+		'm'),
+		_Utils_Tuple2(
+		_Utils_chr('ḿ'),
+		'm'),
+		_Utils_Tuple2(
+		_Utils_chr('ṁ'),
+		'm'),
+		_Utils_Tuple2(
+		_Utils_chr('ṃ'),
+		'm'),
+		_Utils_Tuple2(
+		_Utils_chr('ɱ'),
+		'm'),
+		_Utils_Tuple2(
+		_Utils_chr('ɯ'),
+		'm'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓝ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ｎ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ǹ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ń'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ñ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ṅ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ň'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ṇ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ņ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ṋ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ṉ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ƞ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ɲ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ŉ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ꞑ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ꞥ'),
+		'n'),
+		_Utils_Tuple2(
+		_Utils_chr('ǌ'),
+		'nj'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓞ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ｏ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ò'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ó'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ô'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ồ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ố'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ỗ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ổ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('õ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ṍ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ȭ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ṏ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ō'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ṑ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ṓ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ŏ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ȯ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ȱ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ö'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ȫ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ỏ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ő'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ǒ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ȍ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ȏ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ơ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ờ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ớ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ỡ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ở'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ợ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ọ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ộ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ǫ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ǭ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ø'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ǿ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ɔ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝋ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝍ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ɵ'),
+		'o'),
+		_Utils_Tuple2(
+		_Utils_chr('ƣ'),
+		'oi'),
+		_Utils_Tuple2(
+		_Utils_chr('ȣ'),
+		'ou'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝏ'),
+		'oo'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓟ'),
+		'p'),
+		_Utils_Tuple2(
+		_Utils_chr('ｐ'),
+		'p'),
+		_Utils_Tuple2(
+		_Utils_chr('ṕ'),
+		'p'),
+		_Utils_Tuple2(
+		_Utils_chr('ṗ'),
+		'p'),
+		_Utils_Tuple2(
+		_Utils_chr('ƥ'),
+		'p'),
+		_Utils_Tuple2(
+		_Utils_chr('ᵽ'),
+		'p'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝑ'),
+		'p'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝓ'),
+		'p'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝕ'),
+		'p'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓠ'),
+		'q'),
+		_Utils_Tuple2(
+		_Utils_chr('ｑ'),
+		'q'),
+		_Utils_Tuple2(
+		_Utils_chr('ɋ'),
+		'q'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝗ'),
+		'q'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝙ'),
+		'q'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓡ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ｒ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ŕ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ṙ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ř'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ȑ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ȓ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ṛ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ṝ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ŗ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ṟ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ɍ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ɽ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝛ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ꞧ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ꞃ'),
+		'r'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓢ'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ｓ'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ß'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ś'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ṥ'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ŝ'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ṡ'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('š'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ṧ'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ṣ'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ṩ'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ș'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ş'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ȿ'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ꞩ'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ꞅ'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ẛ'),
+		's'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓣ'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ｔ'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ṫ'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ẗ'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ť'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ṭ'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ț'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ţ'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ṱ'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ṯ'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ŧ'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ƭ'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ʈ'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ⱦ'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ꞇ'),
+		't'),
+		_Utils_Tuple2(
+		_Utils_chr('ꜩ'),
+		'tz'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓤ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ｕ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ù'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ú'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('û'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ũ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ṹ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ū'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ṻ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ŭ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ü'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ǜ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ǘ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ǖ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ǚ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ủ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ů'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ű'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ǔ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ȕ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ȗ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ư'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ừ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ứ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ữ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ử'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ự'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ụ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ṳ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ų'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ṷ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ṵ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ʉ'),
+		'u'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓥ'),
+		'v'),
+		_Utils_Tuple2(
+		_Utils_chr('ｖ'),
+		'v'),
+		_Utils_Tuple2(
+		_Utils_chr('ṽ'),
+		'v'),
+		_Utils_Tuple2(
+		_Utils_chr('ṿ'),
+		'v'),
+		_Utils_Tuple2(
+		_Utils_chr('ʋ'),
+		'v'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝟ'),
+		'v'),
+		_Utils_Tuple2(
+		_Utils_chr('ʌ'),
+		'v'),
+		_Utils_Tuple2(
+		_Utils_chr('ꝡ'),
+		'vy'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓦ'),
+		'w'),
+		_Utils_Tuple2(
+		_Utils_chr('ｗ'),
+		'w'),
+		_Utils_Tuple2(
+		_Utils_chr('ẁ'),
+		'w'),
+		_Utils_Tuple2(
+		_Utils_chr('ẃ'),
+		'w'),
+		_Utils_Tuple2(
+		_Utils_chr('ŵ'),
+		'w'),
+		_Utils_Tuple2(
+		_Utils_chr('ẇ'),
+		'w'),
+		_Utils_Tuple2(
+		_Utils_chr('ẅ'),
+		'w'),
+		_Utils_Tuple2(
+		_Utils_chr('ẘ'),
+		'w'),
+		_Utils_Tuple2(
+		_Utils_chr('ẉ'),
+		'w'),
+		_Utils_Tuple2(
+		_Utils_chr('ⱳ'),
+		'w'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓧ'),
+		'x'),
+		_Utils_Tuple2(
+		_Utils_chr('ｘ'),
+		'x'),
+		_Utils_Tuple2(
+		_Utils_chr('ẋ'),
+		'x'),
+		_Utils_Tuple2(
+		_Utils_chr('ẍ'),
+		'x'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓨ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ｙ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ỳ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ý'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ŷ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ỹ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ȳ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ẏ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ÿ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ỷ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ẙ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ỵ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ƴ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ɏ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ỿ'),
+		'y'),
+		_Utils_Tuple2(
+		_Utils_chr('ⓩ'),
+		'z'),
+		_Utils_Tuple2(
+		_Utils_chr('ｚ'),
+		'z'),
+		_Utils_Tuple2(
+		_Utils_chr('ź'),
+		'z'),
+		_Utils_Tuple2(
+		_Utils_chr('ẑ'),
+		'z'),
+		_Utils_Tuple2(
+		_Utils_chr('ż'),
+		'z'),
+		_Utils_Tuple2(
+		_Utils_chr('ž'),
+		'z'),
+		_Utils_Tuple2(
+		_Utils_chr('ẓ'),
+		'z'),
+		_Utils_Tuple2(
+		_Utils_chr('ẕ'),
+		'z'),
+		_Utils_Tuple2(
+		_Utils_chr('ƶ'),
+		'z')
+	]);
+var $kuon$elm_string_normalize$String$Normalize$Diacritics$lookupTable = $elm$core$Dict$fromList($kuon$elm_string_normalize$String$Normalize$Diacritics$lookupList);
+var $kuon$elm_string_normalize$String$Normalize$Diacritics$maxUnicode = 1114111;
+var $elm$core$List$maximum = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(
+			A3($elm$core$List$foldl, $elm$core$Basics$max, x, xs));
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (maybe.$ === 'Just') {
@@ -8611,6 +11263,148 @@ var $elm$core$Maybe$withDefault = F2(
 			return _default;
 		}
 	});
+var $kuon$elm_string_normalize$String$Normalize$Diacritics$maxCode = A2(
+	$elm$core$Maybe$withDefault,
+	$kuon$elm_string_normalize$String$Normalize$Diacritics$maxUnicode,
+	$elm$core$List$maximum(
+		A2(
+			$elm$core$List$map,
+			$elm$core$Char$toCode,
+			A2($elm$core$List$map, $elm$core$Tuple$first, $kuon$elm_string_normalize$String$Normalize$Diacritics$lookupList))));
+var $kuon$elm_string_normalize$String$Normalize$Diacritics$lookupArray = $elm$core$Array$fromList(
+	A2(
+		$elm$core$List$map,
+		function (i) {
+			var _v0 = A2(
+				$elm$core$Dict$get,
+				$elm$core$Char$fromCode(i),
+				$kuon$elm_string_normalize$String$Normalize$Diacritics$lookupTable);
+			if (_v0.$ === 'Nothing') {
+				return $elm$core$String$fromChar(
+					$elm$core$Char$fromCode(i));
+			} else {
+				var str = _v0.a;
+				return str;
+			}
+		},
+		A2($elm$core$List$range, 0, $kuon$elm_string_normalize$String$Normalize$Diacritics$maxCode)));
+var $elm$core$List$minimum = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(
+			A3($elm$core$List$foldl, $elm$core$Basics$min, x, xs));
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
+var $kuon$elm_string_normalize$String$Normalize$Diacritics$minCode = A2(
+	$elm$core$Maybe$withDefault,
+	0,
+	$elm$core$List$minimum(
+		A2(
+			$elm$core$List$map,
+			$elm$core$Char$toCode,
+			A2($elm$core$List$map, $elm$core$Tuple$first, $kuon$elm_string_normalize$String$Normalize$Diacritics$lookupList))));
+var $kuon$elm_string_normalize$String$Normalize$removeDiacritics = function (str) {
+	var replace = F2(
+		function (c, result) {
+			if (_Utils_cmp(
+				$elm$core$Char$toCode(c),
+				$kuon$elm_string_normalize$String$Normalize$Diacritics$minCode) < 0) {
+				return _Utils_ap(
+					result,
+					$elm$core$String$fromChar(c));
+			} else {
+				var _v0 = A2(
+					$elm$core$Array$get,
+					$elm$core$Char$toCode(c),
+					$kuon$elm_string_normalize$String$Normalize$Diacritics$lookupArray);
+				if (_v0.$ === 'Just') {
+					var candidate = _v0.a;
+					return _Utils_ap(result, candidate);
+				} else {
+					return _Utils_ap(
+						result,
+						$elm$core$String$fromChar(c));
+				}
+			}
+		});
+	return A3($elm$core$String$foldl, replace, '', str);
+};
+var $elm_community$list_extra$List$Extra$findIndexHelp = F3(
+	function (index, predicate, list) {
+		findIndexHelp:
+		while (true) {
+			if (!list.b) {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (predicate(x)) {
+					return $elm$core$Maybe$Just(index);
+				} else {
+					var $temp$index = index + 1,
+						$temp$predicate = predicate,
+						$temp$list = xs;
+					index = $temp$index;
+					predicate = $temp$predicate;
+					list = $temp$list;
+					continue findIndexHelp;
+				}
+			}
+		}
+	});
+var $elm_community$list_extra$List$Extra$findIndex = $elm_community$list_extra$List$Extra$findIndexHelp(0);
+var $elm_community$list_extra$List$Extra$elemIndex = function (x) {
+	return $elm_community$list_extra$List$Extra$findIndex(
+		$elm$core$Basics$eq(x));
+};
+var $elm_community$maybe_extra$Maybe$Extra$isJust = function (m) {
+	if (m.$ === 'Nothing') {
+		return false;
+	} else {
+		return true;
+	}
+};
+var $author$project$Utils$removestopwords = function (str) {
+	removestopwords:
+	while (true) {
+		var _v0 = A2($elm$core$String$split, ' ', str);
+		if (_v0.b) {
+			var start = _v0.a;
+			var rest = _v0.b;
+			if ($elm_community$maybe_extra$Maybe$Extra$isJust(
+				A2(
+					$elm_community$list_extra$List$Extra$elemIndex,
+					start,
+					_List_fromArray(
+						['de', 'het', 'van', 'een', 'der', 'den', 'a', 'the', 'le', 'la', 'du', 'der', 'die', 'das', 'von'])))) {
+				var $temp$str = A2($elm$core$String$join, ' ', rest);
+				str = $temp$str;
+				continue removestopwords;
+			} else {
+				return str;
+			}
+		} else {
+			return '';
+		}
+	}
+};
+var $elm$core$String$toLower = _String_toLower;
+var $author$project$Utils$testcorrect = function () {
+	var sanitize = A2(
+		$elm$core$Basics$composeR,
+		$elm$core$String$toLower,
+		A2(
+			$elm$core$Basics$composeR,
+			$kuon$elm_string_normalize$String$Normalize$removeDiacritics,
+			A2(
+				$elm$core$Basics$composeR,
+				$author$project$Utils$removestopwords,
+				$elm$core$String$filter($elm$core$Char$isAlpha))));
+	return A2($author$project$Utils$on, $elm$core$Basics$eq, sanitize);
+}();
 var $author$project$Hoofdspel$naarWoordRaden = F2(
 	function (status, i) {
 		var _v0 = A2($elm$core$Dict$get, i, status.gegevenantwoorden);
@@ -8657,6 +11451,9 @@ var $author$project$Hoofdspel$naarWoordRaden = F2(
 			}
 		}
 	});
+var $author$project$Types$HighscoreReceived = function (a) {
+	return {$: 'HighscoreReceived', a: a};
+};
 var $elm$core$List$repeatHelp = F3(
 	function (result, n, value) {
 		repeatHelp:
@@ -8677,6 +11474,175 @@ var $elm$core$List$repeatHelp = F3(
 var $elm$core$List$repeat = F2(
 	function (n, value) {
 		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
+	});
+var $elm_community$list_extra$List$Extra$rowsLength = function (listOfLists) {
+	if (!listOfLists.b) {
+		return 0;
+	} else {
+		var x = listOfLists.a;
+		return $elm$core$List$length(x);
+	}
+};
+var $elm_community$list_extra$List$Extra$transpose = function (listOfLists) {
+	return A3(
+		$elm$core$List$foldr,
+		$elm$core$List$map2($elm$core$List$cons),
+		A2(
+			$elm$core$List$repeat,
+			$elm_community$list_extra$List$Extra$rowsLength(listOfLists),
+			_List_Nil),
+		listOfLists);
+};
+var $author$project$Database$parsehighscores = A2(
+	$elm$json$Json$Decode$field,
+	'values',
+	A2(
+		$elm$json$Json$Decode$map,
+		A2(
+			$elm$core$Basics$composeR,
+			$elm$core$List$tail,
+			A2(
+				$elm$core$Basics$composeR,
+				$elm$core$Maybe$andThen(
+					A2(
+						$elm$core$Basics$composeR,
+						$elm$core$List$tail,
+						$elm$core$Maybe$andThen(
+							A2(
+								$elm$core$Basics$composeR,
+								$elm$core$List$take(5),
+								A2(
+									$elm$core$Basics$composeR,
+									$elm_community$list_extra$List$Extra$transpose,
+									A2(
+										$elm$core$Basics$composeR,
+										$elm$core$List$tail,
+										$elm$core$Maybe$andThen(
+											function (x) {
+												if (((((x.b && x.b.b) && x.b.b.b) && x.b.b.b.b) && x.b.b.b.b.b) && x.b.b.b.b.b.b) {
+													var n16 = x.a;
+													var _v1 = x.b;
+													var s16 = _v1.a;
+													var _v2 = _v1.b;
+													var n15 = _v2.a;
+													var _v3 = _v2.b;
+													var s15 = _v3.a;
+													var _v4 = _v3.b;
+													var n14 = _v4.a;
+													var _v5 = _v4.b;
+													var s14 = _v5.a;
+													var empty = _v5.b;
+													return $elm$core$Maybe$Just(
+														$elm$core$Dict$fromList(
+															_List_fromArray(
+																[
+																	_Utils_Tuple2(
+																	16,
+																	A2(
+																		$elm_community$list_extra$List$Extra$zip,
+																		n16,
+																		A2(
+																			$elm$core$List$map,
+																			A2(
+																				$elm$core$Basics$composeL,
+																				$elm$core$Maybe$withDefault(0),
+																				$elm$core$String$toInt),
+																			s16))),
+																	_Utils_Tuple2(
+																	15,
+																	A2(
+																		$elm_community$list_extra$List$Extra$zip,
+																		n15,
+																		A2(
+																			$elm$core$List$map,
+																			A2(
+																				$elm$core$Basics$composeL,
+																				$elm$core$Maybe$withDefault(0),
+																				$elm$core$String$toInt),
+																			s15))),
+																	_Utils_Tuple2(
+																	14,
+																	A2(
+																		$elm_community$list_extra$List$Extra$zip,
+																		n14,
+																		A2(
+																			$elm$core$List$map,
+																			A2(
+																				$elm$core$Basics$composeL,
+																				$elm$core$Maybe$withDefault(0),
+																				$elm$core$String$toInt),
+																			s14)))
+																])));
+												} else {
+													return $elm$core$Maybe$Nothing;
+												}
+											}))))))),
+				$elm$core$Maybe$withDefault($elm$core$Dict$empty))),
+		$elm$json$Json$Decode$list(
+			$elm$json$Json$Decode$list($elm$json$Json$Decode$string))));
+var $author$project$Database$readHighscores = function (oauth) {
+	return $elm$http$Http$request(
+		{
+			body: $elm$http$Http$emptyBody,
+			expect: A2($elm$http$Http$expectJson, $author$project$Types$HighscoreReceived, $author$project$Database$parsehighscores),
+			headers: _List_fromArray(
+				[
+					A2($elm$http$Http$header, 'Authorization', 'Bearer ' + oauth)
+				]),
+			method: 'GET',
+			timeout: $elm$core$Maybe$Nothing,
+			tracker: $elm$core$Maybe$Nothing,
+			url: $author$project$Database$url('highscores!A1:G7')
+		});
+};
+var $author$project$Database$schrijfscorejson = F2(
+	function (punten, ix) {
+		return $elm$json$Json$Encode$object(
+			_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'range',
+					$elm$json$Json$Encode$string(
+						'log!C' + $elm$core$String$fromInt(ix))),
+					_Utils_Tuple2(
+					'majorDimension',
+					$elm$json$Json$Encode$string('ROWS')),
+					_Utils_Tuple2(
+					'values',
+					A2(
+						$elm$json$Json$Encode$list,
+						$elm$json$Json$Encode$list($elm$json$Json$Encode$string),
+						_List_fromArray(
+							[
+								_List_fromArray(
+								[
+									$elm$core$String$fromInt(punten)
+								])
+							])))
+				]));
+	});
+var $author$project$Database$schrijfscore = F3(
+	function (punten, idx, oauth) {
+		if (idx.$ === 'Nothing') {
+			return $elm$core$Platform$Cmd$none;
+		} else {
+			var ix = idx.a;
+			return $elm$http$Http$request(
+				{
+					body: $elm$http$Http$jsonBody(
+						A2($author$project$Database$schrijfscorejson, punten, ix)),
+					expect: $elm$http$Http$expectWhatever($author$project$Types$UserAdded),
+					headers: _List_fromArray(
+						[
+							A2($elm$http$Http$header, 'Authorization', 'Bearer ' + oauth)
+						]),
+					method: 'PUT',
+					timeout: $elm$core$Maybe$Nothing,
+					tracker: $elm$core$Maybe$Nothing,
+					url: $author$project$Database$url(
+						'log!C' + ($elm$core$String$fromInt(ix) + '?valueInputOption=USER_ENTERED'))
+				});
+		}
 	});
 var $elm$core$Process$sleep = _Process_sleep;
 var $author$project$Types$SoundLoaded = function (a) {
@@ -8711,12 +11677,14 @@ var $author$project$Hoofdspel$startgame = F4(
 			data: info,
 			gegevenantwoorden: $elm$core$Dict$empty,
 			lastQuestion: 1,
+			logindex: $elm$core$Maybe$Nothing,
 			muziek: adios,
 			oauth: oauth,
 			paardensprongbegintijd: $elm$core$Maybe$Nothing,
 			punten: 500,
 			questionNumber: 1,
-			recentstetik: $elm$time$Time$millisToPosix(0),
+			recentstebel: $elm$core$Maybe$Nothing,
+			recentstetik: $elm$core$Maybe$Nothing,
 			searched: $elm$core$Set$empty,
 			searching: false,
 			timeTheGameEnds: $elm$time$Time$millisToPosix(
@@ -8726,6 +11694,41 @@ var $author$project$Hoofdspel$startgame = F4(
 var $elm$core$List$sum = function (numbers) {
 	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
 };
+var $author$project$Types$Veertien = {$: 'Veertien'};
+var $author$project$Types$Zestien = {$: 'Zestien'};
+var $author$project$Highscores$updatehs = F2(
+	function (status, msg) {
+		return _Utils_update(
+			status,
+			{
+				huidig: function () {
+					switch (msg.$) {
+						case 'PreviousQ':
+							var _v1 = status.huidig;
+							switch (_v1.$) {
+								case 'Veertien':
+									return $author$project$Types$Veertien;
+								case 'Vijftien':
+									return $author$project$Types$Veertien;
+								default:
+									return $author$project$Types$Vijftien;
+							}
+						case 'NextQ':
+							var _v2 = status.huidig;
+							switch (_v2.$) {
+								case 'Veertien':
+									return $author$project$Types$Vijftien;
+								case 'Vijftien':
+									return $author$project$Types$Zestien;
+								default:
+									return $author$project$Types$Zestien;
+							}
+						default:
+							return status.huidig;
+					}
+				}()
+			});
+	});
 var $author$project$Utils$index = F2(
 	function (l, i) {
 		index:
@@ -8881,7 +11884,10 @@ var $author$project$Main$update = F3(
 							var naam = _v3;
 							var _v4 = status.thesheet;
 							if (_v4.$ === 'Nothing') {
-								return _Utils_Tuple3(
+								return $author$project$Main$staatdespreadsheetaan ? _Utils_Tuple3(
+									model,
+									$author$project$Database$readSpreadsheet(status.oauth),
+									$MartinSStewart$elm_audio$Audio$cmdNone) : _Utils_Tuple3(
 									$author$project$Main$InGame(
 										A4(
 											$author$project$Hoofdspel$startgame,
@@ -8976,7 +11982,7 @@ var $author$project$Main$update = F3(
 								_Utils_update(
 									status,
 									{
-										muziekstart: $elm$core$Maybe$Just(status.now)
+										introstart: $elm$core$Maybe$Just(status.now)
 									})),
 							$elm$core$Platform$Cmd$batch(
 								_List_fromArray(
@@ -8987,7 +11993,8 @@ var $author$project$Main$update = F3(
 										function (_v9) {
 											return $author$project$Types$StartStopWiki;
 										},
-										$elm$core$Process$sleep(16000))
+										$elm$core$Process$sleep(
+											$author$project$Main$intro ? 16000 : 0))
 									])),
 							$MartinSStewart$elm_audio$Audio$cmdBatch(
 								_List_fromArray(
@@ -9100,6 +12107,23 @@ var $author$project$Main$update = F3(
 										$author$project$Main$pushVideoEvent($author$project$Main$VolumeDown)
 									])),
 							$MartinSStewart$elm_audio$Audio$cmdNone);
+					case 'GetHighscores':
+						return _Utils_Tuple3(
+							model,
+							$author$project$Database$readHighscores(status.oauth),
+							$MartinSStewart$elm_audio$Audio$cmdNone);
+					case 'HighscoreReceived':
+						var result = msg.a;
+						if (result.$ === 'Ok') {
+							var alle = result.a;
+							return _Utils_Tuple3(
+								$author$project$Main$Highscore(
+									{alle: alle, huidig: $author$project$Types$Vijftien, jouw: $elm$core$Maybe$Nothing}),
+								$elm$core$Platform$Cmd$none,
+								$MartinSStewart$elm_audio$Audio$cmdNone);
+						} else {
+							return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
+						}
 					default:
 						return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
 				}
@@ -9128,6 +12152,7 @@ var $author$project$Main$update = F3(
 												$elm$time$Time$millisToPosix(0));
 										},
 										status.muziek.tik),
+									logindex: status.logindex,
 									muziek: A2(
 										$elm$core$Maybe$map,
 										function (x) {
@@ -9145,9 +12170,9 @@ var $author$project$Main$update = F3(
 					case 'SoundLoaded':
 						var result = msg.a;
 						if (result.$ === 'Ok') {
-							var _v15 = result.a;
-							var sound = _v15.a;
-							var id = _v15.b;
+							var _v16 = result.a;
+							var sound = _v16.a;
+							var id = _v16.b;
 							var x = status.muziek;
 							return _Utils_Tuple3(
 								$author$project$Main$InGame(
@@ -9212,9 +12237,9 @@ var $author$project$Main$update = F3(
 								$MartinSStewart$elm_audio$Audio$cmdNone);
 						}
 					default:
-						var _v17 = A2($author$project$Hoofdspel$hoofdupdate, msg, status);
-						var status2 = _v17.a;
-						var cmd2 = _v17.b;
+						var _v18 = A2($author$project$Hoofdspel$hoofdupdate, msg, status);
+						var status2 = _v18.a;
+						var cmd2 = _v18.b;
 						return _Utils_Tuple3(
 							$author$project$Main$InGame(status2),
 							cmd2,
@@ -9234,43 +12259,47 @@ var $author$project$Main$update = F3(
 								$elm$time$Time$posixToMillis(newtime),
 								$elm$time$Time$posixToMillis(status.timeTheGameEnds)) > 0) ? A2(
 								$elm$core$Task$perform,
-								function (_v19) {
+								function (_v20) {
 									return $author$project$Types$Submit;
 								},
 								$elm$core$Task$succeed(_Utils_Tuple0)) : $elm$core$Platform$Cmd$none,
 							$MartinSStewart$elm_audio$Audio$cmdNone);
 					case 'Submit':
+						var uithethoofd = $elm$core$List$sum(
+							A2(
+								$elm$core$List$map,
+								function (_v22) {
+									var l1 = _v22.a;
+									var b = _v22.c;
+									switch (l1.$) {
+										case 'UitHetHoofd':
+											return b ? 1 : 0;
+										case 'Paars':
+											return 1;
+										default:
+											return 0;
+									}
+								},
+								status.koopbaar));
+						var fout = $elm$core$List$length(
+							A2(
+								$elm$core$List$filter,
+								function (_v21) {
+									var b = _v21.c;
+									return !b;
+								},
+								status.koopbaar));
+						var punten = A2($author$project$Utils$testcorrect, status.woord, status.correctwoord) ? (((status.punten + (10 * uithethoofd)) + 100) - (25 * A2($elm$core$Basics$min, 4, fout))) : 0;
 						return A2($author$project$Utils$testcorrect, status.woord, status.correctwoord) ? _Utils_Tuple3(
 							$author$project$Main$Afrekenen(
 								$author$project$Afrekenen$Win(
-									{
-										basis: status.punten,
-										fout: $elm$core$List$length(
-											A2(
-												$elm$core$List$filter,
-												function (_v20) {
-													var b = _v20.c;
-													return !b;
-												},
-												status.koopbaar)),
-										uithethoofd: $elm$core$List$sum(
-											A2(
-												$elm$core$List$map,
-												function (_v21) {
-													var l1 = _v21.a;
-													var b = _v21.c;
-													switch (l1.$) {
-														case 'UitHetHoofd':
-															return b ? 1 : 0;
-														case 'Paars':
-															return 1;
-														default:
-															return 0;
-													}
-												},
-												status.koopbaar))
-									})),
-							$author$project$Main$confetti($elm$json$Json$Encode$null),
+									{basis: status.punten, fout: fout, uithethoofd: uithethoofd})),
+							$elm$core$Platform$Cmd$batch(
+								_List_fromArray(
+									[
+										$author$project$Main$confetti($elm$json$Json$Encode$null),
+										A3($author$project$Database$schrijfscore, punten, status.logindex, status.oauth)
+									])),
 							$MartinSStewart$elm_audio$Audio$cmdNone) : _Utils_Tuple3(
 							$author$project$Main$Afrekenen(
 								$author$project$Afrekenen$Verlies(
@@ -9285,7 +12314,7 @@ var $author$project$Main$update = F3(
 										juist: $elm$core$Dict$empty,
 										woord: status.woord
 									})),
-							$elm$core$Platform$Cmd$none,
+							A3($author$project$Database$schrijfscore, 0, status.logindex, status.oauth),
 							$MartinSStewart$elm_audio$Audio$cmdNone);
 					default:
 						return _Utils_Tuple3(
@@ -9294,19 +12323,35 @@ var $author$project$Main$update = F3(
 							$elm$core$Platform$Cmd$none,
 							$MartinSStewart$elm_audio$Audio$cmdNone);
 				}
-			default:
+			case 'Afrekenen':
 				var status = model.a;
 				return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
+			default:
+				var status = model.a;
+				return _Utils_Tuple3(
+					$author$project$Main$Highscore(
+						A2($author$project$Highscores$updatehs, status, msg)),
+					$elm$core$Platform$Cmd$none,
+					$MartinSStewart$elm_audio$Audio$cmdNone);
 		}
 	});
 var $author$project$Types$Answer = function (a) {
 	return {$: 'Answer', a: a};
 };
+var $author$project$Types$GetHighscores = {$: 'GetHighscores'};
 var $author$project$Types$PlayAudio = {$: 'PlayAudio'};
 var $author$project$Types$StartGame = {$: 'StartGame'};
 var $elm$html$Html$br = _VirtualDom_node('br');
 var $elm$html$Html$button = _VirtualDom_node('button');
-var $elm$html$Html$div = _VirtualDom_node('div');
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
+var $author$project$Utils$centeringstuff = _List_fromArray(
+	[
+		A2($elm$html$Html$Attributes$style, 'top', '50%'),
+		A2($elm$html$Html$Attributes$style, 'left', '50%'),
+		A2($elm$html$Html$Attributes$style, 'position', 'relative'),
+		A2($elm$html$Html$Attributes$style, 'transform', 'translate(-50%, -50%)')
+	]);
 var $elm$html$Html$Attributes$stringProperty = F2(
 	function (key, string) {
 		return A2(
@@ -9314,9 +12359,32 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 			key,
 			$elm$json$Json$Encode$string(string));
 	});
+var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
+var $elm$html$Html$div = _VirtualDom_node('div');
+var $author$project$Utils$cols = function (xs) {
+	return A2(
+		$elm$core$List$map,
+		function (_v0) {
+			var i = _v0.a;
+			var r = _v0.b;
+			return A2(
+				$elm$html$Html$div,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$class('column'),
+						A2($elm$html$Html$Attributes$style, 'float', 'left'),
+						A2(
+						$elm$html$Html$Attributes$style,
+						'flex',
+						$elm$core$String$fromInt(i) + '%'),
+						A2($elm$html$Html$Attributes$style, 'height', '100%')
+					]),
+				r);
+		},
+		xs);
+};
 var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$input = _VirtualDom_node('input');
-var $author$project$Main$intro = false;
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -9366,7 +12434,6 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
 var $elm$html$Html$Attributes$placeholder = $elm$html$Html$Attributes$stringProperty('placeholder');
-var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$core$List$intersperse = F2(
 	function (sep, xs) {
 		if (!xs.b) {
@@ -9385,8 +12452,6 @@ var $elm$core$List$intersperse = F2(
 			return A2($elm$core$List$cons, hd, spersed);
 		}
 	});
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $author$project$Utils$rows = function (xs) {
 	return A2(
 		$elm$core$List$intersperse,
@@ -9434,16 +12499,36 @@ var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
 var $elm$html$Html$video = _VirtualDom_node('video');
+var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
+var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
 var $author$project$Afrekenen$viewAfrekenen = function (status) {
 	if (status.$ === 'Win') {
 		var info = status.a;
 		return A2(
 			$elm$html$Html$div,
-			_List_Nil,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'background-image', 'url(\'images/astrid.jpg\')'),
+					A2($elm$html$Html$Attributes$style, 'background-size', '100%'),
+					A2($elm$html$Html$Attributes$style, 'height', '100%')
+				]),
 			$author$project$Utils$rows(
 				_List_fromArray(
 					[
-						_Utils_Tuple3(20, _List_Nil, _List_Nil),
+						_Utils_Tuple3(
+						20,
+						_List_Nil,
+						_List_fromArray(
+							[
+								A2(
+								$elm$svg$Svg$svg,
+								_List_fromArray(
+									[
+										$elm$svg$Svg$Attributes$height('100%')
+									]),
+								_List_Nil)
+							])),
 						_Utils_Tuple3(
 						10,
 						_List_Nil,
@@ -9466,7 +12551,8 @@ var $author$project$Afrekenen$viewAfrekenen = function (status) {
 						_List_fromArray(
 							[
 								$elm$html$Html$text(
-								'Daar komt nog ' + ($elm$core$String$fromInt(100 - (25 * info.fout)) + (' bonus bij voor ' + ($elm$core$String$fromInt(info.fout) + ' fouten.'))))
+								'Daar komt nog ' + ($elm$core$String$fromInt(
+									100 - (25 * A2($elm$core$Basics$min, 4, info.fout))) + (' bonus bij voor ' + ($elm$core$String$fromInt(info.fout) + ' fouten.'))))
 							])),
 						_Utils_Tuple3(
 						10,
@@ -9474,52 +12560,58 @@ var $author$project$Afrekenen$viewAfrekenen = function (status) {
 						_List_fromArray(
 							[
 								$elm$html$Html$text(
-								'Dan komen we uit op ' + ($elm$core$String$fromInt(((info.basis + (10 * info.uithethoofd)) + 100) - (25 * info.fout)) + ' in totaal.'))
+								'Dan komen we uit op ' + ($elm$core$String$fromInt(
+									((info.basis + (10 * info.uithethoofd)) + 100) - (25 * A2($elm$core$Basics$min, 4, info.fout))) + ' in totaal.'))
 							]))
 					])));
 	} else {
 		var info = status.a;
 		return A2(
 			$elm$html$Html$div,
-			_List_Nil,
 			_List_fromArray(
 				[
-					$elm$html$Html$text('Helaas!')
-				]));
-	}
-};
-var $author$project$Utils$cols = function (xs) {
-	return A2(
-		$elm$core$List$map,
-		function (_v0) {
-			var i = _v0.a;
-			var r = _v0.b;
-			return A2(
-				$elm$html$Html$div,
+					A2($elm$html$Html$Attributes$style, 'background-image', 'url(\'images/astrid.jpg\')'),
+					A2($elm$html$Html$Attributes$style, 'background-size', '100%'),
+					A2($elm$html$Html$Attributes$style, 'height', '100%')
+				]),
+			$author$project$Utils$rows(
 				_List_fromArray(
 					[
-						$elm$html$Html$Attributes$class('column'),
-						A2($elm$html$Html$Attributes$style, 'float', 'left'),
-						A2(
-						$elm$html$Html$Attributes$style,
-						'flex',
-						$elm$core$String$fromInt(i) + '%'),
-						A2($elm$html$Html$Attributes$style, 'height', '100%')
-					]),
-				r);
-		},
-		xs);
+						_Utils_Tuple3(70, _List_Nil, _List_Nil),
+						_Utils_Tuple3(
+						15,
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'background-color', 'rbga(237, 230, 214, 0.9)'),
+								A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+								A2($elm$html$Html$Attributes$style, 'font-size', '6cqh')
+							]),
+						$author$project$Utils$cols(
+							_List_fromArray(
+								[
+									_Utils_Tuple2(45, _List_Nil),
+									_Utils_Tuple2(
+									10,
+									$author$project$Utils$rows(
+										_List_fromArray(
+											[
+												_Utils_Tuple3(25, _List_Nil, _List_Nil),
+												_Utils_Tuple3(
+												50,
+												_List_Nil,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Helaas!')
+													])),
+												_Utils_Tuple3(25, _List_Nil, _List_Nil)
+											]))),
+									_Utils_Tuple2(45, _List_Nil)
+								]))),
+						_Utils_Tuple3(15, _List_Nil, _List_Nil)
+					])));
+	}
 };
 var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
-var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
-var $author$project$Utils$centeringstuff = _List_fromArray(
-	[
-		A2($elm$html$Html$Attributes$style, 'top', '50%'),
-		A2($elm$html$Html$Attributes$style, 'left', '50%'),
-		A2($elm$html$Html$Attributes$style, 'position', 'relative'),
-		A2($elm$html$Html$Attributes$style, 'transform', 'translate(-50%, -50%)')
-	]);
-var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
 var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
 var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
@@ -9589,7 +12681,6 @@ var $author$project$Letters$klokje = F2(
 			]);
 	});
 var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
-var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
 var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var $author$project$Utils$svgfullsize = _List_fromArray(
 	[
@@ -9740,8 +12831,17 @@ var $author$project$Letters$letters = F3(
 															$elm$html$Html$text(
 															A2(
 																$elm$core$Basics$composeL,
-																$elm$core$String$toUpper,
-																A2($elm$core$String$slice, 0, 1))(letter))
+																A2(
+																	$elm$core$Basics$composeL,
+																	A2(
+																		$elm$core$Basics$composeL,
+																		A2(
+																			$elm$core$Basics$composeL,
+																			$elm$core$String$toUpper,
+																			A2($elm$core$String$slice, 0, 1)),
+																		$author$project$Utils$removestopwords),
+																	$kuon$elm_string_normalize$String$Normalize$removeDiacritics),
+																$elm$core$String$toLower)(letter))
 														]))
 												]));
 									case 'UitHetHoofd':
@@ -9762,8 +12862,17 @@ var $author$project$Letters$letters = F3(
 															$elm$html$Html$text(
 															A2(
 																$elm$core$Basics$composeL,
-																$elm$core$String$toUpper,
-																A2($elm$core$String$slice, 0, 1))(letter))
+																A2(
+																	$elm$core$Basics$composeL,
+																	A2(
+																		$elm$core$Basics$composeL,
+																		A2(
+																			$elm$core$Basics$composeL,
+																			$elm$core$String$toUpper,
+																			A2($elm$core$String$slice, 0, 1)),
+																		$author$project$Utils$removestopwords),
+																	$kuon$elm_string_normalize$String$Normalize$removeDiacritics),
+																$elm$core$String$toLower)(letter))
 														]))
 												]));
 									case 'Paars':
@@ -10422,11 +13531,20 @@ var $author$project$Hoofdspel$paardensprong = function (status) {
 						return (($elm$time$Time$posixToMillis(status.currentTime) - $elm$time$Time$posixToMillis(psbt)) >= 30000) ? _List_Nil : A2(
 							$author$project$Letters$klokje,
 							'50%',
-							$elm$time$Time$posixToMillis(psbt) - $elm$time$Time$posixToMillis(status.currentTime));
+							($elm$time$Time$posixToMillis(psbt) + 30000) - $elm$time$Time$posixToMillis(status.currentTime));
 					}
 				}()))
 		]);
 };
+var $elm_community$maybe_extra$Maybe$Extra$unwrap = F3(
+	function (_default, f, m) {
+		if (m.$ === 'Nothing') {
+			return _default;
+		} else {
+			var a = m.a;
+			return f(a);
+		}
+	});
 var $author$project$Hoofdspel$wiki = function (status) {
 	return $author$project$Utils$rows(
 		_List_fromArray(
@@ -10460,7 +13578,18 @@ var $author$project$Hoofdspel$wiki = function (status) {
 												A2($elm$html$Html$Attributes$style, 'font-family', 'Lucida Sans'),
 												A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
 											]),
-										$author$project$Utils$centeringstuff),
+										_Utils_ap(
+											$author$project$Utils$centeringstuff,
+											((status.questionNumber === 8) && A3(
+												$elm_community$maybe_extra$Maybe$Extra$unwrap,
+												false,
+												function (psbt) {
+													return ($elm$time$Time$posixToMillis(status.currentTime) - $elm$time$Time$posixToMillis(psbt)) <= 30000;
+												},
+												status.paardensprongbegintijd)) ? _List_fromArray(
+												[
+													A2($elm$html$Html$Attributes$style, 'opacity', '0%')
+												]) : _List_Nil)),
 									status.searching ? _List_fromArray(
 										[
 											$elm$html$Html$text('\u00A0\uD83D\uDD14\u00A0Bellen!\u00A0\uD83D\uDD14\u00A0')
@@ -10627,6 +13756,183 @@ var $author$project$Hoofdspel$viewGame = function (status) {
 							])))
 				])));
 };
+var $author$project$Types$fromSpelduur = function (x) {
+	switch (x.$) {
+		case 'Zestien':
+			return 16;
+		case 'Vijftien':
+			return 15;
+		default:
+			return 14;
+	}
+};
+var $author$project$Highscores$tablebody = $elm$core$List$indexedMap(
+	F2(
+		function (ix, _v0) {
+			var nm = _v0.a;
+			var scr = _v0.b;
+			return A2(
+				$elm$html$Html$tr,
+				_List_Nil,
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$td,
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'text-align', 'left')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								$elm$core$String$fromInt(ix + 1))
+							])),
+						A2(
+						$elm$html$Html$td,
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'text-align', 'left')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(nm)
+							])),
+						A2(
+						$elm$html$Html$td,
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'text-align', 'center')
+							]),
+						_List_fromArray(
+							[
+								$elm$html$Html$text(
+								$elm$core$String$fromInt(scr))
+							]))
+					]));
+		}));
+var $author$project$Highscores$tableheaders = A2(
+	$elm$html$Html$tr,
+	_List_Nil,
+	_List_fromArray(
+		[
+			A2(
+			$elm$html$Html$th,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'text-align', 'left')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('\u00A0\u00A0\u00A0')
+				])),
+			A2(
+			$elm$html$Html$th,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'text-align', 'left')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('Naam\u00A0\u00A0\u00A0')
+				])),
+			A2(
+			$elm$html$Html$th,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'text-align', 'center')
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text('\u00A0Score\u00A0')
+				]))
+		]));
+var $author$project$Highscores$viewHighscore = function (info) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'background-image', 'url(\'images/leeg.jpeg\')'),
+				A2($elm$html$Html$Attributes$style, 'background-size', '100%'),
+				A2($elm$html$Html$Attributes$style, 'height', '100%'),
+				A2($elm$html$Html$Attributes$style, 'color', 'white'),
+				A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+				A2($elm$html$Html$Attributes$style, 'font-size', '5cqh'),
+				A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+				A2($elm$html$Html$Attributes$style, 'width', '100%'),
+				A2($elm$html$Html$Attributes$style, 'text-shadow', '2px 2px 4px #000000')
+			]),
+		$author$project$Utils$rows(
+			_List_fromArray(
+				[
+					_Utils_Tuple3(
+					20,
+					_List_Nil,
+					_List_fromArray(
+						[
+							A2(
+							$elm$svg$Svg$svg,
+							_List_fromArray(
+								[
+									$elm$svg$Svg$Attributes$height('100%'),
+									$elm$svg$Svg$Attributes$width('0')
+								]),
+							_List_Nil)
+						])),
+					_Utils_Tuple3(
+					40,
+					_List_Nil,
+					$author$project$Utils$cols(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(37, _List_Nil),
+								_Utils_Tuple2(
+								20,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$table,
+										_List_Nil,
+										A2(
+											$elm$core$List$cons,
+											$author$project$Highscores$tableheaders,
+											$author$project$Highscores$tablebody(
+												A2(
+													$elm$core$Maybe$withDefault,
+													_List_Nil,
+													A2(
+														$elm$core$Dict$get,
+														$author$project$Types$fromSpelduur(info.huidig),
+														info.alle)))))
+									])),
+								_Utils_Tuple2(43, _List_Nil)
+							]))),
+					_Utils_Tuple3(10, _List_Nil, _List_Nil),
+					_Utils_Tuple3(
+					30,
+					_List_Nil,
+					$author$project$Utils$cols(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(37, _List_Nil),
+								_Utils_Tuple2(
+								20,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												A2($elm$html$Html$Attributes$style, 'text-align', 'center')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Jouw score: ' + '340')
+											]))
+									])),
+								_Utils_Tuple2(43, _List_Nil)
+							])))
+				])));
+};
 var $author$project$Types$LetterKopen = function (a) {
 	return {$: 'LetterKopen', a: a};
 };
@@ -10772,9 +14078,18 @@ var $author$project$Woordraden$viewWoord = function (status) {
 var $author$project$Main$view = F2(
 	function (_v0, model) {
 		switch (model.$) {
+			case 'InGame':
+				var status = model.a;
+				return $author$project$Hoofdspel$viewGame(status);
+			case 'Woordraden':
+				var status = model.a;
+				return $author$project$Woordraden$viewWoord(status);
+			case 'Afrekenen':
+				var status = model.a;
+				return $author$project$Afrekenen$viewAfrekenen(status);
 			case 'HomeScreen':
 				var status = model.a;
-				var _v2 = status.muziekstart;
+				var _v2 = status.introstart;
 				if (_v2.$ === 'Nothing') {
 					return A2(
 						$elm$html$Html$div,
@@ -10804,6 +14119,20 @@ var $author$project$Main$view = F2(
 												$elm$html$Html$Attributes$type_('video/mp4')
 											]),
 										_List_Nil)
+									])),
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'left', '50%'),
+										A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+										A2($elm$html$Html$Attributes$style, 'transform', 'translate(-50%, -70cqh)'),
+										A2($elm$html$Html$Attributes$style, 'font-size', '5cqh'),
+										$elm$html$Html$Events$onClick($author$project$Types$PlayAudio)
+									]),
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Klik om te beginnen')
 									]))
 							]));
 				} else {
@@ -10859,106 +14188,156 @@ var $author$project$Main$view = F2(
 						$author$project$Utils$rows(
 							_List_fromArray(
 								[
-									_Utils_Tuple3(30, _List_Nil, _List_Nil),
+									_Utils_Tuple3(15, _List_Nil, _List_Nil),
 									_Utils_Tuple3(
-									30,
+									5,
+									_List_Nil,
+									$author$project$Utils$cols(
+										_List_fromArray(
+											[
+												_Utils_Tuple2(38, _List_Nil),
+												_Utils_Tuple2(
+												10,
+												_List_fromArray(
+													[
+														A2(
+														$elm$html$Html$button,
+														_List_fromArray(
+															[
+																$elm$html$Html$Events$onClick($author$project$Types$GetHighscores),
+																A2($elm$html$Html$Attributes$style, 'height', '100%'),
+																A2($elm$html$Html$Attributes$style, 'width', '100%'),
+																A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(88, 88, 88, 1)'),
+																A2($elm$html$Html$Attributes$style, 'color', 'white'),
+																A2($elm$html$Html$Attributes$style, 'border', 'none'),
+																A2($elm$html$Html$Attributes$style, 'border-radius', '1cqh'),
+																A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
+																A2($elm$html$Html$Attributes$style, 'font-family', 'Lucida Sans'),
+																A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
+															]),
+														_List_fromArray(
+															[
+																$elm$html$Html$text('Highscores')
+															]))
+													])),
+												_Utils_Tuple2(45, _List_Nil)
+											]))),
+									_Utils_Tuple3(20, _List_Nil, _List_Nil),
+									_Utils_Tuple3(
+									20,
 									_List_fromArray(
 										[
 											A2($elm$html$Html$Attributes$style, 'color', 'white'),
 											A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
-											A2($elm$html$Html$Attributes$style, 'font-size', '5cqh'),
+											A2($elm$html$Html$Attributes$style, 'font-size', '3.5cqh'),
 											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-											A2($elm$html$Html$Attributes$style, 'width', '100%')
+											A2($elm$html$Html$Attributes$style, 'width', '100%'),
+											A2($elm$html$Html$Attributes$style, 'text-shadow', '2px 2px 4px #000000')
 										]),
-									_List_fromArray(
-										[
-											$elm$html$Html$text('Goeienavond, hartelijk welkom bij 2 voor 12.'),
-											A2($elm$html$Html$br, _List_Nil, _List_Nil),
-											$elm$html$Html$text('Vandaag spelen we met een nieuwe kandidaat.'),
-											A2($elm$html$Html$br, _List_Nil, _List_Nil),
-											$elm$html$Html$text('Wil je je voorstellen?')
-										])),
+									$author$project$Utils$cols(
+										_List_fromArray(
+											[
+												_Utils_Tuple2(10, _List_Nil),
+												_Utils_Tuple2(
+												80,
+												_List_fromArray(
+													[
+														$elm$html$Html$text('Goeienavond, hartelijk welkom bij 2 voor 12.'),
+														A2($elm$html$Html$br, _List_Nil, _List_Nil),
+														$elm$html$Html$text('Wil je je voorstellen?')
+													])),
+												_Utils_Tuple2(10, _List_Nil)
+											]))),
 									_Utils_Tuple3(
 									10,
-									_List_fromArray(
-										[
-											A2($elm$html$Html$Attributes$style, 'left', '50%'),
-											A2($elm$html$Html$Attributes$style, 'font-size', '4cqh')
-										]),
-									_List_fromArray(
-										[
-											A2(
-											$elm$html$Html$input,
-											_List_fromArray(
-												[
-													$elm$html$Html$Attributes$placeholder('naam'),
-													$elm$html$Html$Attributes$value(status.username),
-													$elm$html$Html$Events$onInput($author$project$Types$Answer)
-												]),
-											_List_Nil)
-										])),
-									_Utils_Tuple3(
-									30,
 									_List_Nil,
-									function () {
-										var _v3 = _Utils_Tuple2(
-											status.username,
-											A2(
-												$elm$core$Maybe$andThen,
-												$elm$core$Dict$get(status.username),
-												status.thesheet));
-										if (_v3.a === '') {
-											return _List_fromArray(
-												[
-													$elm$html$Html$text('')
-												]);
-										} else {
-											if (_v3.b.$ === 'Nothing') {
-												var _v4 = _v3.b;
-												return status.waiting ? _List_fromArray(
-													[
-														$elm$html$Html$text('Je staat op de wachtrij, er zijn nog 3586 kandidaten voor je. (Dit kan 10-20 seconden duren)')
-													]) : _List_fromArray(
+									$author$project$Utils$cols(
+										_List_fromArray(
+											[
+												_Utils_Tuple2(38, _List_Nil),
+												_Utils_Tuple2(
+												7,
+												_List_fromArray(
 													[
 														A2(
-														$elm$html$Html$button,
+														$elm$html$Html$input,
 														_List_fromArray(
 															[
-																$elm$html$Html$Events$onClick($author$project$Types$StartGame)
+																$elm$html$Html$Attributes$placeholder('naam'),
+																$elm$html$Html$Attributes$value(status.username),
+																$elm$html$Html$Events$onInput($author$project$Types$Answer),
+																A2($elm$html$Html$Attributes$style, 'height', '100%'),
+																A2($elm$html$Html$Attributes$style, 'padding', '0cqh 2cqh'),
+																A2($elm$html$Html$Attributes$style, 'font-size', '3cqh')
 															]),
+														_List_Nil)
+													])),
+												_Utils_Tuple2(3, _List_Nil),
+												_Utils_Tuple2(
+												14,
+												function () {
+													var styles = _Utils_ap(
 														_List_fromArray(
 															[
-																$elm$html$Html$text('Schrijf je in')
-															]))
-													]);
-											} else {
-												return _List_fromArray(
-													[
+																$elm$html$Html$Events$onClick($author$project$Types$StartGame),
+																A2($elm$html$Html$Attributes$style, 'height', '70%'),
+																A2($elm$html$Html$Attributes$style, 'background-color', 'rgb(227, 7, 20)'),
+																A2($elm$html$Html$Attributes$style, 'color', 'white'),
+																A2($elm$html$Html$Attributes$style, 'border', 'none'),
+																A2($elm$html$Html$Attributes$style, 'border-radius', '1cqh'),
+																A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
+																A2($elm$html$Html$Attributes$style, 'font-family', 'Lucida Sans'),
+																A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
+															]),
+														$author$project$Utils$centeringstuff);
+													var _v3 = _Utils_Tuple2(
+														status.username,
 														A2(
-														$elm$html$Html$button,
-														_List_fromArray(
+															$elm$core$Maybe$andThen,
+															$elm$core$Dict$get(status.username),
+															status.thesheet));
+													if (_v3.a === '') {
+														return _List_fromArray(
 															[
-																$elm$html$Html$Events$onClick($author$project$Types$StartGame)
-															]),
-														_List_fromArray(
-															[
-																$elm$html$Html$text('Begin het spel!')
-															]))
-													]);
-											}
-										}
-									}())
+																$elm$html$Html$text('')
+															]);
+													} else {
+														if (_v3.b.$ === 'Nothing') {
+															var _v4 = _v3.b;
+															return status.waiting ? _List_fromArray(
+																[
+																	$elm$html$Html$text('Je staat op de wachtrij, er zijn nog 3586 kandidaten voor je. (Dit kan 10-20 seconden duren)')
+																]) : _List_fromArray(
+																[
+																	A2(
+																	$elm$html$Html$button,
+																	styles,
+																	_List_fromArray(
+																		[
+																			$elm$html$Html$text('\u00A0Schrijf je in!\u00A0')
+																		]))
+																]);
+														} else {
+															return _List_fromArray(
+																[
+																	A2(
+																	$elm$html$Html$button,
+																	styles,
+																	_List_fromArray(
+																		[
+																			$elm$html$Html$text('\u00A0Begin het spel!\u00A0')
+																		]))
+																]);
+														}
+													}
+												}()),
+												_Utils_Tuple2(38, _List_Nil)
+											])))
 								])));
 				}
-			case 'InGame':
-				var status = model.a;
-				return $author$project$Hoofdspel$viewGame(status);
-			case 'Woordraden':
-				var status = model.a;
-				return $author$project$Woordraden$viewWoord(status);
 			default:
 				var status = model.a;
-				return $author$project$Afrekenen$viewAfrekenen(status);
+				return $author$project$Highscores$viewHighscore(status);
 		}
 	});
 var $author$project$Main$main = $MartinSStewart$elm_audio$Audio$elementWithAudio(
