@@ -113,9 +113,10 @@ wiki status = rows
       [ (30, [style "height" "100%"], [button ([onClick StartStopWiki,  style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) 
             (if status.searching then [text "\u{00A0}\u{1F514}\u{00A0}Bellen!\u{00A0}\u{1F514}\u{00A0}"]
                                  else if status.questionNumber == 8
-                                      then case Dict.get 8 status.data.antwoorden of
-                                        Nothing -> []
-                                        Just str -> [text str]  --[text "\u{00A0}Paardensprong bekijken\u{00A0}"]
+                                      then [text "\u{00A0}Paardensprong bekijken\u{00A0}"]
+                                        -- case Dict.get 8 status.data.antwoorden of
+                                        -- Nothing -> []
+                                        -- Just str -> [text str]  --
                                       else [text "\u{00A0}Dat zoeken we op!\u{00A0}"])])
       , (30, [style "height" "100%"], [button ([onClick NaarWoordraden, style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) [text "\u{00A0}Beginnen met het woord\u{00A0}"]])
       ])
@@ -140,13 +141,13 @@ wiki status = rows
 
 paardensprong : HoofdStatus -> List (Html Msg)
 paardensprong status = 
-  let -- todo: random
-      klokmee = Tuple.first status.data.paardsprongrng -- 1 of -1
+  let klokmee = Tuple.first status.data.paardsprongrng -- 1 of -1
       startplek = Tuple.second status.data.paardsprongrng -- int tussen 1 en 8 (inclusief)
       sprongwoord = String.toUpper (
         case Dict.get 8 status.data.antwoorden of
           Nothing -> "Error"
-          Just str -> str)
+          Just str -> str
+        )
       f i = let ix = 8 + startplek + i * klokmee - 1 in String.slice ix (ix+1) (sprongwoord ++ sprongwoord ++ sprongwoord)
   in
   [ Svg.svg ([Svg.width "62cqh", Svg.height "62cqh", Svg.viewBox "0 0 62cqh 62cqh"] ++ centeringstuff)
@@ -162,7 +163,7 @@ paardensprong status =
     ] ++ -- Svg.rect [Svg.fill "#555555", Svg.opacity "40%", Svg.x "38%",   Svg.y "37%", Svg.width "23.5%", Svg.height "23.5%"] (
         case status.paardensprongbegintijd of
           Nothing -> []
-          Just psbt -> if Time.posixToMillis status.currentTime - Time.posixToMillis psbt >= 30000 then [] else (klokje "50%" (Time.posixToMillis status.currentTime - Time.posixToMillis psbt))
+          Just psbt -> if Time.posixToMillis status.currentTime - Time.posixToMillis psbt >= 30000 then [] else (klokje "50%" (Time.posixToMillis psbt - Time.posixToMillis status.currentTime))
     )
   ]
 

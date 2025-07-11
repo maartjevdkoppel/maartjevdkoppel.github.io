@@ -59,7 +59,7 @@ woordupdate2 status i letter correct target =
               ) else Zwart, 0, False)
             ) 
             status.koopbaar
-        , gekocht = List.Extra.updateAt (target-1) 
+        , gekocht = List.Extra.updateAt (target - 1) 
             (\old -> 
               case old of
                 Wit -> if correct 

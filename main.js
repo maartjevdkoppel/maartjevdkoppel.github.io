@@ -4708,7 +4708,25 @@ var $elm$core$Set$toList = function (_v0) {
 var $elm$core$Basics$EQ = {$: 'EQ'};
 var $elm$core$Basics$GT = {$: 'GT'};
 var $elm$core$Basics$LT = {$: 'LT'};
+var $elm$core$Maybe$Just = function (a) {
+	return {$: 'Just', a: a};
+};
 var $elm$core$Maybe$Nothing = {$: 'Nothing'};
+var $elm$core$Basics$add = _Basics_add;
+var $elm$core$Basics$and = _Basics_and;
+var $elm$core$Maybe$andThen = F2(
+	function (callback, maybeValue) {
+		if (maybeValue.$ === 'Just') {
+			var value = maybeValue.a;
+			return callback(value);
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm$core$Basics$apR = F2(
+	function (x, f) {
+		return f(x);
+	});
 var $elm$core$Basics$identity = function (x) {
 	return x;
 };
@@ -4729,11 +4747,32 @@ var $MartinSStewart$elm_audio$Audio$audio = F2(
 	function (source, startTime) {
 		return A3($MartinSStewart$elm_audio$Audio$audioWithConfig, $MartinSStewart$elm_audio$Audio$audioDefaultConfig, source, startTime);
 	});
+var $elm$core$Basics$eq = _Utils_equal;
 var $MartinSStewart$elm_audio$Audio$Group = function (a) {
 	return {$: 'Group', a: a};
 };
 var $MartinSStewart$elm_audio$Audio$group = function (audios) {
 	return $MartinSStewart$elm_audio$Audio$Group(audios);
+};
+var $elm$core$Basics$gt = _Utils_gt;
+var $elm$core$Basics$lt = _Utils_lt;
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm$time$Time$Posix = function (a) {
+	return {$: 'Posix', a: a};
+};
+var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
+var $elm$time$Time$posixToMillis = function (_v0) {
+	var millis = _v0.a;
+	return millis;
 };
 var $MartinSStewart$elm_audio$Audio$Effect = function (a) {
 	return {$: 'Effect', a: a};
@@ -4741,7 +4780,6 @@ var $MartinSStewart$elm_audio$Audio$Effect = function (a) {
 var $MartinSStewart$elm_audio$Audio$ScaleVolume = function (a) {
 	return {$: 'ScaleVolume', a: a};
 };
-var $elm$core$Basics$gt = _Utils_gt;
 var $elm$core$Basics$max = F2(
 	function (x, y) {
 		return (_Utils_cmp(x, y) > 0) ? x : y;
@@ -4760,60 +4798,67 @@ var $MartinSStewart$elm_audio$Audio$scaleVolume = F2(
 var $MartinSStewart$elm_audio$Audio$silence = $MartinSStewart$elm_audio$Audio$group(_List_Nil);
 var $author$project$Main$audio = F2(
 	function (_v0, model) {
+		var maybeplay = function (x) {
+			if (x.$ === 'Nothing') {
+				return $MartinSStewart$elm_audio$Audio$silence;
+			} else {
+				var _v3 = x.a;
+				var muziek = _v3.a;
+				var tijd = _v3.b;
+				return A2($MartinSStewart$elm_audio$Audio$audio, muziek, tijd);
+			}
+		};
 		_v1$3:
 		while (true) {
 			switch (model.$) {
 				case 'InGame':
 					var status = model.a;
-					var _v2 = status.muziek.tik;
-					if (_v2.$ === 'Nothing') {
-						return $MartinSStewart$elm_audio$Audio$silence;
-					} else {
-						var muziek = _v2.a;
-						return status.searching ? A2($MartinSStewart$elm_audio$Audio$audio, muziek, status.recentstetik) : $MartinSStewart$elm_audio$Audio$silence;
-					}
-				case 'Woordraden':
-					var status = model.a;
-					var audio2 = function () {
-						var _v5 = status.kooptik;
-						if (_v5.$ === 'Nothing') {
-							return $MartinSStewart$elm_audio$Audio$silence;
-						} else {
-							var _v6 = _v5.a;
-							var muziek = _v6.a;
-							var tijd = _v6.b;
-							return A2($MartinSStewart$elm_audio$Audio$audio, muziek, tijd);
-						}
-					}();
-					var audio1 = function () {
-						var _v3 = status.muziek;
-						if (_v3.$ === 'Nothing') {
-							return $MartinSStewart$elm_audio$Audio$silence;
-						} else {
-							var _v4 = _v3.a;
-							var muziek = _v4.a;
-							var tijd = _v4.b;
-							return A2(
-								$MartinSStewart$elm_audio$Audio$scaleVolume,
-								0.2,
-								A2($MartinSStewart$elm_audio$Audio$audio, muziek, tijd));
-						}
-					}();
 					return $MartinSStewart$elm_audio$Audio$group(
 						_List_fromArray(
-							[audio1, audio2]));
+							[
+								maybeplay(
+								A2(
+									$elm$core$Maybe$map,
+									function (x) {
+										return _Utils_Tuple2(x, status.recentstetik);
+									},
+									status.muziek.tik)),
+								maybeplay(
+								A2(
+									$elm$core$Maybe$andThen,
+									function (bel) {
+										return A2(
+											$elm$core$Maybe$andThen,
+											function (psbt) {
+												return ((status.questionNumber === 8) && ((_Utils_cmp(
+													$elm$time$Time$posixToMillis(status.currentTime),
+													30000 + $elm$time$Time$posixToMillis(psbt)) > 0) && (_Utils_cmp(
+													$elm$time$Time$posixToMillis(status.currentTime),
+													31000 + $elm$time$Time$posixToMillis(psbt)) < 0))) ? $elm$core$Maybe$Just(
+													_Utils_Tuple2(
+														bel,
+														$elm$time$Time$millisToPosix(
+															30000 + $elm$time$Time$posixToMillis(psbt)))) : $elm$core$Maybe$Nothing;
+											},
+											status.paardensprongbegintijd);
+									},
+									status.muziek.psbel))
+							]));
+				case 'Woordraden':
+					var status = model.a;
+					return $MartinSStewart$elm_audio$Audio$group(
+						_List_fromArray(
+							[
+								A2(
+								$MartinSStewart$elm_audio$Audio$scaleVolume,
+								0.2,
+								maybeplay(status.muziek)),
+								maybeplay(status.kooptik)
+							]));
 				case 'Afrekenen':
 					if (model.a.$ === 'Verlies') {
 						var info = model.a.a;
-						var _v7 = info.faalstart;
-						if (_v7.$ === 'Nothing') {
-							return $MartinSStewart$elm_audio$Audio$silence;
-						} else {
-							var _v8 = _v7.a;
-							var muziek = _v8.a;
-							var tijd = _v8.b;
-							return A2($MartinSStewart$elm_audio$Audio$audio, muziek, tijd);
-						}
+						return maybeplay(info.faalstart);
 					} else {
 						break _v1$3;
 					}
@@ -4845,12 +4890,7 @@ var $elm$json$Json$Decode$OneOf = function (a) {
 	return {$: 'OneOf', a: a};
 };
 var $elm$core$Basics$False = {$: 'False'};
-var $elm$core$Basics$add = _Basics_add;
-var $elm$core$Maybe$Just = function (a) {
-	return {$: 'Just', a: a};
-};
 var $elm$core$String$all = _String_all;
-var $elm$core$Basics$and = _Basics_and;
 var $elm$core$Basics$append = _Utils_append;
 var $elm$json$Json$Encode$encode = _Json_encode;
 var $elm$core$String$fromInt = _String_fromNumber;
@@ -5087,11 +5127,6 @@ var $elm$core$Basics$apL = F2(
 	function (f, x) {
 		return f(x);
 	});
-var $elm$core$Basics$apR = F2(
-	function (x, f) {
-		return f(x);
-	});
-var $elm$core$Basics$eq = _Utils_equal;
 var $elm$core$Basics$floor = _Basics_floor;
 var $elm$core$Elm$JsArray$length = _JsArray_length;
 var $elm$core$Basics$mul = _Basics_mul;
@@ -5165,7 +5200,6 @@ var $elm$core$Array$builderToArray = F2(
 		}
 	});
 var $elm$core$Basics$idiv = _Basics_idiv;
-var $elm$core$Basics$lt = _Utils_lt;
 var $elm$core$Array$initializeHelp = F5(
 	function (fn, fromIndex, len, nodeList, tail) {
 		initializeHelp:
@@ -5560,14 +5594,6 @@ var $ianmackenzie$elm_units$Duration$inSeconds = function (_v0) {
 };
 var $ianmackenzie$elm_units$Duration$inMilliseconds = function (duration) {
 	return $ianmackenzie$elm_units$Duration$inSeconds(duration) * 1000;
-};
-var $elm$time$Time$Posix = function (a) {
-	return {$: 'Posix', a: a};
-};
-var $elm$time$Time$millisToPosix = $elm$time$Time$Posix;
-var $elm$time$Time$posixToMillis = function (_v0) {
-	var millis = _v0.a;
-	return millis;
 };
 var $elm$core$Basics$round = _Basics_round;
 var $ianmackenzie$elm_units$Duration$addTo = F2(
@@ -7521,16 +7547,6 @@ var $author$project$Database$maakvolgorde = A2(
 		$elm$core$List$sortWith(
 			A2($author$project$Utils$on, $author$project$Utils$cmpmb, $elm$core$Tuple$second))),
 	$elm_community$list_extra$List$Extra$zip($author$project$Utils$twelve));
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
 var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
@@ -7795,12 +7811,12 @@ var $author$project$Database$readSpreadsheet = function (oauth) {
 			url: $author$project$Database$url('mensen')
 		});
 };
-var $author$project$Main$staatdespreadsheetaan = true;
+var $author$project$Main$staatdespreadsheetaan = false;
 var $author$project$Main$init = function (oauthtoken) {
 	return _Utils_Tuple3(
 		$author$project$Main$HomeScreen(
 			{
-				muziek: {faal: $elm$core$Maybe$Nothing, raden: $elm$core$Maybe$Nothing, tik: $elm$core$Maybe$Nothing, tune: $elm$core$Maybe$Nothing},
+				muziek: {faal: $elm$core$Maybe$Nothing, psbel: $elm$core$Maybe$Nothing, psmuziek: $elm$core$Maybe$Nothing, raden: $elm$core$Maybe$Nothing, tik: $elm$core$Maybe$Nothing, tune: $elm$core$Maybe$Nothing, wikibel: $elm$core$Maybe$Nothing},
 				muziekstart: $elm$core$Maybe$Nothing,
 				now: $elm$time$Time$millisToPosix(0),
 				oauth: oauthtoken,
@@ -8052,10 +8068,12 @@ var $author$project$Main$InGame = function (a) {
 	return {$: 'InGame', a: a};
 };
 var $author$project$Main$Play = {$: 'Play'};
+var $author$project$Types$StartStopWiki = {$: 'StartStopWiki'};
 var $author$project$Types$Submit = {$: 'Submit'};
 var $author$project$Afrekenen$Verlies = function (a) {
 	return {$: 'Verlies', a: a};
 };
+var $author$project$Main$VolumeDown = {$: 'VolumeDown'};
 var $author$project$Afrekenen$Win = function (a) {
 	return {$: 'Win', a: a};
 };
@@ -8960,7 +8978,17 @@ var $author$project$Main$update = F3(
 									{
 										muziekstart: $elm$core$Maybe$Just(status.now)
 									})),
-							$author$project$Main$pushVideoEvent($author$project$Main$Play),
+							$elm$core$Platform$Cmd$batch(
+								_List_fromArray(
+									[
+										$author$project$Main$pushVideoEvent($author$project$Main$Play),
+										A2(
+										$elm$core$Task$perform,
+										function (_v9) {
+											return $author$project$Types$StartStopWiki;
+										},
+										$elm$core$Process$sleep(16000))
+									])),
 							$MartinSStewart$elm_audio$Audio$cmdBatch(
 								_List_fromArray(
 									[
@@ -8979,14 +9007,26 @@ var $author$project$Main$update = F3(
 										A2(
 										$MartinSStewart$elm_audio$Audio$loadAudio,
 										$author$project$Types$soundloaded('faal'),
-										'https://maartjevdkoppel.github.io/audio/woord-faal.mp3')
+										'https://maartjevdkoppel.github.io/audio/woord-faal.mp3'),
+										A2(
+										$MartinSStewart$elm_audio$Audio$loadAudio,
+										$author$project$Types$soundloaded('psmuziek'),
+										'https://maartjevdkoppel.github.io/audio/paardensprong-muziek.mp3'),
+										A2(
+										$MartinSStewart$elm_audio$Audio$loadAudio,
+										$author$project$Types$soundloaded('psbel'),
+										'https://maartjevdkoppel.github.io/audio/paardensprong-tijd-op.mp3'),
+										A2(
+										$MartinSStewart$elm_audio$Audio$loadAudio,
+										$author$project$Types$soundloaded('wikibel'),
+										'https://maartjevdkoppel.github.io/audio/stop-zoeken.mp3')
 									])));
 					case 'SoundLoaded':
 						var result = msg.a;
 						if (result.$ === 'Ok') {
-							var _v10 = result.a;
-							var sound = _v10.a;
-							var id = _v10.b;
+							var _v11 = result.a;
+							var sound = _v11.a;
+							var id = _v11.b;
 							var x = status.muziek;
 							return _Utils_Tuple3(
 								$author$project$Main$HomeScreen(
@@ -9019,6 +9059,24 @@ var $author$project$Main$update = F3(
 															{
 																faal: $elm$core$Maybe$Just(sound)
 															});
+													case 'psmuziek':
+														return _Utils_update(
+															x,
+															{
+																psmuziek: $elm$core$Maybe$Just(sound)
+															});
+													case 'psbel':
+														return _Utils_update(
+															x,
+															{
+																psbel: $elm$core$Maybe$Just(sound)
+															});
+													case 'wikibel':
+														return _Utils_update(
+															x,
+															{
+																wikibel: $elm$core$Maybe$Just(sound)
+															});
 													default:
 														return status.muziek;
 												}
@@ -9029,6 +9087,19 @@ var $author$project$Main$update = F3(
 						} else {
 							return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
 						}
+					case 'StartStopWiki':
+						return _Utils_Tuple3(
+							model,
+							$elm$core$Platform$Cmd$batch(
+								_List_fromArray(
+									[
+										$author$project$Main$pushVideoEvent($author$project$Main$VolumeDown),
+										$author$project$Main$pushVideoEvent($author$project$Main$VolumeDown),
+										$author$project$Main$pushVideoEvent($author$project$Main$VolumeDown),
+										$author$project$Main$pushVideoEvent($author$project$Main$VolumeDown),
+										$author$project$Main$pushVideoEvent($author$project$Main$VolumeDown)
+									])),
+							$MartinSStewart$elm_audio$Audio$cmdNone);
 					default:
 						return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
 				}
@@ -9074,9 +9145,9 @@ var $author$project$Main$update = F3(
 					case 'SoundLoaded':
 						var result = msg.a;
 						if (result.$ === 'Ok') {
-							var _v14 = result.a;
-							var sound = _v14.a;
-							var id = _v14.b;
+							var _v15 = result.a;
+							var sound = _v15.a;
+							var id = _v15.b;
 							var x = status.muziek;
 							return _Utils_Tuple3(
 								$author$project$Main$InGame(
@@ -9103,6 +9174,30 @@ var $author$project$Main$update = F3(
 															{
 																raden: $elm$core$Maybe$Just(sound)
 															});
+													case 'faal':
+														return _Utils_update(
+															x,
+															{
+																faal: $elm$core$Maybe$Just(sound)
+															});
+													case 'psmuziek':
+														return _Utils_update(
+															x,
+															{
+																psmuziek: $elm$core$Maybe$Just(sound)
+															});
+													case 'psbel':
+														return _Utils_update(
+															x,
+															{
+																psbel: $elm$core$Maybe$Just(sound)
+															});
+													case 'wikibel':
+														return _Utils_update(
+															x,
+															{
+																wikibel: $elm$core$Maybe$Just(sound)
+															});
 													default:
 														return status.muziek;
 												}
@@ -9117,9 +9212,9 @@ var $author$project$Main$update = F3(
 								$MartinSStewart$elm_audio$Audio$cmdNone);
 						}
 					default:
-						var _v16 = A2($author$project$Hoofdspel$hoofdupdate, msg, status);
-						var status2 = _v16.a;
-						var cmd2 = _v16.b;
+						var _v17 = A2($author$project$Hoofdspel$hoofdupdate, msg, status);
+						var status2 = _v17.a;
+						var cmd2 = _v17.b;
 						return _Utils_Tuple3(
 							$author$project$Main$InGame(status2),
 							cmd2,
@@ -9139,7 +9234,7 @@ var $author$project$Main$update = F3(
 								$elm$time$Time$posixToMillis(newtime),
 								$elm$time$Time$posixToMillis(status.timeTheGameEnds)) > 0) ? A2(
 								$elm$core$Task$perform,
-								function (_v18) {
+								function (_v19) {
 									return $author$project$Types$Submit;
 								},
 								$elm$core$Task$succeed(_Utils_Tuple0)) : $elm$core$Platform$Cmd$none,
@@ -9153,17 +9248,17 @@ var $author$project$Main$update = F3(
 										fout: $elm$core$List$length(
 											A2(
 												$elm$core$List$filter,
-												function (_v19) {
-													var b = _v19.c;
+												function (_v20) {
+													var b = _v20.c;
 													return !b;
 												},
 												status.koopbaar)),
 										uithethoofd: $elm$core$List$sum(
 											A2(
 												$elm$core$List$map,
-												function (_v20) {
-													var l1 = _v20.a;
-													var b = _v20.c;
+												function (_v21) {
+													var l1 = _v21.a;
+													var b = _v21.c;
 													switch (l1.$) {
 														case 'UitHetHoofd':
 															return b ? 1 : 0;
@@ -9209,15 +9304,6 @@ var $author$project$Types$Answer = function (a) {
 };
 var $author$project$Types$PlayAudio = {$: 'PlayAudio'};
 var $author$project$Types$StartGame = {$: 'StartGame'};
-var $elm$core$Maybe$andThen = F2(
-	function (callback, maybeValue) {
-		if (maybeValue.$ === 'Just') {
-			var value = maybeValue.a;
-			return callback(value);
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
 var $elm$html$Html$br = _VirtualDom_node('br');
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $elm$html$Html$div = _VirtualDom_node('div');
@@ -9230,6 +9316,7 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 	});
 var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$input = _VirtualDom_node('input');
+var $author$project$Main$intro = false;
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -10043,7 +10130,6 @@ var $author$project$Hoofdspel$vraagbox = function (status) {
 						])))
 			]));
 };
-var $author$project$Types$StartStopWiki = {$: 'StartStopWiki'};
 var $elm$html$Html$embed = _VirtualDom_node('embed');
 var $author$project$Hoofdspel$paardensprong = function (status) {
 	var startplek = status.data.paardsprongrng.b;
@@ -10336,7 +10422,7 @@ var $author$project$Hoofdspel$paardensprong = function (status) {
 						return (($elm$time$Time$posixToMillis(status.currentTime) - $elm$time$Time$posixToMillis(psbt)) >= 30000) ? _List_Nil : A2(
 							$author$project$Letters$klokje,
 							'50%',
-							$elm$time$Time$posixToMillis(status.currentTime) - $elm$time$Time$posixToMillis(psbt));
+							$elm$time$Time$posixToMillis(psbt) - $elm$time$Time$posixToMillis(status.currentTime));
 					}
 				}()))
 		]);
@@ -10375,32 +10461,16 @@ var $author$project$Hoofdspel$wiki = function (status) {
 												A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
 											]),
 										$author$project$Utils$centeringstuff),
-									function () {
-										if (status.searching) {
-											return _List_fromArray(
-												[
-													$elm$html$Html$text('\u00A0\uD83D\uDD14\u00A0Bellen!\u00A0\uD83D\uDD14\u00A0')
-												]);
-										} else {
-											if (status.questionNumber === 8) {
-												var _v0 = A2($elm$core$Dict$get, 8, status.data.antwoorden);
-												if (_v0.$ === 'Nothing') {
-													return _List_Nil;
-												} else {
-													var str = _v0.a;
-													return _List_fromArray(
-														[
-															$elm$html$Html$text(str)
-														]);
-												}
-											} else {
-												return _List_fromArray(
-													[
-														$elm$html$Html$text('\u00A0Dat zoeken we op!\u00A0')
-													]);
-											}
-										}
-									}())
+									status.searching ? _List_fromArray(
+										[
+											$elm$html$Html$text('\u00A0\uD83D\uDD14\u00A0Bellen!\u00A0\uD83D\uDD14\u00A0')
+										]) : ((status.questionNumber === 8) ? _List_fromArray(
+										[
+											$elm$html$Html$text('\u00A0Paardensprong bekijken\u00A0')
+										]) : _List_fromArray(
+										[
+											$elm$html$Html$text('\u00A0Dat zoeken we op!\u00A0')
+										])))
 								])),
 							_Utils_Tuple3(
 							30,
@@ -10443,15 +10513,15 @@ var $author$project$Hoofdspel$wiki = function (status) {
 							90,
 							function () {
 								if (status.questionNumber === 8) {
-									var _v1 = _Utils_Tuple2(status.searching, status.paardensprongbegintijd);
-									if (_v1.a) {
+									var _v0 = _Utils_Tuple2(status.searching, status.paardensprongbegintijd);
+									if (_v0.a) {
 										return $author$project$Hoofdspel$paardensprong(status);
 									} else {
-										if (_v1.b.$ === 'Nothing') {
-											var _v2 = _v1.b;
+										if (_v0.b.$ === 'Nothing') {
+											var _v1 = _v0.b;
 											return _List_Nil;
 										} else {
-											var psbt = _v1.b.a;
+											var psbt = _v0.b.a;
 											return (($elm$time$Time$posixToMillis(status.currentTime) - $elm$time$Time$posixToMillis(psbt)) <= 30000) ? $author$project$Hoofdspel$paardensprong(status) : _List_Nil;
 										}
 									}
@@ -10739,7 +10809,9 @@ var $author$project$Main$view = F2(
 				} else {
 					var ms = _v2.a;
 					var millisdiff = $elm$time$Time$posixToMillis(status.now) - $elm$time$Time$posixToMillis(ms);
-					return (millisdiff <= 18000) ? A2(
+					return (_Utils_cmp(
+						millisdiff,
+						$author$project$Main$intro ? 18000 : 10) < 1) ? A2(
 						$elm$html$Html$div,
 						_List_fromArray(
 							[

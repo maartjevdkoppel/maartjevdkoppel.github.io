@@ -29,7 +29,9 @@ port confetti : Json.Encode.Value -> Cmd msg
 
 
 staatdespreadsheetaan : Bool
-staatdespreadsheetaan = True
+staatdespreadsheetaan = False
+intro : Bool
+intro = False
 
 -- MAIN
 
@@ -57,7 +59,16 @@ type Model = HomeScreen {now : Time.Posix, thesheet : Maybe Vraagsheet, username
 
 init : String -> (Model, Cmd Msg, Audio.AudioCmd Msg)
 init oauthtoken =
-  ( HomeScreen { now = Time.millisToPosix 0, thesheet = Nothing, username = "", oauth = oauthtoken, waiting = False, muziek = {tune=Nothing, tik=Nothing, raden=Nothing, faal = Nothing}, muziekstart = Nothing }
+  ( HomeScreen { now = Time.millisToPosix 0, thesheet = Nothing, username = "", oauth = oauthtoken, waiting = False, muziekstart = Nothing
+               , muziek = { tune=Nothing
+                          , tik=Nothing
+                          , raden=Nothing
+                          , faal = Nothing
+                          , psmuziek = Nothing
+                          , psbel = Nothing
+                          , wikibel = Nothing
+                          }
+               }
   , Cmd.batch [ Task.perform Tick Time.now
               , pushVideoEvent Setup
               , if staatdespreadsheetaan then readSpreadsheet oauthtoken else Cmd.none
@@ -93,26 +104,37 @@ update _ msg model =
         Err e -> (HomeScreen {status | username = "Error adding user" }, Cmd.none, Audio.cmdNone)
       Answer naam -> (HomeScreen {status | username = naam}, Cmd.none, Audio.cmdNone)
       PlayAudio -> (HomeScreen {status | muziekstart = Just status.now}
-                   , pushVideoEvent Play
+                   , Cmd.batch 
+                      [ pushVideoEvent Play
+                      , Process.sleep 16000 |> Task.perform (\() -> StartStopWiki)
+                      ]
                    , Audio.cmdBatch 
                       [ Audio.loadAudio (soundloaded "tune")  "https://maartjevdkoppel.github.io/audio/tune.mp3"
                       , Audio.loadAudio (soundloaded "tik")   "https://maartjevdkoppel.github.io/audio/tik.mp3"
                       , Audio.loadAudio (soundloaded "raden") "https://maartjevdkoppel.github.io/audio/woordraad.mp3"
                       , Audio.loadAudio (soundloaded "faal")  "https://maartjevdkoppel.github.io/audio/woord-faal.mp3"
+                      , Audio.loadAudio (soundloaded "psmuziek")  "https://maartjevdkoppel.github.io/audio/paardensprong-muziek.mp3"
+                      , Audio.loadAudio (soundloaded "psbel")  "https://maartjevdkoppel.github.io/audio/paardensprong-tijd-op.mp3"
+                      , Audio.loadAudio (soundloaded "wikibel")  "https://maartjevdkoppel.github.io/audio/stop-zoeken.mp3"
                       ]
                    )
       SoundLoaded result -> case result of
         Ok (sound, id) -> let x = status.muziek in (HomeScreen {status | muziek = case id of
-            "tune" ->  {x | tune  = Just sound} 
-            "tik" ->   {x | tik   = Just sound}
-            "raden" -> {x | raden = Just sound}
-            "faal" ->  {x | faal  = Just sound}
+            "tune" ->     {x | tune  = Just sound} 
+            "tik" ->      {x | tik   = Just sound}
+            "raden" ->    {x | raden = Just sound}
+            "faal" ->     {x | faal  = Just sound}
+            "psmuziek" -> {x | psmuziek = Just sound}
+            "psbel" ->    {x | psbel =    Just sound}
+            "wikibel" ->  {x | wikibel =  Just sound}
             _ -> status.muziek
           -- , muziekstart = case id of
           --   "tune" -> status.now
           --   _ -> status.muziekstart
           }, Cmd.none, Audio.cmdNone)
         _ -> (model, Cmd.none, Audio.cmdNone)
+      StartStopWiki -> -- dit is natuurlijk onzin hier, wordt gebruikt als proxy voor volume down
+        (model, Cmd.batch [pushVideoEvent VolumeDown, pushVideoEvent VolumeDown, pushVideoEvent VolumeDown, pushVideoEvent VolumeDown, pushVideoEvent VolumeDown], Audio.cmdNone)
       _ -> (model, Cmd.none, Audio.cmdNone)
 
     InGame status -> case msg of
@@ -131,9 +153,13 @@ update _ msg model =
         }, Cmd.none, Audio.cmdNone)
       SoundLoaded result -> case result of
         Ok (sound, id) -> let x = status.muziek in (InGame {status | muziek = case id of
-            "tune" ->  {x | tune  = Just sound} 
-            "tik" ->   {x | tik   = Just sound}
-            "raden" -> {x | raden = Just sound}
+            "tune" ->     {x | tune  = Just sound} 
+            "tik" ->      {x | tik   = Just sound}
+            "raden" ->    {x | raden = Just sound}
+            "faal" ->     {x | faal  = Just sound}
+            "psmuziek" -> {x | psmuziek = Just sound}
+            "psbel" ->    {x | psbel =    Just sound}
+            "wikibel" ->  {x | wikibel =  Just sound}
             _ -> status.muziek
           }, Cmd.none, Audio.cmdNone)
         _ -> (InGame status, Cmd.none, Audio.cmdNone)
@@ -174,7 +200,7 @@ view _ model =
       Nothing ->
         div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] [video [ id "media-video", style "width" "100%", onClick PlayAudio ] [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]]
       Just ms -> let millisdiff = Time.posixToMillis status.now - Time.posixToMillis ms in
-        if millisdiff <= 18000 
+        if millisdiff <= if intro then 18000 else 10 
         then
           div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] [video [ id "media-video", onClick PlayAudio, style "width" "100%", style "opacity" (String.fromInt (Basics.max ((16000-(Basics.max 15000 millisdiff)) // 10) 0) ++ "%")] [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]]
         else
@@ -197,26 +223,29 @@ view _ model =
     Afrekenen status -> viewAfrekenen status
 
 -- AUDIO
-audio _ model = case model of
+audio _ model = 
+  let maybeplay x = case x of
+        Nothing -> Audio.silence
+        Just (muziek,tijd) -> Audio.audio muziek tijd
+  in case model of
   -- HomeScreen status -> case status.muziek.tune of
   --   Nothing -> Audio.silence
   --   Just muziek -> Audio.audio muziek status.muziekstart 
-  InGame status -> case status.muziek.tik of
-    Nothing -> Audio.silence
-    Just muziek -> if status.searching 
-      then Audio.audio muziek status.recentstetik
-      else Audio.silence
-  Woordraden status -> 
-    let audio1 = case status.muziek of
-          Nothing -> Audio.silence
-          Just (muziek, tijd) -> Audio.scaleVolume 0.2 (Audio.audio muziek tijd)
-        audio2 = case status.kooptik of
-          Nothing -> Audio.silence
-          Just (muziek, tijd) -> Audio.audio muziek tijd
-    in Audio.group [audio1, audio2]
-  Afrekenen (Verlies info) -> case info.faalstart of
-    Nothing -> Audio.silence
-    Just (muziek, tijd) -> Audio.audio muziek tijd 
+  InGame status -> Audio.group
+    [ maybeplay (Maybe.map (\x -> (x,status.recentstetik)) status.muziek.tik)
+    , maybeplay (status.muziek.psbel |> Maybe.andThen
+        (\bel -> status.paardensprongbegintijd |> Maybe.andThen (\psbt -> 
+          if status.questionNumber == 8 
+          && Time.posixToMillis status.currentTime > 30000 + Time.posixToMillis psbt
+          && Time.posixToMillis status.currentTime < 31000 + Time.posixToMillis psbt
+          then Just (bel, Time.millisToPosix (30000+Time.posixToMillis psbt)) 
+          else Nothing)))
+    ]
+  Woordraden status -> Audio.group 
+    [ Audio.scaleVolume 0.2 (maybeplay status.muziek)
+    , maybeplay status.kooptik
+    ]
+  Afrekenen (Verlies info) -> maybeplay info.faalstart
   _ -> Audio.silence
 
 

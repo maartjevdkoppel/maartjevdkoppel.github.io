@@ -1,8 +1,14 @@
 eindscherm(en)
+beter beginscherm
 highscores
 score schrijven
 spreadsheet:
   logica voor geen herhaling 8 en 12 letter woorden
-  8 letter woord beginletter
-ruimte voor vraag
 klokanimatie
+audio:
+  paardensprong muziekje
+  paardensprong bel
+  zoekbel
+paardensprong timer omdraaien
+identiteit van euler opmaak
+filter lidwoorden uit begin van gegeven antwoorden [de,het,een,van,der,den]
