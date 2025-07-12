@@ -40,15 +40,15 @@ viewAfrekenen status = case status of
     [style "background-image" "url('images/astrid.jpg')", style "background-size" "100%", style "height" "100%", onClick Submit] 
     (rows
       [ (70, [], [])
-      , (15, [style "background-color" "rgba(237, 230, 214, 0.9)", style "font-weight" "bolder", style "font-size" "5cqh"], cols
-        [ (5, [])
-        , (90, rows
-          [ (25, [], [])
-          , (50, [], cols
-            [(100, [div [style "text-align" "center"] [text ("Helaas! Het woord was '" ++ info.woord ++"'. Gelukkig mag ik je wel de pennenset meegeven.")]])])
-          , (25, [], [])
+      , (15, [style "background-color" "rgba(237, 230, 214, 0.9)", style "font-weight" "bolder", style "font-size" "4cqh"], cols
+        [ (0, [])
+        , (100, rows
+          [ (33, [], [])
+          , (34, [], cols
+            [(100, [div [style "text-align" "center", style "width" "100%"] [text ("Helaas! Het woord was '" ++ info.woord ++"'. Gelukkig mag ik je wel de pennenset meegeven.")]])])
+          , (33, [], [])
           ])
-        , (5, [])
+        , (0, [])
         ])
       , (15, [],[])
       ]

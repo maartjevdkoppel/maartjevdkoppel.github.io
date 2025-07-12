@@ -8303,7 +8303,7 @@ var $author$project$Hoofdspel$hoofdupdate = F2(
 				return _Utils_Tuple2(status, $elm$core$Platform$Cmd$none);
 		}
 	});
-var $author$project$Main$intro = false;
+var $author$project$Main$intro = true;
 var $MartinSStewart$elm_audio$Audio$AudioLoadRequest = function (a) {
 	return {$: 'AudioLoadRequest', a: a};
 };
@@ -12165,7 +12165,7 @@ var $author$project$Main$update = F3(
 							var alle = result.a;
 							return _Utils_Tuple3(
 								$author$project$Main$Highscore(
-									{alle: alle, huidig: $author$project$Types$Vijftien, jouw: $elm$core$Maybe$Nothing}),
+									{alle: alle, huidig: $author$project$Types$Vijftien, jouw: $elm$core$Maybe$Nothing, muziek: status.muziek, oauth: status.oauth}),
 								$elm$core$Platform$Cmd$none,
 								$MartinSStewart$elm_audio$Audio$cmdNone);
 						} else {
@@ -12181,6 +12181,7 @@ var $author$project$Main$update = F3(
 						return _Utils_Tuple3(
 							$author$project$Main$Woordraden(
 								{
+									adios: status.muziek,
 									correctwoord: status.data.woord,
 									currentTime: $elm$time$Time$millisToPosix(
 										$elm$time$Time$posixToMillis(status.currentTime) + 1000),
@@ -12341,6 +12342,8 @@ var $author$project$Main$update = F3(
 						var door = {
 							focus: $elm$core$Maybe$Nothing,
 							info: status.nakijkinfo,
+							muziek: status.adios,
+							oauth: status.oauth,
 							punten: punten,
 							tijdover: $elm$time$Time$posixToMillis(status.timeTheGameEnds) - $elm$time$Time$posixToMillis(status.currentTime)
 						};
@@ -12379,17 +12382,17 @@ var $author$project$Main$update = F3(
 			case 'Afrekenen':
 				var status = model.a;
 				if (msg.$ === 'Submit') {
+					var door = function () {
+						if (status.$ === 'Win') {
+							var info = status.a;
+							return info.door;
+						} else {
+							var info = status.a;
+							return info.door;
+						}
+					}();
 					return _Utils_Tuple3(
-						$author$project$Main$Nakijken(
-							function () {
-								if (status.$ === 'Win') {
-									var info = status.a;
-									return info.door;
-								} else {
-									var info = status.a;
-									return info.door;
-								}
-							}()),
+						$author$project$Main$Nakijken(door),
 						$elm$core$Platform$Cmd$none,
 						$MartinSStewart$elm_audio$Audio$cmdNone);
 				} else {
@@ -12397,26 +12400,68 @@ var $author$project$Main$update = F3(
 				}
 			case 'Highscore':
 				var status = model.a;
-				return _Utils_Tuple3(
-					$author$project$Main$Highscore(
-						A2($author$project$Highscores$updatehs, status, msg)),
-					$elm$core$Platform$Cmd$none,
-					$MartinSStewart$elm_audio$Audio$cmdNone);
-			default:
-				var status = model.a;
-				if (msg.$ === 'LetterKopen') {
-					var i = msg.a;
+				if (msg.$ === 'Submit') {
 					return _Utils_Tuple3(
-						$author$project$Main$Nakijken(
-							_Utils_update(
-								status,
-								{
-									focus: $elm$core$Maybe$Just(i)
-								})),
-						$elm$core$Platform$Cmd$none,
+						$author$project$Main$HomeScreen(
+							{
+								introstart: $elm$core$Maybe$Just(
+									$elm$time$Time$millisToPosix(0)),
+								muziek: status.muziek,
+								now: $elm$time$Time$millisToPosix(100000),
+								oauth: status.oauth,
+								thesheet: $elm$core$Maybe$Nothing,
+								username: '',
+								waiting: false
+							}),
+						$author$project$Main$staatdespreadsheetaan ? $author$project$Database$readSpreadsheet(status.oauth) : $elm$core$Platform$Cmd$none,
 						$MartinSStewart$elm_audio$Audio$cmdNone);
 				} else {
-					return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
+					return _Utils_Tuple3(
+						$author$project$Main$Highscore(
+							A2($author$project$Highscores$updatehs, status, msg)),
+						$elm$core$Platform$Cmd$none,
+						$MartinSStewart$elm_audio$Audio$cmdNone);
+				}
+			default:
+				var status = model.a;
+				switch (msg.$) {
+					case 'LetterKopen':
+						var i = msg.a;
+						return _Utils_Tuple3(
+							$author$project$Main$Nakijken(
+								_Utils_update(
+									status,
+									{
+										focus: $elm$core$Maybe$Just(i)
+									})),
+							$elm$core$Platform$Cmd$none,
+							$MartinSStewart$elm_audio$Audio$cmdNone);
+					case 'GetHighscores':
+						return _Utils_Tuple3(
+							model,
+							$author$project$Database$readHighscores(status.oauth),
+							$MartinSStewart$elm_audio$Audio$cmdNone);
+					case 'HighscoreReceived':
+						var result = msg.a;
+						if (result.$ === 'Ok') {
+							var data = result.a;
+							return _Utils_Tuple3(
+								$author$project$Main$Highscore(
+									{
+										alle: data,
+										huidig: $author$project$Types$Vijftien,
+										jouw: $elm$core$Maybe$Just(
+											_Utils_Tuple2($author$project$Types$Vijftien, status.punten)),
+										muziek: status.muziek,
+										oauth: status.oauth
+									}),
+								$elm$core$Platform$Cmd$none,
+								$MartinSStewart$elm_audio$Audio$cmdNone);
+						} else {
+							return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
+						}
+					default:
+						return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
 				}
 		}
 	});
@@ -12838,20 +12883,20 @@ var $author$project$Afrekenen$viewAfrekenen = function (status) {
 							[
 								A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(237, 230, 214, 0.9)'),
 								A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
-								A2($elm$html$Html$Attributes$style, 'font-size', '5cqh')
+								A2($elm$html$Html$Attributes$style, 'font-size', '4cqh')
 							]),
 						$author$project$Utils$cols(
 							_List_fromArray(
 								[
-									_Utils_Tuple2(5, _List_Nil),
+									_Utils_Tuple2(0, _List_Nil),
 									_Utils_Tuple2(
-									90,
+									100,
 									$author$project$Utils$rows(
 										_List_fromArray(
 											[
-												_Utils_Tuple3(25, _List_Nil, _List_Nil),
+												_Utils_Tuple3(33, _List_Nil, _List_Nil),
 												_Utils_Tuple3(
-												50,
+												34,
 												_List_Nil,
 												$author$project$Utils$cols(
 													_List_fromArray(
@@ -12864,7 +12909,8 @@ var $author$project$Afrekenen$viewAfrekenen = function (status) {
 																	$elm$html$Html$div,
 																	_List_fromArray(
 																		[
-																			A2($elm$html$Html$Attributes$style, 'text-align', 'center')
+																			A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+																			A2($elm$html$Html$Attributes$style, 'width', '100%')
 																		]),
 																	_List_fromArray(
 																		[
@@ -12872,9 +12918,9 @@ var $author$project$Afrekenen$viewAfrekenen = function (status) {
 																		]))
 																]))
 														]))),
-												_Utils_Tuple3(25, _List_Nil, _List_Nil)
+												_Utils_Tuple3(33, _List_Nil, _List_Nil)
 											]))),
-									_Utils_Tuple2(5, _List_Nil)
+									_Utils_Tuple2(0, _List_Nil)
 								]))),
 						_Utils_Tuple3(15, _List_Nil, _List_Nil)
 					])));
@@ -14112,7 +14158,8 @@ var $author$project$Highscores$viewHighscore = function (info) {
 				A2($elm$html$Html$Attributes$style, 'font-size', '5cqh'),
 				A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
 				A2($elm$html$Html$Attributes$style, 'width', '100%'),
-				A2($elm$html$Html$Attributes$style, 'text-shadow', '2px 2px 4px #000000')
+				A2($elm$html$Html$Attributes$style, 'text-shadow', '2px 2px 4px #000000'),
+				$elm$html$Html$Events$onClick($author$project$Types$Submit)
 			]),
 		$author$project$Utils$rows(
 			_List_fromArray(
@@ -14169,19 +14216,33 @@ var $author$project$Highscores$viewHighscore = function (info) {
 								_Utils_Tuple2(37, _List_Nil),
 								_Utils_Tuple2(
 								20,
-								_List_fromArray(
-									[
-										A2(
-										$elm$html$Html$div,
-										_List_fromArray(
-											[
-												A2($elm$html$Html$Attributes$style, 'text-align', 'center')
-											]),
-										_List_fromArray(
-											[
-												$elm$html$Html$text('Jouw score: ' + '340')
-											]))
-									])),
+								function () {
+									var content = function () {
+										var _v0 = info.jouw;
+										if (_v0.$ === 'Nothing') {
+											return _List_Nil;
+										} else {
+											var _v1 = _v0.a;
+											var d = _v1.a;
+											var p = _v1.b;
+											return _List_fromArray(
+												[
+													$elm$html$Html$text(
+													'Jouw score: ' + $elm$core$String$fromInt(p))
+												]);
+										}
+									}();
+									return _List_fromArray(
+										[
+											A2(
+											$elm$html$Html$div,
+											_List_fromArray(
+												[
+													A2($elm$html$Html$Attributes$style, 'text-align', 'center')
+												]),
+											content)
+										]);
+								}()),
 								_Utils_Tuple2(43, _List_Nil)
 							])))
 				])));
@@ -14225,27 +14286,39 @@ var $author$project$Nakijken$viewfocus = function (status) {
 							[
 								A2($elm$html$Html$Attributes$style, 'padding', '5cqh 5cqh')
 							]),
-						function () {
-							var _v0 = A2(
-								$elm$core$Maybe$andThen,
-								A2($elm_community$basics_extra$Basics$Extra$flip, $elm$core$Dict$get, status.info),
-								status.focus);
-							if (_v0.$ === 'Nothing') {
-								return _List_Nil;
-							} else {
-								var info = _v0.a;
-								return _List_fromArray(
+						_List_fromArray(
+							[
+								A2(
+								$elm$html$Html$div,
+								_List_fromArray(
 									[
-										$elm$html$Html$text(info.vraag),
-										A2($elm$html$Html$br, _List_Nil, _List_Nil),
-										A2($elm$html$Html$br, _List_Nil, _List_Nil),
-										$elm$html$Html$text('Gegeven antwoord: ' + info.gegeven),
-										A2($elm$html$Html$br, _List_Nil, _List_Nil),
-										A2($elm$html$Html$br, _List_Nil, _List_Nil),
-										$elm$html$Html$text('Juiste antwoord: ' + info.correct)
-									]);
-							}
-						}())
+										A2($elm$html$Html$Attributes$style, 'font-size', '2.5cqh')
+									]),
+								function () {
+									var _v0 = A2(
+										$elm$core$Maybe$andThen,
+										A2($elm_community$basics_extra$Basics$Extra$flip, $elm$core$Dict$get, status.info),
+										status.focus);
+									if (_v0.$ === 'Nothing') {
+										return _List_fromArray(
+											[
+												$elm$html$Html$text('Klik op een letter om de vraag en het antwoord te bekijken.')
+											]);
+									} else {
+										var info = _v0.a;
+										return _List_fromArray(
+											[
+												$elm$html$Html$text(info.vraag),
+												A2($elm$html$Html$br, _List_Nil, _List_Nil),
+												A2($elm$html$Html$br, _List_Nil, _List_Nil),
+												$elm$html$Html$text('Gegeven antwoord: ' + info.gegeven),
+												A2($elm$html$Html$br, _List_Nil, _List_Nil),
+												A2($elm$html$Html$br, _List_Nil, _List_Nil),
+												$elm$html$Html$text('Juiste antwoord: ' + info.correct)
+											]);
+									}
+								}())
+							]))
 					]))
 			]));
 };
@@ -14261,23 +14334,49 @@ var $author$project$Nakijken$viewNakijk = function (status) {
 		$author$project$Utils$rows(
 			_List_fromArray(
 				[
-					_Utils_Tuple3(20, _List_Nil, _List_Nil),
+					_Utils_Tuple3(15, _List_Nil, _List_Nil),
 					_Utils_Tuple3(
-					40,
+					50,
 					_List_Nil,
 					$author$project$Utils$cols(
 						_List_fromArray(
 							[
-								_Utils_Tuple2(10, _List_Nil),
+								_Utils_Tuple2(5, _List_Nil),
 								_Utils_Tuple2(
-								50,
+								45,
 								_List_fromArray(
 									[
 										$author$project$Nakijken$viewfocus(status)
 									])),
-								_Utils_Tuple2(40, _List_Nil)
+								_Utils_Tuple2(30, _List_Nil),
+								_Utils_Tuple2(
+								15,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$button,
+										_List_fromArray(
+											[
+												A2($elm$html$Html$Attributes$style, 'position', 'relative'),
+												A2($elm$html$Html$Attributes$style, 'top', '40%'),
+												$elm$html$Html$Events$onClick($author$project$Types$GetHighscores),
+												A2($elm$html$Html$Attributes$style, 'background-color', 'rgb(227, 7, 20)'),
+												A2($elm$html$Html$Attributes$style, 'color', 'white'),
+												A2($elm$html$Html$Attributes$style, 'border', 'none'),
+												A2($elm$html$Html$Attributes$style, 'border-radius', '1cqh'),
+												A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
+												A2($elm$html$Html$Attributes$style, 'font-family', 'Lucida Sans'),
+												A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888'),
+												A2($elm$html$Html$Attributes$style, 'height', '6cqh')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('\u00A0Naar highscores\u00A0')
+											]))
+									])),
+								_Utils_Tuple2(5, _List_Nil)
 							]))),
-					_Utils_Tuple3(20, _List_Nil, _List_Nil),
+					_Utils_Tuple3(15, _List_Nil, _List_Nil),
 					_Utils_Tuple3(
 					15,
 					_List_fromArray(

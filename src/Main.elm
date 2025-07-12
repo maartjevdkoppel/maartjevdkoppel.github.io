@@ -34,7 +34,7 @@ port confetti : Json.Encode.Value -> Cmd msg
 staatdespreadsheetaan : Bool
 staatdespreadsheetaan = True
 intro : Bool
-intro = False
+intro = True
 
 -- MAIN
 
@@ -142,7 +142,7 @@ update _ msg model =
         (model, Cmd.batch [pushVideoEvent VolumeDown, pushVideoEvent VolumeDown, pushVideoEvent VolumeDown, pushVideoEvent VolumeDown, pushVideoEvent VolumeDown], Audio.cmdNone)
       GetHighscores -> (model, readHighscores status.oauth, Audio.cmdNone)
       HighscoreReceived result -> case result of 
-        Ok alle -> (Highscore {huidig = Vijftien, jouw = Nothing, alle=alle}, Cmd.none, Audio.cmdNone)
+        Ok alle -> (Highscore {huidig = Vijftien, jouw = Nothing, alle=alle, oauth = status.oauth, muziek = status.muziek}, Cmd.none, Audio.cmdNone)
         _ -> (model, Cmd.none, Audio.cmdNone)
       _ -> (model, Cmd.none, Audio.cmdNone)
 
@@ -161,6 +161,7 @@ update _ msg model =
         , faal = status.muziek.faal
         , logindex = status.logindex
         , nakijkinfo = mkNakijk status.data status.gegevenantwoorden status.searched
+        , adios = status.muziek
         }, Cmd.none, Audio.cmdNone)
       SoundLoaded result -> case result of
         Ok (sound, id) -> let x = status.muziek in (InGame {status | muziek = case id of
@@ -192,6 +193,8 @@ update _ msg model =
                    , tijdover = Time.posixToMillis status.timeTheGameEnds - Time.posixToMillis status.currentTime
                    , punten = punten
                    , info = status.nakijkinfo
+                   , oauth = status.oauth
+                   , muziek = status.adios
                    }
         in
         if testcorrect status.woord status.correctwoord 
@@ -203,13 +206,25 @@ update _ msg model =
         else (Afrekenen (Verlies {woord = status.correctwoord, faalstart = Maybe.map (\f -> (f, status.currentTime)) status.faal, door=door}), schrijfscore 0 status.logindex status.oauth, Audio.cmdNone) -- TODO
       _ -> (Woordraden (woordupdate msg status), Cmd.none, Audio.cmdNone)
     Afrekenen status -> case msg of
-      Submit -> (Nakijken (case status of
-        Win info -> info.door
-        Verlies info -> info.door), Cmd.none, Audio.cmdNone)
+      Submit -> let door = case status of
+                      Win info -> info.door
+                      Verlies info -> info.door
+        in (Nakijken door, Cmd.none, Audio.cmdNone)
       _ -> (model, Cmd.none, Audio.cmdNone)
-    Highscore status -> (Highscore (updatehs status msg), Cmd.none, Audio.cmdNone)
+    Highscore status -> case msg of
+      Submit -> 
+        (HomeScreen { now = Time.millisToPosix 100000, thesheet = Nothing, username = "", oauth = status.oauth, waiting = False, introstart = Just (Time.millisToPosix 0)
+                    , muziek = status.muziek
+                    }
+        , if staatdespreadsheetaan then readSpreadsheet status.oauth else Cmd.none
+        , Audio.cmdNone)
+      _ -> (Highscore (updatehs status msg), Cmd.none, Audio.cmdNone)
     Nakijken status -> case msg of
       LetterKopen i -> (Nakijken {status | focus = Just i}, Cmd.none, Audio.cmdNone)
+      GetHighscores -> (model, readHighscores status.oauth, Audio.cmdNone)
+      HighscoreReceived result -> case result of
+        Ok data -> (Highscore {alle=data, jouw = Just (Vijftien, status.punten), huidig = Vijftien, oauth = status.oauth, muziek = status.muziek}, Cmd.none, Audio.cmdNone)
+        _ -> (model, Cmd.none, Audio.cmdNone)
       _ -> (model, Cmd.none, Audio.cmdNone)
       
 

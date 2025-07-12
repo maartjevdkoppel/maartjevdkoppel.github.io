@@ -29,6 +29,7 @@ type alias WoordraadStatus =
   , faal : Maybe Audio.Source -- voor afrekenen
   , logindex : Maybe Int
   , nakijkinfo : Dict.Dict Int {vraag : String, correct : String, gegeven : String, show : Letter}
+  , adios : Adios
   }
 
 -- update

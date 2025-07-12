@@ -1,9 +1,1 @@
-eindscherm(en)
-  nakijken: was had je en wat was het
-highscores
-  klik anywhere -> naar main
-  knop naar highscores vanuit afreken&faal
-    klik anywhere (tenzij we nakijken hebben)
-spreadsheet:
-  logica voor geen herhaling 8 en 12 letter woorden
 klokanimatie
