@@ -28,6 +28,7 @@ type alias WoordraadStatus =
   , kooptik : Maybe (Audio.Source, Time.Posix)
   , faal : Maybe Audio.Source -- voor afrekenen
   , logindex : Maybe Int
+  , nakijkinfo : Dict.Dict Int {vraag : String, correct : String, gegeven : String, show : Letter}
   }
 
 -- update
@@ -41,6 +42,7 @@ woordupdate msg status = case msg of
         Paars -> status
         Vraagteken -> status
         Streepje -> status
+        Zwart -> status
         _ -> woordupdate2 status i letter correct target
   Answer answer -> {status | woord = answer }
   _ -> status
@@ -81,7 +83,7 @@ viewWoord status =
   div [style "background-image" "url('images/astrid.jpg')", style "background-size" "100%", style "height" "100%"] 
     (rows
       [ (55, [], [])
-      , (15, [style "background-color" "rbga(237, 230, 214, 0.9)", style "font-weight" "bolder"], 
+      , (15, [style "background-color" "rgba(237, 230, 214, 0.9)", style "font-weight" "bolder"], 
           (cols [ (10, [klok (Time.posixToMillis status.timeTheGameEnds - Time.posixToMillis status.currentTime)])
                 , (80, (rows 
                   [ (0, [], []) -- TODO: de koopbaar steekt iets verder omhoog uit dan de gekocht omlaag

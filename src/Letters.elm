@@ -28,15 +28,15 @@ letters lastQuestion ls onclick =
               (th [style "font-size" "0.5cqh", style "width" "0.5cqh"] []) -- ruimte tussen letters
               (List.map 
                 (\(i,l) -> 
-                  let styles = [style "background-size" "100% 100%", style "font-size" "3cqh", style "opacity" "100%", style "height" "4cqh", style "width" "3cqh"]
-                      event  = case onclick of
+                  let event  = case onclick of
                                   Nothing -> []
                                   Just f -> [onClick (f i)] 
+                      styles = [style "background-size" "100% 100%", style "font-size" "3cqh", style "opacity" "100%", style "height" "4cqh", style "width" "3cqh"] ++ event
                   in case l of
-                      Opgezocht letter   -> th (style "background-color" "white" :: styles) [div event [text ((String.toUpper << String.slice 0 1 << removestopwords << String.Normalize.removeDiacritics << String.toLower) letter)]]
+                      Opgezocht letter   -> th (style "background-color" "white" :: styles) [text ((String.toUpper << String.slice 0 1 << removestopwords << String.Normalize.removeDiacritics << String.toLower) letter)]
                       UitHetHoofd letter -> th 
                                               (style "background-image" "url('images/uithethoofd.jpg')" :: styles) 
-                                              [div event [text ((String.toUpper << String.slice 0 1 << removestopwords << String.Normalize.removeDiacritics << String.toLower) letter)]]
+                                              [text ((String.toUpper << String.slice 0 1 << removestopwords << String.Normalize.removeDiacritics << String.toLower) letter)]
                       Paars              -> th (style "background-image" "url('images/uithethoofd.jpg')" :: styles) []
                       Wit                -> th (style "background-color" "white" :: styles) []
                       Vraagteken         -> th (style "background-color" "white" :: styles) [text "?"]

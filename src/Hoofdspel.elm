@@ -101,6 +101,7 @@ viewGame status =
                     , (80, [letterbalk status])
                     , (10, [punten status.punten])
                     ])
+        , (5, [], [])
         ])
 
 letterbalk : HoofdStatus -> Html Msg

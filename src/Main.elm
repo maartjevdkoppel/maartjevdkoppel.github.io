@@ -21,6 +21,7 @@ import Letters exposing (Letter(..))
 import Types exposing (..)
 import Utils exposing (..)
 import Woordraden exposing (..)
+import Nakijken exposing (..)
 
 -- PORTS
 
@@ -57,6 +58,7 @@ type Model = HomeScreen {now : Time.Posix, thesheet : Maybe Vraagsheet, username
            | Woordraden WoordraadStatus
            | Afrekenen Afrekenen
            | Highscore HighscoreStatus
+           | Nakijken Nakijkstatus
 
 
 
@@ -158,6 +160,7 @@ update _ msg model =
         , kooptik = Maybe.map (\x -> (x,Time.millisToPosix 0)) status.muziek.tik
         , faal = status.muziek.faal
         , logindex = status.logindex
+        , nakijkinfo = mkNakijk status.data status.gegevenantwoorden status.searched
         }, Cmd.none, Audio.cmdNone)
       SoundLoaded result -> case result of
         Ok (sound, id) -> let x = status.muziek in (InGame {status | muziek = case id of
@@ -185,16 +188,29 @@ update _ msg model =
             punten = if testcorrect status.woord status.correctwoord 
                       then status.punten + 10*uithethoofd + 100 - 25 * (Basics.min 4 fout) 
                       else 0
+            door = { focus = Nothing
+                   , tijdover = Time.posixToMillis status.timeTheGameEnds - Time.posixToMillis status.currentTime
+                   , punten = punten
+                   , info = status.nakijkinfo
+                   }
         in
         if testcorrect status.woord status.correctwoord 
         then (Afrekenen (Win { basis = status.punten
                         , uithethoofd = uithethoofd
                         , fout = fout
+                        , door = door
                         }), Cmd.batch [confetti Json.Encode.null, schrijfscore punten status.logindex status.oauth], Audio.cmdNone) 
-        else (Afrekenen (Verlies {gegeven = Dict.empty, juist = Dict.empty, woord = status.woord, faalstart = Maybe.map (\f -> (f, status.currentTime)) status.faal}), schrijfscore 0 status.logindex status.oauth, Audio.cmdNone) -- TODO
+        else (Afrekenen (Verlies {woord = status.correctwoord, faalstart = Maybe.map (\f -> (f, status.currentTime)) status.faal, door=door}), schrijfscore 0 status.logindex status.oauth, Audio.cmdNone) -- TODO
       _ -> (Woordraden (woordupdate msg status), Cmd.none, Audio.cmdNone)
-    Afrekenen status -> (model, Cmd.none, Audio.cmdNone)
+    Afrekenen status -> case msg of
+      Submit -> (Nakijken (case status of
+        Win info -> info.door
+        Verlies info -> info.door), Cmd.none, Audio.cmdNone)
+      _ -> (model, Cmd.none, Audio.cmdNone)
     Highscore status -> (Highscore (updatehs status msg), Cmd.none, Audio.cmdNone)
+    Nakijken status -> case msg of
+      LetterKopen i -> (Nakijken {status | focus = Just i}, Cmd.none, Audio.cmdNone)
+      _ -> (model, Cmd.none, Audio.cmdNone)
       
 
 -- SUBSCRIPTIONS
@@ -221,46 +237,52 @@ view _ model =
             [video [ id "media-video", style "width" "100%", onClick PlayAudio ] [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]
             , div [style "left" "50%", style "position" "absolute", style "transform" "translate(-50%, -70cqh)", style "font-size" "5cqh", onClick PlayAudio] [text "Klik om te beginnen"]]
       Just ms -> let millisdiff = Time.posixToMillis status.now - Time.posixToMillis ms in
-        if millisdiff <= (if intro then 18000 else 10) 
+        if millisdiff <= if intro then 18000 else 10
         then
           div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] 
-              [video [ id "media-video", onClick PlayAudio, style "width" "100%", style "opacity" (String.fromInt (Basics.max ((16000-(Basics.max 15000 millisdiff)) // 10) 0) ++ "%")] 
-                     [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]]
+              [video [ id "media-video", onClick PlayAudio, style "width" "100%", style "opacity" (String.fromInt (Basics.max ((16000-(Basics.max 15000 millisdiff)) // 10) 0) ++ "%")] [ source [ src "video/intro.mp4", type_ "video/mp4" ] [] ]]
         else
-          div [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] 
-              (Utils.rows -- TODO: highscores
-                [ (15, [], [])
-                , (5, [], Utils.cols
-                  [(38,[])
-                  ,(10,[button [onClick GetHighscores, style "height" "100%", style "width" "100%", style "background-color" "rgba(88, 88, 88, 1)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] 
-                               [text "Highscores"]])
-                  ,(45,[])])
-                , (20, [], [])
-                , (20, [ style "color" "white", style "font-weight" "bolder", style "font-size" "3.5cqh", style "text-align" "center", style "width" "100%"
-                      , style "text-shadow" "2px 2px 4px #000000" 
-                      ], Utils.cols
-                          [ (10, [])
-                          , (80, [text "Goeienavond, hartelijk welkom bij 2 voor 12.", br [] [], text "Wil je je voorstellen?"])
-                          , (10, [])
-                          ]
-                      )
-                , (10, [] --[style "left" "50%", style "font-size" "4cqh", style "align" "center"]
-                    , Utils.cols
-                        [ (38, [])
-                        , (7, [input [placeholder "naam", value status.username, onInput Answer, style "height" "100%", style "padding" "0cqh 2cqh", style "font-size" "3cqh"] []])
-                        , (3, [])
-                        , (14, let styles = ([onClick StartGame, style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) 
-                               in case (status.username, Maybe.andThen (Dict.get status.username) status.thesheet) of
-                                    ("", _) -> [text ""]
-                                    (_, Nothing) -> if status.waiting 
-                                                    then [text "Je staat op de wachtrij, er zijn nog 3586 kandidaten voor je. (Dit kan 10-20 seconden duren)"]
-                                                    else [button styles [text "\u{00A0}Schrijf je in!\u{00A0}"]]
-                                    _ -> [button styles [text "\u{00A0}Begin het spel!\u{00A0}"]])
-                        , (38, [])
-                        ])
-                ]
-              )
+          beginmenu status
     Highscore status -> viewHighscore status
+    Nakijken status -> viewNakijk status
+
+beginmenu status = div 
+  [style "background-image" "url('images/leeg.jpeg')", style "background-size" "100%", style "height" "100%"] 
+  (Utils.rows -- TODO: highscores
+    [ (15, [], [])
+    , (5, [], Utils.cols
+        [(38,[])
+        ,(10,[button [onClick GetHighscores, style "height" "100%", style "width" "100%", style "background-color" "rgba(88, 88, 88, 1)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] 
+                      [text "Highscores"]])
+        ,(45,[])
+        ])
+    , (20, [], [])
+    , (20,  [ style "color" "white", style "font-weight" "bolder", style "font-size" "3.5cqh", style "text-align" "center", style "width" "100%"
+            , style "text-shadow" "2px 2px 4px #000000" 
+            ], Utils.cols
+                [ (10, [])
+                , (80, [text "Goeienavond, hartelijk welkom bij 2 voor 12.", br [] [], text "Wil je je voorstellen?"])
+                , (10, [])
+                ]
+      )
+    , (10, [] --[style "left" "50%", style "font-size" "4cqh", style "align" "center"]
+        , Utils.cols
+            [ (38, [])
+            , (7, [input [placeholder "naam", value status.username, onInput Answer, style "height" "100%", style "padding" "0cqh 2cqh", style "font-size" "3cqh"] []])
+            , (3, [])
+            , (14,  let styles = ([onClick StartGame, style "height" "70%", style "background-color" "rgb(227, 7, 20)", style "color" "white", style "border" "none", style "border-radius" "1cqh", style "font-size" "3cqh", style "font-family" "Lucida Sans", style "box-shadow" "1px 9px #888888"] ++ centeringstuff) 
+                    in if status.username == "" 
+                        then [text ""] 
+                        else if Maybe.Extra.isJust (status.thesheet |> Maybe.andThen (Dict.get status.username))
+                              then [button styles [text "\u{00A0}Begin het spel!\u{00A0}"]]
+                              else if status.waiting
+                                    then [text "Je staat op de wachtrij, er zijn nog 3586 kandidaten voor je. (Dit kan 10-20 seconden duren)"]
+                                    else [button styles [text "\u{00A0}Schrijf je in!\u{00A0}"]])
+            , (38, [])
+            ]
+      )
+    ]
+  )
 
 -- AUDIO
 audio _ model = 

@@ -6,5 +6,4 @@ highscores
     klik anywhere (tenzij we nakijken hebben)
 spreadsheet:
   logica voor geen herhaling 8 en 12 letter woorden
-  identiteit van euler opmaak
 klokanimatie

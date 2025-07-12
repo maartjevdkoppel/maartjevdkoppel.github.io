@@ -8113,6 +8113,9 @@ var $author$project$Main$Highscore = function (a) {
 var $author$project$Main$InGame = function (a) {
 	return {$: 'InGame', a: a};
 };
+var $author$project$Main$Nakijken = function (a) {
+	return {$: 'Nakijken', a: a};
+};
 var $author$project$Main$Play = {$: 'Play'};
 var $author$project$Types$StartStopWiki = {$: 'StartStopWiki'};
 var $author$project$Types$Submit = {$: 'Submit'};
@@ -8692,7 +8695,11 @@ var $author$project$Letters$Streepje = {$: 'Streepje'};
 var $author$project$Letters$UitHetHoofd = function (a) {
 	return {$: 'UitHetHoofd', a: a};
 };
-var $author$project$Letters$Vraagteken = {$: 'Vraagteken'};
+var $author$project$Letters$Zwart = {$: 'Zwart'};
+var $elm_community$basics_extra$Basics$Extra$flip = F3(
+	function (f, b, a) {
+		return A2(f, a, b);
+	});
 var $elm$core$Dict$member = F2(
 	function (key, dict) {
 		var _v0 = A2($elm$core$Dict$get, key, dict);
@@ -11405,6 +11412,45 @@ var $author$project$Utils$testcorrect = function () {
 				$elm$core$String$filter($elm$core$Char$isAlpha))));
 	return A2($author$project$Utils$on, $elm$core$Basics$eq, sanitize);
 }();
+var $author$project$Nakijken$mkNakijk = F3(
+	function (data, gegeven, opgezocht) {
+		var f = function (_v0) {
+			var _v1 = _v0.a;
+			var ix = _v1.a;
+			var vraag = _v1.b;
+			var _v2 = _v0.b;
+			var _v3 = _v2.a;
+			var correct = _v3.b;
+			var _v4 = _v2.b;
+			var poging = _v4.b;
+			return _Utils_Tuple2(
+				ix,
+				{
+					correct: correct,
+					gegeven: poging,
+					show: A2($author$project$Utils$testcorrect, correct, poging) ? (A2($elm$core$Set$member, ix, opgezocht) ? $author$project$Letters$Opgezocht(poging) : $author$project$Letters$UitHetHoofd(poging)) : ((poging === '') ? $author$project$Letters$Streepje : $author$project$Letters$Zwart),
+					vraag: vraag
+				});
+		};
+		var biglist = A2(
+			$elm_community$list_extra$List$Extra$zip,
+			$elm$core$Dict$toList(data.vragen),
+			A2(
+				$elm_community$list_extra$List$Extra$zip,
+				$elm$core$Dict$toList(data.antwoorden),
+				$elm$core$Dict$toList(
+					A2(
+						$elm$core$Dict$union,
+						gegeven,
+						$elm$core$Dict$fromList(
+							A2(
+								$elm$core$List$map,
+								A2($elm_community$basics_extra$Basics$Extra$flip, $elm$core$Tuple$pair, ''),
+								$author$project$Utils$twelve))))));
+		return $elm$core$Dict$fromList(
+			A2($elm$core$List$map, f, biglist));
+	});
+var $author$project$Letters$Vraagteken = {$: 'Vraagteken'};
 var $author$project$Hoofdspel$naarWoordRaden = F2(
 	function (status, i) {
 		var _v0 = A2($elm$core$Dict$get, i, status.gegevenantwoorden);
@@ -11751,7 +11797,6 @@ var $author$project$Utils$index = F2(
 		}
 	});
 var $author$project$Letters$Paars = {$: 'Paars'};
-var $author$project$Letters$Zwart = {$: 'Zwart'};
 var $elm_community$list_extra$List$Extra$updateAt = F3(
 	function (index, fn, list) {
 		if (index < 0) {
@@ -12159,6 +12204,7 @@ var $author$project$Main$update = F3(
 											return _Utils_Tuple2(x, status.currentTime);
 										},
 										status.muziek.raden),
+									nakijkinfo: A3($author$project$Nakijken$mkNakijk, status.data, status.gegevenantwoorden, status.searched),
 									oauth: status.oauth,
 									punten: status.punten,
 									timeTheGameEnds: $elm$time$Time$millisToPosix(
@@ -12290,10 +12336,16 @@ var $author$project$Main$update = F3(
 								},
 								status.koopbaar));
 						var punten = A2($author$project$Utils$testcorrect, status.woord, status.correctwoord) ? (((status.punten + (10 * uithethoofd)) + 100) - (25 * A2($elm$core$Basics$min, 4, fout))) : 0;
+						var door = {
+							focus: $elm$core$Maybe$Nothing,
+							info: status.nakijkinfo,
+							punten: punten,
+							tijdover: $elm$time$Time$posixToMillis(status.timeTheGameEnds) - $elm$time$Time$posixToMillis(status.currentTime)
+						};
 						return A2($author$project$Utils$testcorrect, status.woord, status.correctwoord) ? _Utils_Tuple3(
 							$author$project$Main$Afrekenen(
 								$author$project$Afrekenen$Win(
-									{basis: status.punten, fout: fout, uithethoofd: uithethoofd})),
+									{basis: status.punten, door: door, fout: fout, uithethoofd: uithethoofd})),
 							$elm$core$Platform$Cmd$batch(
 								_List_fromArray(
 									[
@@ -12304,14 +12356,13 @@ var $author$project$Main$update = F3(
 							$author$project$Main$Afrekenen(
 								$author$project$Afrekenen$Verlies(
 									{
+										door: door,
 										faalstart: A2(
 											$elm$core$Maybe$map,
 											function (f) {
 												return _Utils_Tuple2(f, status.currentTime);
 											},
 											status.faal),
-										gegeven: $elm$core$Dict$empty,
-										juist: $elm$core$Dict$empty,
 										woord: status.woord
 									})),
 							A3($author$project$Database$schrijfscore, 0, status.logindex, status.oauth),
@@ -12325,21 +12376,53 @@ var $author$project$Main$update = F3(
 				}
 			case 'Afrekenen':
 				var status = model.a;
-				return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
-			default:
+				if (msg.$ === 'Submit') {
+					return _Utils_Tuple3(
+						$author$project$Main$Nakijken(
+							function () {
+								if (status.$ === 'Win') {
+									var info = status.a;
+									return info.door;
+								} else {
+									var info = status.a;
+									return info.door;
+								}
+							}()),
+						$elm$core$Platform$Cmd$none,
+						$MartinSStewart$elm_audio$Audio$cmdNone);
+				} else {
+					return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
+				}
+			case 'Highscore':
 				var status = model.a;
 				return _Utils_Tuple3(
 					$author$project$Main$Highscore(
 						A2($author$project$Highscores$updatehs, status, msg)),
 					$elm$core$Platform$Cmd$none,
 					$MartinSStewart$elm_audio$Audio$cmdNone);
+			default:
+				var status = model.a;
+				if (msg.$ === 'LetterKopen') {
+					var i = msg.a;
+					return _Utils_Tuple3(
+						$author$project$Main$Nakijken(
+							_Utils_update(
+								status,
+								{
+									focus: $elm$core$Maybe$Just(i)
+								})),
+						$elm$core$Platform$Cmd$none,
+						$MartinSStewart$elm_audio$Audio$cmdNone);
+				} else {
+					return _Utils_Tuple3(model, $elm$core$Platform$Cmd$none, $MartinSStewart$elm_audio$Audio$cmdNone);
+				}
 		}
 	});
+var $author$project$Types$PlayAudio = {$: 'PlayAudio'};
 var $author$project$Types$Answer = function (a) {
 	return {$: 'Answer', a: a};
 };
 var $author$project$Types$GetHighscores = {$: 'GetHighscores'};
-var $author$project$Types$PlayAudio = {$: 'PlayAudio'};
 var $author$project$Types$StartGame = {$: 'StartGame'};
 var $elm$html$Html$br = _VirtualDom_node('br');
 var $elm$html$Html$button = _VirtualDom_node('button');
@@ -12383,7 +12466,6 @@ var $author$project$Utils$cols = function (xs) {
 		},
 		xs);
 };
-var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
@@ -12487,6 +12569,158 @@ var $author$project$Utils$rows = function (xs) {
 			},
 			xs));
 };
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
+var $author$project$Main$beginmenu = function (status) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'background-image', 'url(\'images/leeg.jpeg\')'),
+				A2($elm$html$Html$Attributes$style, 'background-size', '100%'),
+				A2($elm$html$Html$Attributes$style, 'height', '100%')
+			]),
+		$author$project$Utils$rows(
+			_List_fromArray(
+				[
+					_Utils_Tuple3(15, _List_Nil, _List_Nil),
+					_Utils_Tuple3(
+					5,
+					_List_Nil,
+					$author$project$Utils$cols(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(38, _List_Nil),
+								_Utils_Tuple2(
+								10,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$button,
+										_List_fromArray(
+											[
+												$elm$html$Html$Events$onClick($author$project$Types$GetHighscores),
+												A2($elm$html$Html$Attributes$style, 'height', '100%'),
+												A2($elm$html$Html$Attributes$style, 'width', '100%'),
+												A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(88, 88, 88, 1)'),
+												A2($elm$html$Html$Attributes$style, 'color', 'white'),
+												A2($elm$html$Html$Attributes$style, 'border', 'none'),
+												A2($elm$html$Html$Attributes$style, 'border-radius', '1cqh'),
+												A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
+												A2($elm$html$Html$Attributes$style, 'font-family', 'Lucida Sans'),
+												A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('Highscores')
+											]))
+									])),
+								_Utils_Tuple2(45, _List_Nil)
+							]))),
+					_Utils_Tuple3(20, _List_Nil, _List_Nil),
+					_Utils_Tuple3(
+					20,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'color', 'white'),
+							A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
+							A2($elm$html$Html$Attributes$style, 'font-size', '3.5cqh'),
+							A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+							A2($elm$html$Html$Attributes$style, 'width', '100%'),
+							A2($elm$html$Html$Attributes$style, 'text-shadow', '2px 2px 4px #000000')
+						]),
+					$author$project$Utils$cols(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(10, _List_Nil),
+								_Utils_Tuple2(
+								80,
+								_List_fromArray(
+									[
+										$elm$html$Html$text('Goeienavond, hartelijk welkom bij 2 voor 12.'),
+										A2($elm$html$Html$br, _List_Nil, _List_Nil),
+										$elm$html$Html$text('Wil je je voorstellen?')
+									])),
+								_Utils_Tuple2(10, _List_Nil)
+							]))),
+					_Utils_Tuple3(
+					10,
+					_List_Nil,
+					$author$project$Utils$cols(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(38, _List_Nil),
+								_Utils_Tuple2(
+								7,
+								_List_fromArray(
+									[
+										A2(
+										$elm$html$Html$input,
+										_List_fromArray(
+											[
+												$elm$html$Html$Attributes$placeholder('naam'),
+												$elm$html$Html$Attributes$value(status.username),
+												$elm$html$Html$Events$onInput($author$project$Types$Answer),
+												A2($elm$html$Html$Attributes$style, 'height', '100%'),
+												A2($elm$html$Html$Attributes$style, 'padding', '0cqh 2cqh'),
+												A2($elm$html$Html$Attributes$style, 'font-size', '3cqh')
+											]),
+										_List_Nil)
+									])),
+								_Utils_Tuple2(3, _List_Nil),
+								_Utils_Tuple2(
+								14,
+								function () {
+									var styles = _Utils_ap(
+										_List_fromArray(
+											[
+												$elm$html$Html$Events$onClick($author$project$Types$StartGame),
+												A2($elm$html$Html$Attributes$style, 'height', '70%'),
+												A2($elm$html$Html$Attributes$style, 'background-color', 'rgb(227, 7, 20)'),
+												A2($elm$html$Html$Attributes$style, 'color', 'white'),
+												A2($elm$html$Html$Attributes$style, 'border', 'none'),
+												A2($elm$html$Html$Attributes$style, 'border-radius', '1cqh'),
+												A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
+												A2($elm$html$Html$Attributes$style, 'font-family', 'Lucida Sans'),
+												A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
+											]),
+										$author$project$Utils$centeringstuff);
+									return (status.username === '') ? _List_fromArray(
+										[
+											$elm$html$Html$text('')
+										]) : ($elm_community$maybe_extra$Maybe$Extra$isJust(
+										A2(
+											$elm$core$Maybe$andThen,
+											$elm$core$Dict$get(status.username),
+											status.thesheet)) ? _List_fromArray(
+										[
+											A2(
+											$elm$html$Html$button,
+											styles,
+											_List_fromArray(
+												[
+													$elm$html$Html$text('\u00A0Begin het spel!\u00A0')
+												]))
+										]) : (status.waiting ? _List_fromArray(
+										[
+											$elm$html$Html$text('Je staat op de wachtrij, er zijn nog 3586 kandidaten voor je. (Dit kan 10-20 seconden duren)')
+										]) : _List_fromArray(
+										[
+											A2(
+											$elm$html$Html$button,
+											styles,
+											_List_fromArray(
+												[
+													$elm$html$Html$text('\u00A0Schrijf je in!\u00A0')
+												]))
+										])));
+								}()),
+								_Utils_Tuple2(38, _List_Nil)
+							])))
+				])));
+};
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $elm$html$Html$source = _VirtualDom_node('source');
 var $elm$html$Html$Attributes$src = function (url) {
 	return A2(
@@ -12494,14 +12728,18 @@ var $elm$html$Html$Attributes$src = function (url) {
 		'src',
 		_VirtualDom_noJavaScriptOrHtmlUri(url));
 };
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
-var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
 var $elm$html$Html$video = _VirtualDom_node('video');
-var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
+var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var $elm$svg$Svg$foreignObject = $elm$svg$Svg$trustedNode('foreignObject');
+var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
+var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
+var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
+var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
+var $elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
+var $elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
 var $author$project$Afrekenen$viewAfrekenen = function (status) {
 	if (status.$ === 'Win') {
 		var info = status.a;
@@ -12511,59 +12749,72 @@ var $author$project$Afrekenen$viewAfrekenen = function (status) {
 				[
 					A2($elm$html$Html$Attributes$style, 'background-image', 'url(\'images/astrid.jpg\')'),
 					A2($elm$html$Html$Attributes$style, 'background-size', '100%'),
-					A2($elm$html$Html$Attributes$style, 'height', '100%')
+					A2($elm$html$Html$Attributes$style, 'height', '100%'),
+					$elm$html$Html$Events$onClick($author$project$Types$Submit)
 				]),
-			$author$project$Utils$rows(
-				_List_fromArray(
-					[
-						_Utils_Tuple3(
-						20,
-						_List_Nil,
-						_List_fromArray(
-							[
-								A2(
-								$elm$svg$Svg$svg,
-								_List_fromArray(
-									[
-										$elm$svg$Svg$Attributes$height('100%')
-									]),
-								_List_Nil)
-							])),
-						_Utils_Tuple3(
-						10,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text(
-								'Je hebt ' + ($elm$core$String$fromInt(info.basis) + ' punten,'))
-							])),
-						_Utils_Tuple3(
-						10,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text(
-								'plus ' + ($elm$core$String$fromInt(10 * info.uithethoofd) + ' voor de vragen uit het hoofd.'))
-							])),
-						_Utils_Tuple3(
-						10,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text(
-								'Daar komt nog ' + ($elm$core$String$fromInt(
-									100 - (25 * A2($elm$core$Basics$min, 4, info.fout))) + (' bonus bij voor ' + ($elm$core$String$fromInt(info.fout) + ' fouten.'))))
-							])),
-						_Utils_Tuple3(
-						10,
-						_List_Nil,
-						_List_fromArray(
-							[
-								$elm$html$Html$text(
-								'Dan komen we uit op ' + ($elm$core$String$fromInt(
-									((info.basis + (10 * info.uithethoofd)) + 100) - (25 * A2($elm$core$Basics$min, 4, info.fout))) + ' in totaal.'))
-							]))
-					])));
+			_List_fromArray(
+				[
+					A2(
+					$elm$svg$Svg$svg,
+					_List_fromArray(
+						[
+							$elm$svg$Svg$Attributes$height('100%'),
+							$elm$svg$Svg$Attributes$width('100%'),
+							$elm$svg$Svg$Attributes$viewBox('0 0 100% 100%')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$elm$svg$Svg$rect,
+							_List_fromArray(
+								[
+									$elm$svg$Svg$Attributes$fill('rgba(237, 230, 214, 0.9)'),
+									$elm$svg$Svg$Attributes$x('5%'),
+									$elm$svg$Svg$Attributes$y('15%'),
+									$elm$svg$Svg$Attributes$height('70%'),
+									$elm$svg$Svg$Attributes$width('35%')
+								]),
+							_List_Nil),
+							A2(
+							$elm$svg$Svg$foreignObject,
+							_List_fromArray(
+								[
+									$elm$svg$Svg$Attributes$x('8%'),
+									$elm$svg$Svg$Attributes$y('25%'),
+									$elm$svg$Svg$Attributes$height('60%'),
+									$elm$svg$Svg$Attributes$width('30%')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$elm$html$Html$div,
+									_List_fromArray(
+										[
+											A2($elm$html$Html$Attributes$style, 'font-size', '4cqh'),
+											A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder')
+										]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text(
+											'Je hebt ' + ($elm$core$String$fromInt(info.basis) + ' punten.')),
+											A2($elm$html$Html$br, _List_Nil, _List_Nil),
+											A2($elm$html$Html$br, _List_Nil, _List_Nil),
+											$elm$html$Html$text(
+											'Plus ' + ($elm$core$String$fromInt(10 * info.uithethoofd) + ' bonus voor de vragen uit het hoofd.')),
+											A2($elm$html$Html$br, _List_Nil, _List_Nil),
+											A2($elm$html$Html$br, _List_Nil, _List_Nil),
+											$elm$html$Html$text(
+											'Daar komt nog ' + ($elm$core$String$fromInt(
+												100 - (25 * A2($elm$core$Basics$min, 4, info.fout))) + (' bonus bij voor ' + ($elm$core$String$fromInt(info.fout) + ' fouten.')))),
+											A2($elm$html$Html$br, _List_Nil, _List_Nil),
+											A2($elm$html$Html$br, _List_Nil, _List_Nil),
+											$elm$html$Html$text(
+											'Dan komen we uit op ' + ($elm$core$String$fromInt(
+												((info.basis + (10 * info.uithethoofd)) + 100) - (25 * A2($elm$core$Basics$min, 4, info.fout))) + ' in totaal.'))
+										]))
+								]))
+						]))
+				]));
 	} else {
 		var info = status.a;
 		return A2(
@@ -12572,7 +12823,8 @@ var $author$project$Afrekenen$viewAfrekenen = function (status) {
 				[
 					A2($elm$html$Html$Attributes$style, 'background-image', 'url(\'images/astrid.jpg\')'),
 					A2($elm$html$Html$Attributes$style, 'background-size', '100%'),
-					A2($elm$html$Html$Attributes$style, 'height', '100%')
+					A2($elm$html$Html$Attributes$style, 'height', '100%'),
+					$elm$html$Html$Events$onClick($author$project$Types$Submit)
 				]),
 			$author$project$Utils$rows(
 				_List_fromArray(
@@ -12582,16 +12834,16 @@ var $author$project$Afrekenen$viewAfrekenen = function (status) {
 						15,
 						_List_fromArray(
 							[
-								A2($elm$html$Html$Attributes$style, 'background-color', 'rbga(237, 230, 214, 0.9)'),
+								A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(237, 230, 214, 0.9)'),
 								A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
-								A2($elm$html$Html$Attributes$style, 'font-size', '6cqh')
+								A2($elm$html$Html$Attributes$style, 'font-size', '5cqh')
 							]),
 						$author$project$Utils$cols(
 							_List_fromArray(
 								[
-									_Utils_Tuple2(45, _List_Nil),
+									_Utils_Tuple2(5, _List_Nil),
 									_Utils_Tuple2(
-									10,
+									90,
 									$author$project$Utils$rows(
 										_List_fromArray(
 											[
@@ -12599,29 +12851,39 @@ var $author$project$Afrekenen$viewAfrekenen = function (status) {
 												_Utils_Tuple3(
 												50,
 												_List_Nil,
-												_List_fromArray(
-													[
-														$elm$html$Html$text('Helaas!')
-													])),
+												$author$project$Utils$cols(
+													_List_fromArray(
+														[
+															_Utils_Tuple2(
+															100,
+															_List_fromArray(
+																[
+																	A2(
+																	$elm$html$Html$div,
+																	_List_fromArray(
+																		[
+																			A2($elm$html$Html$Attributes$style, 'text-align', 'center')
+																		]),
+																	_List_fromArray(
+																		[
+																			$elm$html$Html$text('Helaas! Het woord was \"' + (info.woord + '\". Gelukkig mag ik je wel de pennenset meegeven.'))
+																		]))
+																]))
+														]))),
 												_Utils_Tuple3(25, _List_Nil, _List_Nil)
 											]))),
-									_Utils_Tuple2(45, _List_Nil)
+									_Utils_Tuple2(5, _List_Nil)
 								]))),
 						_Utils_Tuple3(15, _List_Nil, _List_Nil)
 					])));
 	}
 };
-var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
 var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
 var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
-var $elm$svg$Svg$foreignObject = $elm$svg$Svg$trustedNode('foreignObject');
 var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
 var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
 var $elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
-var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
-var $elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
-var $elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
 var $author$project$Letters$klokje = F2(
 	function (cx, millisdiff) {
 		var second = A2($elm$core$Basics$modBy, 60, (millisdiff / 1000) | 0);
@@ -12680,8 +12942,6 @@ var $author$project$Letters$klokje = F2(
 					]))
 			]);
 	});
-var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
-var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var $author$project$Utils$svgfullsize = _List_fromArray(
 	[
 		$elm$svg$Svg$Attributes$width('100%'),
@@ -13753,7 +14013,8 @@ var $author$project$Hoofdspel$viewGame = function (status) {
 									[
 										$author$project$Letters$punten(status.punten)
 									]))
-							])))
+							]))),
+					_Utils_Tuple3(5, _List_Nil, _List_Nil)
 				])));
 };
 var $author$project$Types$fromSpelduur = function (x) {
@@ -13936,6 +14197,127 @@ var $author$project$Highscores$viewHighscore = function (info) {
 var $author$project$Types$LetterKopen = function (a) {
 	return {$: 'LetterKopen', a: a};
 };
+var $author$project$Nakijken$letterbalk = function (status) {
+	return A3(
+		$author$project$Letters$letters,
+		$elm$core$Maybe$Just(12),
+		A2(
+			$elm$core$List$map,
+			function ($) {
+				return $.show;
+			},
+			$elm$core$Dict$values(status.info)),
+		$elm$core$Maybe$Just($author$project$Types$LetterKopen));
+};
+var $author$project$Nakijken$viewfocus = function (status) {
+	return A2(
+		$elm$svg$Svg$svg,
+		$author$project$Utils$svgfullsize,
+		_List_fromArray(
+			[
+				A2(
+				$elm$svg$Svg$rect,
+				A2(
+					$elm$core$List$cons,
+					$elm$svg$Svg$Attributes$fill('rgba(237, 230, 214, 0.9)'),
+					$author$project$Utils$svgfullsize),
+				_List_Nil),
+				A2(
+				$elm$svg$Svg$foreignObject,
+				$author$project$Utils$svgfullsize,
+				_List_fromArray(
+					[
+						A2(
+						$elm$html$Html$div,
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'padding', '5cqh 5cqh')
+							]),
+						function () {
+							var _v0 = A2(
+								$elm$core$Maybe$andThen,
+								A2($elm_community$basics_extra$Basics$Extra$flip, $elm$core$Dict$get, status.info),
+								status.focus);
+							if (_v0.$ === 'Nothing') {
+								return _List_Nil;
+							} else {
+								var info = _v0.a;
+								return _List_fromArray(
+									[
+										$elm$html$Html$text(info.vraag),
+										A2($elm$html$Html$br, _List_Nil, _List_Nil),
+										A2($elm$html$Html$br, _List_Nil, _List_Nil),
+										$elm$html$Html$text('Gegeven antwoord: ' + info.gegeven),
+										A2($elm$html$Html$br, _List_Nil, _List_Nil),
+										A2($elm$html$Html$br, _List_Nil, _List_Nil),
+										$elm$html$Html$text('Juiste antwoord: ' + info.correct)
+									]);
+							}
+						}())
+					]))
+			]));
+};
+var $author$project$Nakijken$viewNakijk = function (status) {
+	return A2(
+		$elm$html$Html$div,
+		_List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'background-image', 'url(\'images/astrid.jpg\')'),
+				A2($elm$html$Html$Attributes$style, 'background-size', '100%'),
+				A2($elm$html$Html$Attributes$style, 'height', '100%')
+			]),
+		$author$project$Utils$rows(
+			_List_fromArray(
+				[
+					_Utils_Tuple3(20, _List_Nil, _List_Nil),
+					_Utils_Tuple3(
+					40,
+					_List_Nil,
+					$author$project$Utils$cols(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(10, _List_Nil),
+								_Utils_Tuple2(
+								50,
+								_List_fromArray(
+									[
+										$author$project$Nakijken$viewfocus(status)
+									])),
+								_Utils_Tuple2(40, _List_Nil)
+							]))),
+					_Utils_Tuple3(20, _List_Nil, _List_Nil),
+					_Utils_Tuple3(
+					15,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(237, 230, 214, 0.9)'),
+							A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder')
+						]),
+					$author$project$Utils$cols(
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								10,
+								_List_fromArray(
+									[
+										$author$project$Letters$klok(status.tijdover)
+									])),
+								_Utils_Tuple2(
+								80,
+								_List_fromArray(
+									[
+										$author$project$Nakijken$letterbalk(status)
+									])),
+								_Utils_Tuple2(
+								10,
+								_List_fromArray(
+									[
+										$author$project$Letters$punten(status.punten)
+									]))
+							]))),
+					_Utils_Tuple3(5, _List_Nil, _List_Nil)
+				])));
+};
 var $author$project$Utils$first = function (_v0) {
 	var a = _v0.a;
 	var b = _v0.b;
@@ -13959,7 +14341,7 @@ var $author$project$Woordraden$viewWoord = function (status) {
 					15,
 					_List_fromArray(
 						[
-							A2($elm$html$Html$Attributes$style, 'background-color', 'rbga(237, 230, 214, 0.9)'),
+							A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(237, 230, 214, 0.9)'),
 							A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder')
 						]),
 					$author$project$Utils$cols(
@@ -14177,167 +14559,14 @@ var $author$project$Main$view = F2(
 											]),
 										_List_Nil)
 									]))
-							])) : A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								A2($elm$html$Html$Attributes$style, 'background-image', 'url(\'images/leeg.jpeg\')'),
-								A2($elm$html$Html$Attributes$style, 'background-size', '100%'),
-								A2($elm$html$Html$Attributes$style, 'height', '100%')
-							]),
-						$author$project$Utils$rows(
-							_List_fromArray(
-								[
-									_Utils_Tuple3(15, _List_Nil, _List_Nil),
-									_Utils_Tuple3(
-									5,
-									_List_Nil,
-									$author$project$Utils$cols(
-										_List_fromArray(
-											[
-												_Utils_Tuple2(38, _List_Nil),
-												_Utils_Tuple2(
-												10,
-												_List_fromArray(
-													[
-														A2(
-														$elm$html$Html$button,
-														_List_fromArray(
-															[
-																$elm$html$Html$Events$onClick($author$project$Types$GetHighscores),
-																A2($elm$html$Html$Attributes$style, 'height', '100%'),
-																A2($elm$html$Html$Attributes$style, 'width', '100%'),
-																A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(88, 88, 88, 1)'),
-																A2($elm$html$Html$Attributes$style, 'color', 'white'),
-																A2($elm$html$Html$Attributes$style, 'border', 'none'),
-																A2($elm$html$Html$Attributes$style, 'border-radius', '1cqh'),
-																A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
-																A2($elm$html$Html$Attributes$style, 'font-family', 'Lucida Sans'),
-																A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
-															]),
-														_List_fromArray(
-															[
-																$elm$html$Html$text('Highscores')
-															]))
-													])),
-												_Utils_Tuple2(45, _List_Nil)
-											]))),
-									_Utils_Tuple3(20, _List_Nil, _List_Nil),
-									_Utils_Tuple3(
-									20,
-									_List_fromArray(
-										[
-											A2($elm$html$Html$Attributes$style, 'color', 'white'),
-											A2($elm$html$Html$Attributes$style, 'font-weight', 'bolder'),
-											A2($elm$html$Html$Attributes$style, 'font-size', '3.5cqh'),
-											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-											A2($elm$html$Html$Attributes$style, 'width', '100%'),
-											A2($elm$html$Html$Attributes$style, 'text-shadow', '2px 2px 4px #000000')
-										]),
-									$author$project$Utils$cols(
-										_List_fromArray(
-											[
-												_Utils_Tuple2(10, _List_Nil),
-												_Utils_Tuple2(
-												80,
-												_List_fromArray(
-													[
-														$elm$html$Html$text('Goeienavond, hartelijk welkom bij 2 voor 12.'),
-														A2($elm$html$Html$br, _List_Nil, _List_Nil),
-														$elm$html$Html$text('Wil je je voorstellen?')
-													])),
-												_Utils_Tuple2(10, _List_Nil)
-											]))),
-									_Utils_Tuple3(
-									10,
-									_List_Nil,
-									$author$project$Utils$cols(
-										_List_fromArray(
-											[
-												_Utils_Tuple2(38, _List_Nil),
-												_Utils_Tuple2(
-												7,
-												_List_fromArray(
-													[
-														A2(
-														$elm$html$Html$input,
-														_List_fromArray(
-															[
-																$elm$html$Html$Attributes$placeholder('naam'),
-																$elm$html$Html$Attributes$value(status.username),
-																$elm$html$Html$Events$onInput($author$project$Types$Answer),
-																A2($elm$html$Html$Attributes$style, 'height', '100%'),
-																A2($elm$html$Html$Attributes$style, 'padding', '0cqh 2cqh'),
-																A2($elm$html$Html$Attributes$style, 'font-size', '3cqh')
-															]),
-														_List_Nil)
-													])),
-												_Utils_Tuple2(3, _List_Nil),
-												_Utils_Tuple2(
-												14,
-												function () {
-													var styles = _Utils_ap(
-														_List_fromArray(
-															[
-																$elm$html$Html$Events$onClick($author$project$Types$StartGame),
-																A2($elm$html$Html$Attributes$style, 'height', '70%'),
-																A2($elm$html$Html$Attributes$style, 'background-color', 'rgb(227, 7, 20)'),
-																A2($elm$html$Html$Attributes$style, 'color', 'white'),
-																A2($elm$html$Html$Attributes$style, 'border', 'none'),
-																A2($elm$html$Html$Attributes$style, 'border-radius', '1cqh'),
-																A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
-																A2($elm$html$Html$Attributes$style, 'font-family', 'Lucida Sans'),
-																A2($elm$html$Html$Attributes$style, 'box-shadow', '1px 9px #888888')
-															]),
-														$author$project$Utils$centeringstuff);
-													var _v3 = _Utils_Tuple2(
-														status.username,
-														A2(
-															$elm$core$Maybe$andThen,
-															$elm$core$Dict$get(status.username),
-															status.thesheet));
-													if (_v3.a === '') {
-														return _List_fromArray(
-															[
-																$elm$html$Html$text('')
-															]);
-													} else {
-														if (_v3.b.$ === 'Nothing') {
-															var _v4 = _v3.b;
-															return status.waiting ? _List_fromArray(
-																[
-																	$elm$html$Html$text('Je staat op de wachtrij, er zijn nog 3586 kandidaten voor je. (Dit kan 10-20 seconden duren)')
-																]) : _List_fromArray(
-																[
-																	A2(
-																	$elm$html$Html$button,
-																	styles,
-																	_List_fromArray(
-																		[
-																			$elm$html$Html$text('\u00A0Schrijf je in!\u00A0')
-																		]))
-																]);
-														} else {
-															return _List_fromArray(
-																[
-																	A2(
-																	$elm$html$Html$button,
-																	styles,
-																	_List_fromArray(
-																		[
-																			$elm$html$Html$text('\u00A0Begin het spel!\u00A0')
-																		]))
-																]);
-														}
-													}
-												}()),
-												_Utils_Tuple2(38, _List_Nil)
-											])))
-								])));
+							])) : $author$project$Main$beginmenu(status);
 				}
-			default:
+			case 'Highscore':
 				var status = model.a;
 				return $author$project$Highscores$viewHighscore(status);
+			default:
+				var status = model.a;
+				return $author$project$Nakijken$viewNakijk(status);
 		}
 	});
 var $author$project$Main$main = $MartinSStewart$elm_audio$Audio$elementWithAudio(
