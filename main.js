@@ -11902,6 +11902,8 @@ var $author$project$Woordraden$woordupdate = F2(
 							return status;
 						case 'Streepje':
 							return status;
+						case 'Zwart':
+							return status;
 						default:
 							return A5($author$project$Woordraden$woordupdate2, status, i, letter, correct, target);
 					}
@@ -12363,7 +12365,7 @@ var $author$project$Main$update = F3(
 												return _Utils_Tuple2(f, status.currentTime);
 											},
 											status.faal),
-										woord: status.woord
+										woord: status.correctwoord
 									})),
 							A3($author$project$Database$schrijfscore, 0, status.logindex, status.oauth),
 							$MartinSStewart$elm_audio$Audio$cmdNone);
@@ -12866,7 +12868,7 @@ var $author$project$Afrekenen$viewAfrekenen = function (status) {
 																		]),
 																	_List_fromArray(
 																		[
-																			$elm$html$Html$text('Helaas! Het woord was \"' + (info.woord + '\". Gelukkig mag ik je wel de pennenset meegeven.'))
+																			$elm$html$Html$text('Helaas! Het woord was \'' + (info.woord + '\'. Gelukkig mag ik je wel de pennenset meegeven.'))
 																		]))
 																]))
 														]))),
@@ -13052,14 +13054,6 @@ var $author$project$Letters$letters = F3(
 							function (_v0) {
 								var i = _v0.a;
 								var l = _v0.b;
-								var styles = _List_fromArray(
-									[
-										A2($elm$html$Html$Attributes$style, 'background-size', '100% 100%'),
-										A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
-										A2($elm$html$Html$Attributes$style, 'opacity', '100%'),
-										A2($elm$html$Html$Attributes$style, 'height', '4cqh'),
-										A2($elm$html$Html$Attributes$style, 'width', '3cqh')
-									]);
 								var event = function () {
 									if (onclick.$ === 'Nothing') {
 										return _List_Nil;
@@ -13072,6 +13066,16 @@ var $author$project$Letters$letters = F3(
 											]);
 									}
 								}();
+								var styles = _Utils_ap(
+									_List_fromArray(
+										[
+											A2($elm$html$Html$Attributes$style, 'background-size', '100% 100%'),
+											A2($elm$html$Html$Attributes$style, 'font-size', '3cqh'),
+											A2($elm$html$Html$Attributes$style, 'opacity', '100%'),
+											A2($elm$html$Html$Attributes$style, 'height', '4cqh'),
+											A2($elm$html$Html$Attributes$style, 'width', '3cqh')
+										]),
+									event);
 								switch (l.$) {
 									case 'Opgezocht':
 										var letter = l.a;
@@ -13083,26 +13087,20 @@ var $author$project$Letters$letters = F3(
 												styles),
 											_List_fromArray(
 												[
+													$elm$html$Html$text(
 													A2(
-													$elm$html$Html$div,
-													event,
-													_List_fromArray(
-														[
-															$elm$html$Html$text(
+														$elm$core$Basics$composeL,
+														A2(
+															$elm$core$Basics$composeL,
 															A2(
 																$elm$core$Basics$composeL,
 																A2(
 																	$elm$core$Basics$composeL,
-																	A2(
-																		$elm$core$Basics$composeL,
-																		A2(
-																			$elm$core$Basics$composeL,
-																			$elm$core$String$toUpper,
-																			A2($elm$core$String$slice, 0, 1)),
-																		$author$project$Utils$removestopwords),
-																	$kuon$elm_string_normalize$String$Normalize$removeDiacritics),
-																$elm$core$String$toLower)(letter))
-														]))
+																	$elm$core$String$toUpper,
+																	A2($elm$core$String$slice, 0, 1)),
+																$author$project$Utils$removestopwords),
+															$kuon$elm_string_normalize$String$Normalize$removeDiacritics),
+														$elm$core$String$toLower)(letter))
 												]));
 									case 'UitHetHoofd':
 										var letter = l.a;
@@ -13114,26 +13112,20 @@ var $author$project$Letters$letters = F3(
 												styles),
 											_List_fromArray(
 												[
+													$elm$html$Html$text(
 													A2(
-													$elm$html$Html$div,
-													event,
-													_List_fromArray(
-														[
-															$elm$html$Html$text(
+														$elm$core$Basics$composeL,
+														A2(
+															$elm$core$Basics$composeL,
 															A2(
 																$elm$core$Basics$composeL,
 																A2(
 																	$elm$core$Basics$composeL,
-																	A2(
-																		$elm$core$Basics$composeL,
-																		A2(
-																			$elm$core$Basics$composeL,
-																			$elm$core$String$toUpper,
-																			A2($elm$core$String$slice, 0, 1)),
-																		$author$project$Utils$removestopwords),
-																	$kuon$elm_string_normalize$String$Normalize$removeDiacritics),
-																$elm$core$String$toLower)(letter))
-														]))
+																	$elm$core$String$toUpper,
+																	A2($elm$core$String$slice, 0, 1)),
+																$author$project$Utils$removestopwords),
+															$kuon$elm_string_normalize$String$Normalize$removeDiacritics),
+														$elm$core$String$toLower)(letter))
 												]));
 									case 'Paars':
 										return A2(
